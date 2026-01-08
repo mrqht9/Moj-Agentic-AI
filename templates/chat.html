@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html class="light" lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>كنق الاتمته - واجهة الشات</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0db9f2",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#101e22",
+                        "sidebar-light": "#f0f4f6", 
+                        "sidebar-dark": "#0d181c",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["Fira Code", "monospace"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 10px;
+        }
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #0db9f2;
+            animation: typing 1.4s infinite;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+        .message-enter {
+            animation: messageSlide 0.3s ease-out;
+        }
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#0d181c] dark:text-gray-100 overflow-hidden h-screen flex w-full">
+    <aside class="hidden md:flex flex-col w-[260px] bg-sidebar-light dark:bg-sidebar-dark border-r border-[#e7f0f4] dark:border-gray-800 h-full shrink-0 transition-all duration-300">
+        <div class="flex flex-col h-full p-4 gap-4">
+            <div class="px-3 pt-2">
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">كنق الاتمته</h1>
+            </div>
+            <button class="flex w-full items-center gap-3 px-3 py-3 rounded-lg border border-[#e7f0f4] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 transition-colors shadow-sm bg-white dark:bg-transparent group mt-2">
+                <span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">dashboard</span>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-200">لوحة التحكم</span>
+            </button>
+            <div class="flex flex-col flex-1 gap-2 overflow-y-auto pr-2 mt-2">
+                <button class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#e7f0f4] dark:hover:bg-gray-800 transition-colors text-left group">
+                    <span class="material-symbols-outlined text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-200 text-[20px]">toc</span>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">تفاصيل العمليات</span>
+                </button>
+                <button class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#e7f0f4] dark:hover:bg-gray-800 transition-colors text-left group">
+                    <span class="material-symbols-outlined text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-200 text-[20px]">summarize</span>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">ملخص</span>
+                </button>
+            </div>
+            <div class="mt-auto border-t border-[#e7f0f4] dark:border-gray-800 pt-4 flex flex-col gap-1">
+                <button class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#e7f0f4] dark:hover:bg-gray-800 transition-colors text-left group">
+                    <span class="material-symbols-outlined text-gray-500 text-[20px] group-hover:text-gray-700 dark:group-hover:text-gray-200">settings</span>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">الإعدادات</span>
+                </button>
+                <button class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#e7f0f4] dark:hover:bg-gray-800 transition-colors text-left group">
+                    <span class="material-symbols-outlined text-gray-500 text-[20px] group-hover:text-gray-700 dark:group-hover:text-gray-200">person</span>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">البروفايل</span>
+                </button>
+                <button class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#e7f0f4] dark:hover:bg-gray-800 transition-colors text-left group cursor-pointer" id="theme-toggle">
+                    <span class="material-symbols-outlined text-gray-500 text-[20px] group-hover:text-gray-700 dark:group-hover:text-gray-200">dark_mode</span>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">المظهر</span>
+                </button>
+                <div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#e7f0f4] dark:hover:bg-gray-800 transition-colors cursor-pointer mt-2">
+                    <div class="bg-center bg-no-repeat bg-cover rounded-full size-8 shrink-0 border border-gray-200" data-alt="User profile picture placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCZChx1vqL_IqgkOi2u0nVqn6mbE7eAwZ0t9iJvTGnfNd9Tpd8cNStbNBGBLmE1PZSYV5GY8zVX1HV5fcxmE3khsk946QU2FJCz1D7rffuCPO5uZxdUkxNSQxFfMRay-fK0uQCAtCX99QAihZmDRKI2NqJHlCufO8x9CtG0z56zkS3pUH61nyyX9hWhwUngM5E3Kq93JGXfQ_zLo-plPBe2hTS3EJ7CEzcb2gSi5CT0xqgwSPcgJ8Zz60U2I5FInsLduUEorfIYXW1u");'></div>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-sm font-bold text-gray-900 dark:text-white truncate">المستخدم</span>
+                        <span class="text-xs text-gray-500 truncate">Pro Plan</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full bg-white dark:bg-background-dark relative">
+        <header class="flex items-center justify-between border-b border-[#e7f0f4] dark:border-gray-800 px-6 py-3 shrink-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md z-10 sticky top-0">
+            <div class="flex items-center gap-3 text-[#0d181c] dark:text-white cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 px-2 py-1 rounded-md transition-colors">
+                <h2 class="text-lg font-bold leading-tight tracking-tight flex items-center gap-2">
+                    GPT-4 Model 
+                    <span class="material-symbols-outlined text-gray-400 text-[20px]">expand_more</span>
+                </h2>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="flex items-center justify-center rounded-lg size-9 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors" title="مشاركة المحادثة" id="share-btn">
+                    <span class="material-symbols-outlined text-[20px]">ios_share</span>
+                </button>
+                <button class="flex items-center justify-center rounded-lg size-9 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors" title="محادثة جديدة" id="new-chat-btn">
+                    <span class="material-symbols-outlined text-[20px]">add</span>
+                </button>
+                <button class="flex items-center justify-center rounded-lg size-9 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors md:hidden">
+                    <span class="material-symbols-outlined text-[20px]">menu</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto w-full" id="chat-container">
+            <div class="flex flex-col w-full max-w-[840px] mx-auto px-4 py-6 md:px-8 pb-32" id="messages-container">
+                <div class="group flex gap-4 md:gap-6 py-6 border-b border-transparent hover:bg-gray-50/50 dark:hover:bg-gray-800/30 rounded-xl px-2 transition-colors message-enter">
+                    <div class="shrink-0 flex flex-col items-center">
+                        <div class="bg-center bg-no-repeat bg-cover rounded-full size-9 border border-gray-100 dark:border-gray-700 shadow-sm" data-alt="AI Assistant Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA_CeUQKneXYnHrEZrouHelJZkYCjkHvtjS87Gx_isr5lnetDSiAfHtjF0RP2idnqhn2oU1AXQee0O11KpoXyBax7489TCdJsU4qazVDJApsMV8WmyQ06XVbhDOmMt2jlbnWZP0-B2dc7tyNLUONyxPds6Ib1ORvR17bTUMbgqFbwLHYootwjrJ8JQGU1nuYeVFNrv559Zftuw4z9HtUc1CwPiSEFwE9lYRmAjiL_alzFQhBjFmFp2fnO9cMHdoRWH8kq0sQHNbNhQI");'></div>
+                    </div>
+                    <div class="flex flex-col gap-2 w-full min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-semibold text-gray-900 dark:text-white">المساعد</span>
+                            <span class="text-xs text-gray-400" id="welcome-time"></span>
+                        </div>
+                        <div class="text-base leading-relaxed text-gray-800 dark:text-gray-200 font-normal">
+                            مرحباً! أنا مساعدك الذكي في كنق الاتمته. يمكنني مساعدتك في إدارة وسائل التواصل الاجتماعي، التحليلات، والأتمتة. كيف يمكنني مساعدتك اليوم؟
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="absolute bottom-0 w-full bg-white dark:bg-background-dark pt-2 pb-6 px-4 md:px-8">
+            <div class="w-full max-w-[840px] mx-auto">
+                <button class="absolute -top-12 left-1/2 -translate-x-1/2 bg-white dark:bg-[#1e2d33] border border-gray-200 dark:border-gray-700 shadow-md rounded-full size-8 flex items-center justify-center text-gray-500 hover:text-primary transition-colors z-10 hidden" id="scroll-bottom-btn">
+                    <span class="material-symbols-outlined text-[20px]">arrow_downward</span>
+                </button>
+                <div class="relative flex items-end w-full p-3 bg-white dark:bg-[#1a262b] border border-gray-300 dark:border-gray-600 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+                    <button class="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 shrink-0 mb-0.5">
+                        <span class="material-symbols-outlined text-[24px]">add_circle</span>
+                    </button>
+                    <textarea id="message-input" class="w-full max-h-[200px] py-3 px-3 bg-transparent border-0 focus:ring-0 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none leading-relaxed" placeholder="اكتب رسالتك هنا..." rows="1" style="min-height: 48px;"></textarea>
+                    <button id="send-btn" class="p-2 mb-0.5 bg-gray-200 text-gray-400 rounded-lg transition-colors shrink-0 shadow-sm" disabled>
+                        <span class="material-symbols-outlined text-[20px] font-bold block">arrow_upward</span>
+                    </button>
+                </div>
+                <div class="text-center mt-2">
+                    <p class="text-xs text-gray-400 dark:text-gray-500">كنق الاتمته - نظام إدارة وسائل التواصل الاجتماعي بالذكاء الاصطناعي</p>
+                </div>
+            </div>
+            <div class="absolute top-[-40px] left-0 w-full h-10 bg-gradient-to-t from-white dark:from-background-dark to-transparent pointer-events-none"></div>
+        </div>
+    </main>
+
+    <script>
+        let ws = null;
+        let isConnected = false;
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/chat`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                isConnected = true;
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleWebSocketMessage(data);
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                isConnected = false;
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function handleWebSocketMessage(data) {
+            if (data.type === 'typing') {
+                if (data.status) {
+                    showTypingIndicator();
+                } else {
+                    hideTypingIndicator();
+                }
+            } else if (data.type === 'assistant_message') {
+                addMessage('assistant', data.message, data.timestamp);
+            } else if (data.type === 'error') {
+                addMessage('error', data.message, data.timestamp);
+            }
+        }
+
+        function addMessage(type, message, timestamp) {
+            const container = document.getElementById('messages-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'group flex gap-4 md:gap-6 py-6 border-b border-transparent hover:bg-gray-50/50 dark:hover:bg-gray-800/30 rounded-xl px-2 transition-colors message-enter';
+            
+            if (type === 'user') {
+                messageDiv.classList.add('flex-row-reverse');
+                messageDiv.innerHTML = `
+                    <div class="shrink-0 flex flex-col items-center">
+                        <div class="bg-center bg-no-repeat bg-cover rounded-full size-9 border border-gray-100 dark:border-gray-700 shadow-sm" data-alt="User Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB5QiTAaMPw7ivM3a-9KI-Yj6_TG1X3TVrjM3Uow0awtwskRMcpOxS990sWxCAhYbQO7nOyyl0zKhL6qYOYtOcw8tASd4afOw4rgLFWhF6OQ4FjlqUEDlzsHiqayRkd0T6zV1_5rBb5UdJSAHitjAN012vi0Bc55-DimOFaTe_XEP6MPGoYKg91fIwK8sbVTRpaa33sis3_EoDwL_icTMASCA-VfEEXoJQHK59GJZ1gDSql3dUy50E2ie2ReVpYrxRewNGyXBeZkP8Q");'></div>
+                    </div>
+                    <div class="flex flex-col gap-2 w-full max-w-[80%] items-end">
+                        <div class="flex items-center gap-2 flex-row-reverse">
+                            <span class="text-sm font-semibold text-gray-900 dark:text-white">أنت</span>
+                            <span class="text-xs text-gray-400">${formatTime(timestamp)}</span>
+                        </div>
+                        <div class="bg-primary/10 dark:bg-primary/20 text-gray-900 dark:text-gray-100 px-5 py-3.5 rounded-2xl rounded-tr-sm text-base leading-relaxed">
+                            ${escapeHtml(message)}
+                        </div>
+                    </div>
+                `;
+            } else {
+                const avatarUrl = type === 'error' ? 
+                    'https://lh3.googleusercontent.com/aida-public/AB6AXuDQXwLNrtNm_fY4qplbko3e-_I3DWx6UcsN-G5kZ9uYYo5_M54yD-WhBVT9eAJZdrCuaFoZhd-OyXo0U-07kP2wo7cnd8_ArKo0DmJrxRhHGSU5w3X-hdIz9Yf-dvMe4PHRWSlyCSrfKGIsnsQrlJrCDLik12gTjNAnq-OkEKwblitN8GFK8m6h41H-KB1T3vmQDQsBQteYys1NLKFnFn4AjA3MQjhKjvyl67kwQZTXk8OPUMJvOloZUXBKWr3ectu7butheSp-_9gs' :
+                    'https://lh3.googleusercontent.com/aida-public/AB6AXuA_CeUQKneXYnHrEZrouHelJZkYCjkHvtjS87Gx_isr5lnetDSiAfHtjF0RP2idnqhn2oU1AXQee0O11KpoXyBax7489TCdJsU4qazVDJApsMV8WmyQ06XVbhDOmMt2jlbnWZP0-B2dc7tyNLUONyxPds6Ib1ORvR17bTUMbgqFbwLHYootwjrJ8JQGU1nuYeVFNrv559Zftuw4z9HtUc1CwPiSEFwE9lYRmAjiL_alzFQhBjFmFp2fnO9cMHdoRWH8kq0sQHNbNhQI';
+                
+                messageDiv.innerHTML = `
+                    <div class="shrink-0 flex flex-col items-center">
+                        <div class="bg-center bg-no-repeat bg-cover rounded-full size-9 border border-gray-100 dark:border-gray-700 shadow-sm" data-alt="AI Assistant Avatar" style='background-image: url("${avatarUrl}");'></div>
+                    </div>
+                    <div class="flex flex-col gap-3 w-full min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-semibold text-gray-900 dark:text-white">${type === 'error' ? 'خطأ' : 'المساعد'}</span>
+                            <span class="text-xs text-gray-400">${formatTime(timestamp)}</span>
+                        </div>
+                        <div class="text-base leading-relaxed text-gray-800 dark:text-gray-200 font-normal space-y-4">
+                            ${formatMessage(message)}
+                        </div>
+                        ${type !== 'error' ? `
+                        <div class="flex items-center gap-2 mt-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="نسخ" onclick="copyMessage(this)">
+                                <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                            </button>
+                            <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="إعادة توليد">
+                                <span class="material-symbols-outlined text-[18px]">refresh</span>
+                            </button>
+                            <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="إعجاب">
+                                <span class="material-symbols-outlined text-[18px]">thumb_up</span>
+                            </button>
+                            <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="عدم إعجاب">
+                                <span class="material-symbols-outlined text-[18px]">thumb_down</span>
+                            </button>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            
+            container.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function showTypingIndicator() {
+            hideTypingIndicator();
+            const container = document.getElementById('messages-container');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'group flex gap-4 md:gap-6 py-6 border-b border-transparent rounded-xl px-2 message-enter';
+            typingDiv.innerHTML = `
+                <div class="shrink-0 flex flex-col items-center">
+                    <div class="bg-center bg-no-repeat bg-cover rounded-full size-9 border border-gray-100 dark:border-gray-700 shadow-sm" data-alt="AI Assistant Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA_CeUQKneXYnHrEZrouHelJZkYCjkHvtjS87Gx_isr5lnetDSiAfHtjF0RP2idnqhn2oU1AXQee0O11KpoXyBax7489TCdJsU4qazVDJApsMV8WmyQ06XVbhDOmMt2jlbnWZP0-B2dc7tyNLUONyxPds6Ib1ORvR17bTUMbgqFbwLHYootwjrJ8JQGU1nuYeVFNrv559Zftuw4z9HtUc1CwPiSEFwE9lYRmAjiL_alzFQhBjFmFp2fnO9cMHdoRWH8kq0sQHNbNhQI");'></div>
+                </div>
+                <div class="flex flex-col gap-2 w-full min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold text-gray-900 dark:text-white">المساعد</span>
+                    </div>
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message || !isConnected) return;
+            
+            addMessage('user', message, new Date().toISOString());
+            
+            ws.send(JSON.stringify({
+                message: message
+            }));
+            
+            input.value = '';
+            input.style.height = 'auto';
+            updateSendButton();
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatMessage(text) {
+            text = escapeHtml(text);
+            text = text.replace(/\n/g, '<br>');
+            text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                return `
+                    <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1a262b] my-2">
+                        <div class="flex items-center justify-between px-4 py-2 bg-gray-100 dark:bg-[#233036] border-b border-gray-200 dark:border-gray-700">
+                            <span class="text-xs font-mono text-gray-500 dark:text-gray-400">${lang || 'code'}</span>
+                            <button class="flex items-center gap-1 text-xs text-gray-500 hover:text-primary transition-colors" onclick="copyCode(this)">
+                                <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                                نسخ الكود
+                            </button>
+                        </div>
+                        <div class="p-4 overflow-x-auto">
+                            <pre class="text-sm font-mono text-gray-800 dark:text-gray-300 leading-relaxed"><code>${code.trim()}</code></pre>
+                        </div>
+                    </div>
+                `;
+            });
+            text = text.replace(/`([^`]+)`/g, '<code class="font-mono text-sm bg-gray-100 dark:bg-[#1a262b] px-2 py-1 rounded border border-gray-200 dark:border-gray-700">$1</code>');
+            return text;
+        }
+
+        function copyCode(button) {
+            const codeBlock = button.closest('.rounded-lg').querySelector('code');
+            navigator.clipboard.writeText(codeBlock.textContent);
+            button.innerHTML = '<span class="material-symbols-outlined text-[14px]">check</span> تم النسخ';
+            setTimeout(() => {
+                button.innerHTML = '<span class="material-symbols-outlined text-[14px]">content_copy</span> نسخ الكود';
+            }, 2000);
+        }
+
+        function copyMessage(button) {
+            const messageDiv = button.closest('.flex.flex-col').querySelector('.text-base');
+            navigator.clipboard.writeText(messageDiv.textContent);
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chat-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateSendButton() {
+            const input = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            
+            if (input.value.trim().length > 0) {
+                sendBtn.disabled = false;
+                sendBtn.classList.remove('bg-gray-200', 'text-gray-400');
+                sendBtn.classList.add('bg-primary', 'hover:bg-[#0aa6da]', 'text-white');
+            } else {
+                sendBtn.disabled = true;
+                sendBtn.classList.add('bg-gray-200', 'text-gray-400');
+                sendBtn.classList.remove('bg-primary', 'hover:bg-[#0aa6da]', 'text-white');
+            }
+        }
+
+        const textarea = document.getElementById('message-input');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            updateSendButton();
+        });
+
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        document.getElementById('send-btn').addEventListener('click', sendMessage);
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const htmlEl = document.documentElement;
+            if (htmlEl.classList.contains('dark')) {
+                htmlEl.classList.remove('dark');
+                htmlEl.classList.add('light');
+                document.querySelector('#theme-toggle .material-symbols-outlined').textContent = 'dark_mode';
+            } else {
+                htmlEl.classList.add('dark');
+                htmlEl.classList.remove('light');
+                document.querySelector('#theme-toggle .material-symbols-outlined').textContent = 'light_mode';
+            }
+        });
+
+        document.getElementById('new-chat-btn').addEventListener('click', () => {
+            if (confirm('هل تريد بدء محادثة جديدة؟ سيتم حذف المحادثة الحالية.')) {
+                document.getElementById('messages-container').innerHTML = `
+                    <div class="group flex gap-4 md:gap-6 py-6 border-b border-transparent hover:bg-gray-50/50 dark:hover:bg-gray-800/30 rounded-xl px-2 transition-colors message-enter">
+                        <div class="shrink-0 flex flex-col items-center">
+                            <div class="bg-center bg-no-repeat bg-cover rounded-full size-9 border border-gray-100 dark:border-gray-700 shadow-sm" data-alt="AI Assistant Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA_CeUQKneXYnHrEZrouHelJZkYCjkHvtjS87Gx_isr5lnetDSiAfHtjF0RP2idnqhn2oU1AXQee0O11KpoXyBax7489TCdJsU4qazVDJApsMV8WmyQ06XVbhDOmMt2jlbnWZP0-B2dc7tyNLUONyxPds6Ib1ORvR17bTUMbgqFbwLHYootwjrJ8JQGU1nuYeVFNrv559Zftuw4z9HtUc1CwPiSEFwE9lYRmAjiL_alzFQhBjFmFp2fnO9cMHdoRWH8kq0sQHNbNhQI");'></div>
+                        </div>
+                        <div class="flex flex-col gap-2 w-full min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-semibold text-gray-900 dark:text-white">المساعد</span>
+                                <span class="text-xs text-gray-400">${formatTime(new Date().toISOString())}</span>
+                            </div>
+                            <div class="text-base leading-relaxed text-gray-800 dark:text-gray-200 font-normal">
+                                مرحباً! أنا مساعدك الذكي في كنق الاتمته. يمكنني مساعدتك في إدارة وسائل التواصل الاجتماعي، التحليلات، والأتمتة. كيف يمكنني مساعدتك اليوم؟
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        document.getElementById('welcome-time').textContent = formatTime(new Date().toISOString());
+
+        connectWebSocket();
+    </script>
+</body>
+</html>
