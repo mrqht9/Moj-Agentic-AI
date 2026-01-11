@@ -113,7 +113,7 @@ OPENAI_TEMPERATURE=0.7
 
 # Server Configuration
 HOST=0.0.0.0
-PORT=3000
+PORT=8000
 DEBUG=True
 
 # Database (Optional)
@@ -148,16 +148,20 @@ python run.py
 Or using uvicorn directly:
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 3000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 7. **Open in browser / فتح في المتصفح:**
 
-Navigate to: **http://localhost:3000**
+**Backend API:** http://localhost:8000
+
+**Frontend (React):** http://localhost:3000 (see Frontend Setup section)
 
 <div dir="rtl">
 
-انتقل إلى: **http://localhost:3000**
+**واجهة الخادم (API):** http://localhost:8000
+
+**الواجهة الأمامية (React):** http://localhost:3000 (راجع قسم إعداد الواجهة الأمامية)
 
 </div>
 
@@ -165,7 +169,7 @@ Navigate to: **http://localhost:3000**
 
 ```
 Moj-Agentic-AI/
-├── app/                          # Backend Application
+├── app/                          # Backend Application (FastAPI)
 │   ├── __init__.py
 │   ├── main.py                   # FastAPI application & WebSocket handler
 │   ├── core/
@@ -174,27 +178,151 @@ Moj-Agentic-AI/
 │   └── services/
 │       ├── __init__.py
 │       └── ai_service.py         # OpenAI integration service
+├── frontend/                     # React Frontend Application
+│   ├── src/
+│   │   ├── components/           # React components
+│   │   │   ├── ChatInterface.jsx
+│   │   │   ├── Sidebar.jsx
+│   │   │   ├── MessageList.jsx
+│   │   │   ├── Message.jsx
+│   │   │   ├── MessageInput.jsx
+│   │   │   └── TypingIndicator.jsx
+│   │   ├── App.jsx               # Main React component
+│   │   ├── main.jsx              # Entry point
+│   │   └── index.css             # Tailwind styles
+│   ├── index.html
+│   ├── package.json              # Node.js dependencies
+│   ├── vite.config.js            # Vite configuration
+│   ├── tailwind.config.js        # Tailwind configuration
+│   ├── postcss.config.js         # PostCSS configuration
+│   └── README.md                 # Frontend documentation
 ├── templates/
-│   └── chat.html                 # Chat interface (Arabic RTL)
+│   └── chat.html                 # Legacy HTML interface
 ├── static/                       # Static files (CSS, JS, images)
 ├── requirements.txt              # Python dependencies
 ├── .env.example                  # Environment variables template
 ├── .gitignore                    # Git ignore rules
-├── run.py                        # Quick start script
+├── run.py                        # Backend quick start script
 ├── SETUP.md                      # Detailed setup guide
 ├── USAGE_GUIDE.md               # Usage guide
 └── README.md                     # This file
 ```
 
+## 🎨 Frontend (React + Vite + TailwindCSS)
+
+### Technology Stack
+- **React 18.2.0** - Modern UI library
+- **Vite 5.0.8** - Fast build tool and dev server
+- **TailwindCSS 3.4.1** - Utility-first CSS framework
+- **Axios 1.6.5** - HTTP client for API calls
+- **React Icons 5.0.1** - Icon library (FiSend, FiPlus, MdDashboard, etc.)
+
+### Frontend Features
+- ✨ **Modern React Components** - Modular and reusable components
+- 🎨 **TailwindCSS Styling** - Beautiful and responsive design
+- 🌓 **Dark/Light Mode** - Toggle between themes
+- 📱 **Fully Responsive** - Works on all screen sizes
+- ⚡ **Fast Development** - Vite HMR for instant updates
+- 🔌 **WebSocket Integration** - Real-time chat with backend
+- 🎯 **Arabic RTL Support** - Full right-to-left layout
+
+### Frontend Setup
+
+1. **Navigate to frontend directory:**
+```bash
+cd frontend
+```
+
+2. **Install Node.js dependencies:**
+```bash
+npm install
+```
+
+3. **Run development server:**
+```bash
+npm run dev
+```
+
+Frontend will be available at: **http://localhost:3000**
+
+4. **Build for production:**
+```bash
+npm run build
+```
+
+### Frontend Scripts
+```bash
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run preview  # Preview production build
+npm run lint     # Lint code
+```
+
+<div dir="rtl">
+
+## 🎨 الواجهة الأمامية (React + Vite + TailwindCSS)
+
+### التقنيات المستخدمة
+- **React 18.2.0** - مكتبة واجهة مستخدم حديثة
+- **Vite 5.0.8** - أداة بناء وخادم تطوير سريع
+- **TailwindCSS 3.4.1** - إطار عمل CSS
+- **Axios 1.6.5** - عميل HTTP للاتصال بالـ API
+- **React Icons 5.0.1** - مكتبة الأيقونات
+
+### مميزات الواجهة الأمامية
+- ✨ **مكونات React حديثة** - مكونات معيارية وقابلة لإعادة الاستخدام
+- 🎨 **تصميم TailwindCSS** - تصميم جميل ومتجاوب
+- 🌓 **الوضع الليلي/النهاري** - التبديل بين الثيمات
+- 📱 **متجاوب بالكامل** - يعمل على جميع أحجام الشاشات
+- ⚡ **تطوير سريع** - Vite HMR للتحديثات الفورية
+- 🔌 **تكامل WebSocket** - دردشة فورية مع الخادم
+- 🎯 **دعم العربية RTL** - تخطيط كامل من اليمين لليسار
+
+### إعداد الواجهة الأمامية
+
+1. **الانتقال إلى مجلد frontend:**
+```bash
+cd frontend
+```
+
+2. **تثبيت مكتبات Node.js:**
+```bash
+npm install
+```
+
+3. **تشغيل خادم التطوير:**
+```bash
+npm run dev
+```
+
+الواجهة الأمامية ستكون متاحة على: **http://localhost:3000**
+
+4. **البناء للإنتاج:**
+```bash
+npm run build
+```
+
+### أوامر الواجهة الأمامية
+```bash
+npm run dev      # تشغيل خادم التطوير
+npm run build    # البناء للإنتاج
+npm run preview  # معاينة بناء الإنتاج
+npm run lint     # فحص الكود
+```
+
+</div>
+
 ## 🔌 API Endpoints
 
 ### WebSocket
-- `ws://localhost:3000/ws/chat` - WebSocket connection for real-time chat
+- `ws://localhost:8000/ws/chat` - WebSocket connection for real-time chat
 
 ### HTTP
 - `GET /` - Chat interface (HTML)
 - `GET /health` - Health check endpoint
 - `GET /static/{file_path}` - Static files (CSS, JS, images)
+
+**Note:** Backend runs on port **8000**, Frontend runs on port **3000**
 
 ### Example Health Check Response
 
@@ -216,7 +344,7 @@ Moj-Agentic-AI/
 | `OPENAI_MAX_TOKENS` | Maximum tokens | `2000` | No |
 | `OPENAI_TEMPERATURE` | Model temperature | `0.7` | No |
 | `HOST` | Server host | `0.0.0.0` | No |
-| `PORT` | Server port | `3000` | No |
+| `PORT` | Server port | `8000` | No |
 | `DEBUG` | Debug mode | `True` | No |
 
 <div dir="rtl">
@@ -228,7 +356,7 @@ Moj-Agentic-AI/
 | `OPENAI_MAX_TOKENS` | الحد الأقصى للتوكنز | `2000` | لا |
 | `OPENAI_TEMPERATURE` | درجة الإبداع | `0.7` | لا |
 | `HOST` | عنوان الخادم | `0.0.0.0` | لا |
-| `PORT` | منفذ الخادم | `3000` | لا |
+| `PORT` | منفذ الخادم | `8000` | لا |
 | `DEBUG` | وضع التطوير | `True` | لا |
 
 </div>
@@ -242,7 +370,7 @@ Moj-Agentic-AI/
 python run.py
 
 # Or with uvicorn
-uvicorn app.main:app --reload --host 0.0.0.0 --port 3000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### Adding New Features
@@ -374,9 +502,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Version 2.0.0 (Current)
 - ✅ Complete rewrite with FastAPI
+- ✅ React Frontend with Vite + TailwindCSS
 - ✅ Arabic RTL interface
 - ✅ WebSocket real-time communication
 - ✅ OpenAI GPT-4 integration
+- ✅ Modern component-based architecture
+- ✅ Axios for API calls
+- ✅ React Icons integration
 - ✅ Comprehensive requirements.txt
 - ✅ Windows encoding fixes
 
@@ -384,9 +516,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### الإصدار 2.0.0 (الحالي)
 - ✅ إعادة كتابة كاملة مع FastAPI
+- ✅ واجهة أمامية React مع Vite + TailwindCSS
 - ✅ واجهة عربية RTL
 - ✅ اتصال WebSocket مباشر
 - ✅ تكامل OpenAI GPT-4
+- ✅ بنية معمارية حديثة قائمة على المكونات
+- ✅ Axios للاتصال بالـ API
+- ✅ تكامل React Icons
 - ✅ requirements.txt شامل
 - ✅ إصلاحات ترميز Windows
 
