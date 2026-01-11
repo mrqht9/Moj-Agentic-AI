@@ -1,7 +1,9 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional, Dict, Any
 import uvicorn
 import json
 from datetime import datetime
@@ -10,6 +12,7 @@ import asyncio
 from pathlib import Path
 
 from app.services.ai_service import AIService
+from app.services.webhook_service import WebhookService
 from app.core.config import settings
 
 app = FastAPI(title="كنق الاتمته - Chatbot API", version="1.0.0")
@@ -27,6 +30,7 @@ static_path.mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
 ai_service = AIService()
+webhook_service = WebhookService()
 
 class ConnectionManager:
     def __init__(self):
@@ -44,6 +48,13 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+# Models for API requests
+class MessageRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+    user_id: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
 @app.get("/", response_class=HTMLResponse)
 async def get_chat_interface():
     html_file = Path(__file__).parent.parent / "templates" / "chat.html"
@@ -60,6 +71,16 @@ async def websocket_endpoint(websocket: WebSocket):
             message_data = json.loads(data)
             
             user_message = message_data.get("message", "")
+            session_id = message_data.get("session_id", None)
+            user_id = message_data.get("user_id", None)
+            
+            # إرسال رسالة المستخدم إلى n8n webhook
+            await webhook_service.send_message_to_n8n(
+                user_message=user_message,
+                session_id=session_id,
+                user_id=user_id,
+                metadata={"source": "websocket"}
+            )
             
             await manager.send_message({
                 "type": "user_message",
@@ -98,6 +119,45 @@ async def websocket_endpoint(websocket: WebSocket):
     
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+@app.post("/api/send-message")
+async def send_message_to_n8n(request: MessageRequest):
+    """
+    Endpoint POST لإرسال رسالة إلى n8n webhook
+    
+    يمكن استخدام هذا الـ endpoint لإرسال رسائل مباشرة إلى n8n
+    """
+    try:
+        success = await webhook_service.send_message_to_n8n(
+            user_message=request.message,
+            session_id=request.session_id,
+            user_id=request.user_id,
+            metadata=request.metadata
+        )
+        
+        if success:
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "status": "success",
+                    "message": "تم إرسال الرسالة إلى n8n بنجاح",
+                    "timestamp": datetime.now().isoformat()
+                }
+            )
+        else:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "error",
+                    "message": "فشل إرسال الرسالة إلى n8n (قد يكون webhook معطّل أو غير متاح)",
+                    "timestamp": datetime.now().isoformat()
+                }
+            )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"حدث خطأ أثناء إرسال الرسالة: {str(e)}"
+        )
 
 @app.get("/health")
 async def health_check():

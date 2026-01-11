@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
     
+    # N8N Webhook Configuration
+    N8N_WEBHOOK_URL: Optional[str] = None
+    N8N_WEBHOOK_ENABLED: bool = False
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
