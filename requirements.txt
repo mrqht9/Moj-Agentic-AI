@@ -29,9 +29,9 @@ hiredis==2.2.3               # Fast Redis client (C extension)
 # ============================================================================
 openai==2.14.0               # OpenAI API client (GPT-4, GPT-5 support - updated)
 transformers==4.36.2         # Hugging Face Transformers library
-torch==2.1.0                 # PyTorch deep learning framework
-torchvision==0.16.0          # PyTorch vision utilities
-torchaudio==2.1.0            # PyTorch audio utilities
+torch==2.2.0                 # PyTorch deep learning framework
+torchvision==0.17.0          # PyTorch vision utilities
+torchaudio==2.2.0            # PyTorch audio utilities
 accelerate==0.25.0           # Hugging Face Accelerate (optimizes training)
 openai-whisper==20231117     # OpenAI Whisper speech recognition model
 langchain==0.1.0             # LangChain framework for LLM applications
@@ -58,7 +58,7 @@ instaloader==4.10.3          # Instagram scraper and downloader
 tiktok-downloader==0.2.1     # TikTok video downloader
 
 # ============================================================================
-# BROWSER AUTOMATION ⭐ CRITICAL
+# BROWSER AUTOMATION - CRITICAL
 # ============================================================================
 playwright==1.40.0           # Modern browser automation framework
 playwright-stealth==1.0.6    # Anti-detection plugins for Playwright

@@ -14,8 +14,19 @@ from pathlib import Path
 from app.services.ai_service import AIService
 from app.services.webhook_service import WebhookService
 from app.core.config import settings
+from app.db.database import init_db
+from app.auth.routes import router as auth_router
 
 app = FastAPI(title="كنق الاتمته - Chatbot API", version="1.0.0")
+
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+    print("Database initialized")
+
+# Include auth routes
+app.include_router(auth_router)
 
 app.add_middleware(
     CORSMiddleware,
