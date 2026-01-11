@@ -1,193 +1,403 @@
-# 🤖 كنق الاتمته - Chatbot Interface
+# 🤖 Moj AI - Agentic AI Social Media Management System v2.0
 
-نظام شات بوت ذكي متكامل مع واجهة عربية حديثة مبني على FastAPI و OpenAI GPT-4.
+<div dir="rtl">
 
-## ✨ المميزات
+# موج AI - نظام إدارة وسائل التواصل الاجتماعي بالذكاء الاصطناعي الإجرائي
 
-- 💬 واجهة شات حديثة وسريعة الاستجابة
-- 🌓 دعم الوضع الليلي والنهاري
-- 🔄 اتصال WebSocket في الوقت الفعلي
-- 🤖 تكامل مع OpenAI GPT-4
-- 📱 تصميم متجاوب يعمل على جميع الأجهزة
-- 🎨 واجهة عربية بالكامل مع دعم RTL
-- ⚡ أداء عالي مع FastAPI
+نظام متكامل لإدارة وسائل التواصل الاجتماعي باستخدام الذكاء الاصطناعي، مبني على FastAPI و OpenAI GPT مع دعم كامل للواجهة العربية.
 
-## 📋 المتطلبات
+</div>
 
-- Python 3.11+
-- OpenAI API Key
-- المكتبات المذكورة في `requirements.txt`
+## 🌟 Features / المميزات
 
-## 🚀 التثبيت والتشغيل
+### Core Features
+- 🤖 **AI-Powered Chatbot** - Intelligent conversational AI using OpenAI GPT-4
+- 💬 **Real-time WebSocket Communication** - Instant messaging with WebSocket
+- 🌐 **Arabic RTL Support** - Full Arabic interface with RTL layout
+- 🌓 **Dark/Light Mode** - Beautiful dark and light themes
+- 📱 **Responsive Design** - Works on all devices (desktop, tablet, mobile)
+- ⚡ **High Performance** - Built with FastAPI for optimal speed
 
-### 1. تثبيت المكتبات
+### Advanced Capabilities (Planned)
+- 🔄 **Social Media Automation** - Twitter, Instagram, YouTube, TikTok integration
+- 🌐 **Browser Automation** - Playwright for web scraping and automation
+- 🎥 **Media Processing** - Video, audio, and image processing with OpenCV
+- 🔐 **Secure Authentication** - JWT-based authentication system
+- 📊 **Data Analytics** - Advanced analytics and reporting
+- ⚙️ **Task Queue** - Celery for background job processing
+
+<div dir="rtl">
+
+### المميزات الأساسية
+- 🤖 **شات بوت ذكي** - ذكاء اصطناعي محادث باستخدام OpenAI GPT-4
+- 💬 **اتصال WebSocket مباشر** - رسائل فورية مع WebSocket
+- 🌐 **دعم العربية RTL** - واجهة عربية كاملة مع تخطيط من اليمين لليسار
+- 🌓 **الوضع الليلي/النهاري** - ثيمات جميلة للوضع الليلي والنهاري
+- 📱 **تصميم متجاوب** - يعمل على جميع الأجهزة
+- ⚡ **أداء عالي** - مبني على FastAPI للأداء الأمثل
+
+### الإمكانيات المتقدمة (مخطط لها)
+- 🔄 **أتمتة وسائل التواصل** - تكامل مع Twitter, Instagram, YouTube, TikTok
+- 🌐 **أتمتة المتصفح** - Playwright للكشط والأتمتة
+- 🎥 **معالجة الوسائط** - معالجة الفيديو والصوت والصور مع OpenCV
+- 🔐 **المصادقة الآمنة** - نظام مصادقة يعتمد على JWT
+- 📊 **تحليل البيانات** - تحليلات وتقارير متقدمة
+- ⚙️ **قائمة المهام** - Celery لمعالجة المهام في الخلفية
+
+</div>
+
+## 📋 Requirements / المتطلبات
+
+- Python 3.11 or higher
+- OpenAI API Key (Get one at [platform.openai.com](https://platform.openai.com/api-keys))
+- PostgreSQL (optional, for database features)
+- MongoDB (optional, for NoSQL storage)
+- Redis (optional, for caching and task queue)
+
+<div dir="rtl">
+
+- Python 3.11 أو أحدث
+- مفتاح OpenAI API (احصل عليه من [platform.openai.com](https://platform.openai.com/api-keys))
+- PostgreSQL (اختياري، للميزات القاعدة البيانات)
+- MongoDB (اختياري، للتخزين NoSQL)
+- Redis (اختياري، للتخزين المؤقت وقائمة المهام)
+
+</div>
+
+## 🚀 Quick Start / البدء السريع
+
+### Installation / التثبيت
+
+1. **Clone the repository / استنساخ المستودع:**
 
 ```bash
+git clone https://github.com/Mrsos07/Moj-Agentic-AI.git
+cd Moj-Agentic-AI
+```
+
+2. **Create virtual environment / إنشاء بيئة افتراضية:**
+
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Linux/Mac
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. **Install dependencies / تثبيت المتطلبات:**
+
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 2. تثبيت Playwright (مطلوب)
+4. **Install Playwright browsers (Required) / تثبيت متصفحات Playwright (مطلوب):**
 
 ```bash
 playwright install
 ```
 
-### 3. إعداد ملف البيئة
+5. **Setup environment variables / إعداد متغيرات البيئة:**
 
-انسخ ملف `.env.example` إلى `.env` وأضف مفتاح OpenAI API الخاص بك:
-
-```bash
-cp .env.example .env
-```
-
-ثم عدّل ملف `.env`:
+Create a `.env` file in the root directory:
 
 ```env
-OPENAI_API_KEY=your_actual_api_key_here
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-4
+OPENAI_MAX_TOKENS=2000
+OPENAI_TEMPERATURE=0.7
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=3000
+DEBUG=True
+
+# Database (Optional)
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=your_user
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=moj_ai_db
+
+# MongoDB (Optional)
+MONGODB_URI=mongodb://localhost:27017
+MONGODB_DB=moj_ai_db
+
+# Redis (Optional)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
 ```
 
-### 4. تشغيل التطبيق
+<div dir="rtl">
+
+أنشئ ملف `.env` في المجلد الرئيسي:
+
+</div>
+
+6. **Run the application / تشغيل التطبيق:**
 
 ```bash
-python -m app.main
+python run.py
 ```
 
-أو باستخدام uvicorn مباشرة:
+Or using uvicorn directly:
 
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --host 0.0.0.0 --port 3000 --reload
 ```
 
-### 5. فتح المتصفح
+7. **Open in browser / فتح في المتصفح:**
 
-افتح المتصفح على العنوان:
-```
-http://localhost:8000
-```
+Navigate to: **http://localhost:3000**
 
-## 📁 بنية المشروع
+<div dir="rtl">
+
+انتقل إلى: **http://localhost:3000**
+
+</div>
+
+## 📁 Project Structure / بنية المشروع
 
 ```
 Moj-Agentic-AI/
-├── app/
+├── app/                          # Backend Application
 │   ├── __init__.py
-│   ├── main.py                 # FastAPI application
+│   ├── main.py                   # FastAPI application & WebSocket handler
 │   ├── core/
 │   │   ├── __init__.py
-│   │   └── config.py           # Configuration settings
+│   │   └── config.py             # Configuration settings
 │   └── services/
 │       ├── __init__.py
-│       └── ai_service.py       # OpenAI integration
+│       └── ai_service.py         # OpenAI integration service
 ├── templates/
-│   └── chat.html               # Chat interface
-├── static/                     # Static files (if needed)
-├── requirements.txt            # Python dependencies
-├── .env.example               # Environment variables template
-├── .env                       # Your actual environment variables (not in git)
-└── README.md                  # This file
+│   └── chat.html                 # Chat interface (Arabic RTL)
+├── static/                       # Static files (CSS, JS, images)
+├── requirements.txt              # Python dependencies
+├── .env.example                  # Environment variables template
+├── .gitignore                    # Git ignore rules
+├── run.py                        # Quick start script
+├── SETUP.md                      # Detailed setup guide
+├── USAGE_GUIDE.md               # Usage guide
+└── README.md                     # This file
 ```
-
-## 🔧 التكوين
-
-يمكنك تعديل الإعدادات في ملف `.env`:
-
-| المتغير | الوصف | القيمة الافتراضية |
-|---------|-------|-------------------|
-| `OPENAI_API_KEY` | مفتاح OpenAI API | مطلوب |
-| `OPENAI_MODEL` | نموذج GPT المستخدم | `gpt-4` |
-| `OPENAI_MAX_TOKENS` | الحد الأقصى للتوكنز | `2000` |
-| `OPENAI_TEMPERATURE` | درجة الإبداع | `0.7` |
-| `HOST` | عنوان الخادم | `0.0.0.0` |
-| `PORT` | منفذ الخادم | `8000` |
-| `DEBUG` | وضع التطوير | `True` |
-
-## 🎯 الاستخدام
-
-1. **بدء محادثة جديدة**: اضغط على زر ➕ في الأعلى
-2. **كتابة رسالة**: اكتب رسالتك في صندوق الإدخال بالأسفل
-3. **إرسال**: اضغط Enter أو زر الإرسال ⬆️
-4. **تبديل المظهر**: اضغط على زر 🌙 في الشريط الجانبي
-5. **نسخ الكود**: اضغط على زر النسخ في أي كتلة كود
 
 ## 🔌 API Endpoints
 
 ### WebSocket
-- `ws://localhost:8000/ws/chat` - اتصال WebSocket للشات
+- `ws://localhost:3000/ws/chat` - WebSocket connection for real-time chat
 
 ### HTTP
-- `GET /` - واجهة الشات
-- `GET /health` - فحص صحة الخادم
+- `GET /` - Chat interface (HTML)
+- `GET /health` - Health check endpoint
+- `GET /static/{file_path}` - Static files (CSS, JS, images)
 
-## 🛠️ التطوير
+### Example Health Check Response
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-01-08T20:27:14.254772"
+}
+```
+
+## ⚙️ Configuration / التكوين
+
+### Environment Variables
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `OPENAI_API_KEY` | OpenAI API key | - | Yes |
+| `OPENAI_MODEL` | GPT model to use | `gpt-4` | No |
+| `OPENAI_MAX_TOKENS` | Maximum tokens | `2000` | No |
+| `OPENAI_TEMPERATURE` | Model temperature | `0.7` | No |
+| `HOST` | Server host | `0.0.0.0` | No |
+| `PORT` | Server port | `3000` | No |
+| `DEBUG` | Debug mode | `True` | No |
+
+<div dir="rtl">
+
+| المتغير | الوصف | القيمة الافتراضية | مطلوب |
+|---------|-------|-------------------|-------|
+| `OPENAI_API_KEY` | مفتاح OpenAI API | - | نعم |
+| `OPENAI_MODEL` | نموذج GPT المستخدم | `gpt-4` | لا |
+| `OPENAI_MAX_TOKENS` | الحد الأقصى للتوكنز | `2000` | لا |
+| `OPENAI_TEMPERATURE` | درجة الإبداع | `0.7` | لا |
+| `HOST` | عنوان الخادم | `0.0.0.0` | لا |
+| `PORT` | منفذ الخادم | `3000` | لا |
+| `DEBUG` | وضع التطوير | `True` | لا |
+
+</div>
+
+## 🛠️ Development / التطوير
+
+### Running in Development Mode
+
+```bash
+# With auto-reload
+python run.py
+
+# Or with uvicorn
+uvicorn app.main:app --reload --host 0.0.0.0 --port 3000
+```
+
+### Adding New Features
+
+1. **Add a new service**: Create a file in `app/services/`
+2. **Add a new endpoint**: Modify `app/main.py`
+3. **Modify the UI**: Edit `templates/chat.html`
+4. **Update configuration**: Modify `app/core/config.py`
+
+<div dir="rtl">
 
 ### إضافة ميزات جديدة
 
 1. **إضافة خدمة جديدة**: أنشئ ملف في `app/services/`
 2. **إضافة endpoint جديد**: عدّل `app/main.py`
 3. **تعديل الواجهة**: عدّل `templates/chat.html`
+4. **تحديث التكوين**: عدّل `app/core/config.py`
 
-### تشغيل في وضع التطوير
+</div>
 
-```bash
-uvicorn app.main:app --reload
-```
+## 📦 Dependencies / المتطلبات
 
-## 📦 قواعد البيانات (اختياري)
+### Core Dependencies
+- **FastAPI** - Modern web framework
+- **Uvicorn** - ASGI server
+- **OpenAI** - AI integration
+- **Pydantic** - Data validation
+- **WebSocket** - Real-time communication
 
-المشروع يدعم:
-- **PostgreSQL**: لتخزين المحادثات والمستخدمين
-- **MongoDB**: لتخزين البيانات غير المهيكلة
-- **Redis**: للتخزين المؤقت والجلسات
+### Additional Dependencies (from requirements.txt)
+- Social Media APIs (Tweepy, yt-dlp, Instaloader)
+- Browser Automation (Playwright, Selenium)
+- Media Processing (OpenCV, MoviePy, Pillow)
+- AI/ML Libraries (PyTorch, Transformers, LangChain)
+- Database Support (PostgreSQL, MongoDB, Redis)
+- Task Queue (Celery, Flower)
 
-قم بتفعيلها من خلال إضافة بيانات الاتصال في ملف `.env`.
+<div dir="rtl">
 
-## 🔐 الأمان
+### المتطلبات الأساسية
+- **FastAPI** - إطار عمل ويب حديث
+- **Uvicorn** - خادم ASGI
+- **OpenAI** - تكامل الذكاء الاصطناعي
+- **Pydantic** - التحقق من البيانات
+- **WebSocket** - الاتصال المباشر
 
-- ⚠️ **لا تشارك ملف `.env` أبداً**
-- ⚠️ **لا ترفع مفتاح API إلى GitHub**
-- ✅ استخدم `.gitignore` لحماية الملفات الحساسة
-- ✅ استخدم HTTPS في الإنتاج
+</div>
 
-## 🐛 حل المشاكل
+## 🐛 Troubleshooting / حل المشاكل
 
-### المشكلة: لا يعمل الشات بوت
+### Common Issues
 
-**الحل**: تأكد من:
-1. إضافة `OPENAI_API_KEY` في ملف `.env`
-2. تشغيل الخادم بنجاح
-3. فتح المتصفح على `http://localhost:8000`
+1. **UnicodeEncodeError on Windows**
+   - The `run.py` script handles encoding automatically
+   - Make sure you're using Python 3.11+
 
-### المشكلة: خطأ في الاتصال بـ WebSocket
+2. **ModuleNotFoundError**
+   - Activate the virtual environment first
+   - Install dependencies: `pip install -r requirements.txt`
 
-**الحل**: 
-1. تأكد من تشغيل الخادم
-2. افحص console المتصفح للأخطاء
-3. تأكد من عدم حظر المنفذ 8000
+3. **OpenAI API Error**
+   - Check your API key in `.env` file
+   - Ensure you have credits in your OpenAI account
 
-### المشكلة: خطأ في تثبيت المكتبات
+4. **Port already in use**
+   - Change the PORT in `.env` file
+   - Or kill the process using the port
 
-**الحل**:
-```bash
-pip install --upgrade pip
-pip install -r requirements.txt --no-cache-dir
-```
+<div dir="rtl">
 
-## 📝 الترخيص
+### المشاكل الشائعة
 
-هذا المشروع مفتوح المصدر.
+1. **خطأ UnicodeEncodeError على Windows**
+   - سكربت `run.py` يتعامل مع الترميز تلقائياً
+   - تأكد من استخدام Python 3.11+
 
-## 🤝 المساهمة
+2. **خطأ ModuleNotFoundError**
+   - فعّل البيئة الافتراضية أولاً
+   - ثبّت المتطلبات: `pip install -r requirements.txt`
 
-المساهمات مرحب بها! يرجى:
-1. عمل Fork للمشروع
-2. إنشاء branch جديد للميزة
-3. عمل commit للتغييرات
-4. إرسال Pull Request
+3. **خطأ OpenAI API**
+   - تحقق من مفتاح API في ملف `.env`
+   - تأكد من وجود رصيد في حساب OpenAI
 
-## 📧 الدعم
+4. **المنفذ مستخدم بالفعل**
+   - غيّر PORT في ملف `.env`
+   - أو أوقف العملية التي تستخدم المنفذ
 
-للمساعدة والدعم، يرجى فتح Issue في GitHub.
+</div>
+
+## 📄 License / الترخيص
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+<div dir="rtl">
+
+هذا المشروع مرخص تحت رخصة MIT - راجع ملف LICENSE للتفاصيل.
+
+</div>
+
+## 🤝 Contributing / المساهمة
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+<div dir="rtl">
+
+المساهمات مرحب بها! لا تتردد في إرسال Pull Request.
+
+</div>
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 👤 Author / المؤلف
+
+**Mrsos07**
+- GitHub: [@Mrsos07](https://github.com/Mrsos07)
+
+## 🔗 Links / الروابط
+
+- Repository: [https://github.com/Mrsos07/Moj-Agentic-AI](https://github.com/Mrsos07/Moj-Agentic-AI)
+- OpenAI API: [https://platform.openai.com](https://platform.openai.com)
+- FastAPI Docs: [https://fastapi.tiangolo.com](https://fastapi.tiangolo.com)
+
+## 📝 Changelog / سجل التغييرات
+
+### Version 2.0.0 (Current)
+- ✅ Complete rewrite with FastAPI
+- ✅ Arabic RTL interface
+- ✅ WebSocket real-time communication
+- ✅ OpenAI GPT-4 integration
+- ✅ Comprehensive requirements.txt
+- ✅ Windows encoding fixes
+
+<div dir="rtl">
+
+### الإصدار 2.0.0 (الحالي)
+- ✅ إعادة كتابة كاملة مع FastAPI
+- ✅ واجهة عربية RTL
+- ✅ اتصال WebSocket مباشر
+- ✅ تكامل OpenAI GPT-4
+- ✅ requirements.txt شامل
+- ✅ إصلاحات ترميز Windows
+
+</div>
 
 ---
 
-**صُنع بـ ❤️ في السعودية**
+<div dir="rtl">
+
+**صنع بـ ❤️ باستخدام Python و FastAPI**
+
+</div>
+
+**Made with ❤️ using Python and FastAPI**
