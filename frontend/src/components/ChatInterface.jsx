@@ -12,7 +12,7 @@ const ChatInterface = ({ darkMode, setDarkMode, user, onLogout }) => {
     {
       id: 1,
       type: 'assistant',
-      content: 'مرحباً! أنا مساعدك الذكي في موج AI. يمكنني مساعدتك في إدارة وسائل التواصل الاجتماعي، التحليلات، والأتمتة. كيف يمكنني مساعدتك اليوم؟',
+      content: 'مرحباً! أنا مساعدك الذكي في MOJ AI. يمكنني مساعدتك في إدارة وسائل التواصل الاجتماعي، التحليلات، والأتمتة. كيف يمكنني مساعدتك اليوم؟',
       timestamp: new Date().toISOString()
     }
   ])
@@ -112,7 +112,7 @@ const ChatInterface = ({ darkMode, setDarkMode, user, onLogout }) => {
       setMessages([{
         id: Date.now(),
         type: 'assistant',
-        content: 'مرحباً! أنا مساعدك الذكي في موج AI. يمكنني مساعدتك في إدارة وسائل التواصل الاجتماعي، التحليلات، والأتمتة. كيف يمكنني مساعدتك اليوم؟',
+        content: 'مرحباً! أنا مساعدك الذكي في MOJ AI. يمكنني مساعدتك في إدارة وسائل التواصل الاجتماعي، التحليلات، والأتمتة. كيف يمكنني مساعدتك اليوم؟',
         timestamp: new Date().toISOString()
       }])
     }
@@ -122,11 +122,11 @@ const ChatInterface = ({ darkMode, setDarkMode, user, onLogout }) => {
     <div className="flex h-screen w-full overflow-hidden">
       <Sidebar darkMode={darkMode} setDarkMode={setDarkMode} user={user} onLogout={onLogout} />
       
-      <main className="flex-1 flex flex-col h-full bg-white dark:bg-background-dark relative">
+      <main className="flex-1 flex flex-col h-full bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-background-dark dark:to-gray-900 relative">
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-6 py-3 shrink-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md z-10">
+        <header className="flex items-center justify-between border-b-2 border-gray-200 dark:border-gray-800 px-6 py-4 shrink-0 bg-white/90 dark:bg-background-dark/90 backdrop-blur-lg shadow-sm z-10">
           <div className="flex items-center gap-3 text-gray-900 dark:text-white">
-            <h2 className="text-lg font-bold">GPT-4 Model</h2>
+            <h2 className="text-lg font-bold">MOJ AI</h2>
           </div>
           <div className="flex items-center gap-2">
             <button 

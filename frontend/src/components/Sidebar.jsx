@@ -16,7 +16,7 @@ const Sidebar = ({ darkMode, setDarkMode, user, onLogout }) => {
     <aside className="hidden md:flex flex-col w-[260px] bg-sidebar-light dark:bg-sidebar-dark border-r border-gray-200 dark:border-gray-800 h-full shrink-0 transition-all duration-300">
       <div className="flex flex-col h-full p-4 gap-4">
         <div className="px-3 pt-2">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">موج AI</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">MOJ AI</h1>
         </div>
 
         <button className="flex w-full items-center gap-3 px-3 py-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 transition-colors shadow-sm bg-white dark:bg-transparent group mt-2">
