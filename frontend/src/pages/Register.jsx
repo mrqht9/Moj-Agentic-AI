@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiArrowLeft } from 'react-icons/fi'
 import { MdOutlineWavingHand } from 'react-icons/md'
+import axios from 'axios'
+
+const API_URL = 'http://localhost:8000'
 
 const Register = ({ onRegister }) => {
   const navigate = useNavigate()
@@ -44,14 +47,29 @@ const Register = ({ onRegister }) => {
 
     setIsLoading(true)
     
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const response = await axios.post(`${API_URL}/api/auth/register`, {
+        email: formData.email,
+        password: formData.password
+      })
+      
+      const { access_token } = response.data
+      localStorage.setItem('token', access_token)
+      
       onRegister({ 
         email: formData.email, 
         name: formData.name 
       })
       navigate('/chat')
-    }, 1500)
+    } catch (err) {
+      if (err.response?.status === 400) {
+        setError('هذا البريد الإلكتروني مسجل بالفعل')
+      } else {
+        setError(err.response?.data?.detail || 'حدث خطأ في إنشاء الحساب')
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowLeft } from 'react-icons/fi'
 import { MdOutlineWavingHand } from 'react-icons/md'
+import axios from 'axios'
+
+const API_URL = 'http://localhost:8000'
 
 const Login = ({ onLogin }) => {
   const navigate = useNavigate()
@@ -22,16 +25,26 @@ const Login = ({ onLogin }) => {
 
     setIsLoading(true)
     
-    // محاكاة API call
-    setTimeout(() => {
-      setIsLoading(false)
-      if (email && password) {
-        onLogin({ email, name: email.split('@')[0] })
-        navigate('/chat')
-      } else {
+    try {
+      const response = await axios.post(`${API_URL}/api/auth/login`, {
+        email,
+        password
+      })
+      
+      const { access_token } = response.data
+      localStorage.setItem('token', access_token)
+      
+      onLogin({ email, name: email.split('@')[0] })
+      navigate('/chat')
+    } catch (err) {
+      if (err.response?.status === 401) {
         setError('البريد الإلكتروني أو كلمة المرور غير صحيحة')
+      } else {
+        setError(err.response?.data?.detail || 'حدث خطأ في تسجيل الدخول')
       }
-    }, 1500)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
