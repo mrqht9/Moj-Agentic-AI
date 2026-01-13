@@ -1,9 +1,9 @@
 import { MdDashboard, MdSettings, MdPerson, MdLogout } from 'react-icons/md'
 import { BsListUl, BsFileText } from 'react-icons/bs'
-import { FiSun, FiMoon } from 'react-icons/fi'
+import { FiSun, FiMoon, FiMessageSquare } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
-import logoLight from '../assets/logos/logo-light.svg'
-import logoDark from '../assets/logos/logo-dark.svg'
+import logoLight from '../assets/logos/logo-light.png'
+import logoDark from '../assets/logos/logo-dark.png'
 
 const Sidebar = ({ darkMode, setDarkMode, user, onLogout }) => {
   const navigate = useNavigate()
@@ -15,31 +15,45 @@ const Sidebar = ({ darkMode, setDarkMode, user, onLogout }) => {
     }
   }
   return (
-    <aside className="hidden md:flex flex-col w-[260px] bg-sidebar-light dark:bg-sidebar-dark border-r border-border-light dark:border-border-dark h-full shrink-0 transition-all duration-300">
+    <aside className="hidden md:flex flex-col w-[260px] bg-sidebar-light dark:bg-sidebar-dark h-full shrink-0 transition-all duration-300">
       <div className="flex flex-col h-full p-4 gap-4">
-        <div className="px-3 pt-2">
-          <img 
-            src={darkMode ? logoDark : logoLight} 
-            alt="MOJ AI Logo" 
-            className="h-10 w-auto object-contain"
-          />
+        {/* فاصل خفيف في الأعلى */}
+        <div className="border-b border-border-light dark:border-border-dark pb-4">
+          <div className="flex justify-center px-3 pt-4">
+            <img 
+              src={darkMode ? logoLight : logoDark} 
+              alt="MOJ AI Logo" 
+              className="h-14 w-auto object-contain"
+            />
+          </div>
         </div>
 
-        <button className="flex w-full items-center gap-3 px-4 py-3 rounded-xl bg-primary hover:bg-secondary transition-all duration-200 shadow-sm group mt-2">
+        <button className="flex w-full items-center gap-3 px-4 py-3 rounded-xl bg-primary hover:bg-secondary transition-all duration-200 shadow-sm group">
           <MdDashboard className="text-white group-hover:scale-110 transition-transform" size={22} />
           <span className="text-sm font-semibold text-white">+ محادثة جديدة</span>
         </button>
 
-        <div className="flex flex-col flex-1 gap-2 overflow-y-auto pr-2 mt-2">
+        {/* قسم المحادثات السابقة */}
+        <div className="flex flex-col gap-2">
+          <h3 className="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark px-3 mt-2">المحادثات</h3>
+          
           <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-card-dark transition-colors text-right group">
-            <BsListUl className="text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark" size={18} />
-            <span className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark">عمليات الحسابات</span>
+            <FiMessageSquare className="text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark" size={18} />
+            <span className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark truncate">خطة محتوى الأسبوع</span>
           </button>
+          
           <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-card-dark transition-colors text-right group">
-            <BsFileText className="text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark" size={18} />
-            <span className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark">استوديو الهوية</span>
+            <FiMessageSquare className="text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark" size={18} />
+            <span className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark truncate">تحليل المنافسين</span>
+          </button>
+          
+          <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-card-dark transition-colors text-right group">
+            <FiMessageSquare className="text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark" size={18} />
+            <span className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark truncate">استراتيجية إطلاق المنتج</span>
           </button>
         </div>
+
+        <div className="flex-1 overflow-y-auto pr-2"></div>
 
         <div className="mt-auto border-t border-border-light dark:border-border-dark pt-4 flex flex-col gap-1">
           <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-card-dark transition-colors text-right group">
