@@ -39,20 +39,17 @@ const Login = ({ onLogin }) => {
         password
       })
       
-      const { access_token } = response.data
+      const { access_token, user } = response.data
       localStorage.setItem('token', access_token)
       
-      // جلب بيانات المستخدم الكاملة
-      const userResponse = await axios.get(`${API_URL}/api/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${access_token}`
-        }
-      })
-      
+      // User data is now included in login response - no second API call needed
       const userData = {
-        id: userResponse.data.id,
-        email: userResponse.data.email,
-        name: userResponse.data.email.split('@')[0]
+        id: user.id,
+        email: user.email,
+        name: user.name || user.email.split('@')[0],
+        profile_picture: user.profile_picture,
+        is_admin: user.is_admin || false,
+        is_active: user.is_active || true
       }
       
       onLogin(userData)
