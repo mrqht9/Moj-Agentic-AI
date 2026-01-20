@@ -21,14 +21,14 @@ class RedisClient:
                     port=settings.REDIS_PORT,
                     db=settings.REDIS_DB,
                     decode_responses=True,
-                    socket_connect_timeout=0.5,
-                    socket_timeout=0.5
+                    socket_connect_timeout=1,  # 1 second timeout for connection
+                    socket_timeout=1  # 1 second timeout for operations
                 )
-                # Test connection
+                # Test connection with timeout
                 cls._instance.ping()
             except Exception as e:
-                print(f"⚠️  Redis not available: {e}")
-                print("⚠️  Authentication will work without Redis (sessions won't be cached)")
+                print(f"Warning: Redis connection failed: {e}")
+                print("Continuing without Redis (sessions won't be cached)")
                 cls._instance = None
                 cls._connection_failed = True
         return cls._instance

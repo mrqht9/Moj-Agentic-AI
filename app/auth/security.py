@@ -33,8 +33,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def hash_password(password: str) -> str:
-    """Hash a password using bcrypt"""
-    salt = bcrypt.gensalt()
+    """Hash a password using bcrypt with optimized rounds for performance"""
+    # Using 10 rounds instead of default 12 for better performance
+    # Still secure but ~4x faster
+    salt = bcrypt.gensalt(rounds=10)
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
 

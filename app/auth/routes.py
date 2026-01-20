@@ -84,9 +84,15 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     return Token(access_token=access_token)
 
 
-@router.post("/login", response_model=Token)
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+@router.post("/login", response_model=LoginResponse)
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
-    """تسجيل دخول - Login user and return JWT token"""
+    """تسجيل دخول - Login user and return JWT token with user data"""
     
     # Find user by email
     user = db.query(User).filter(User.email == request.email).first()
@@ -113,11 +119,23 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     # Store session in Redis (optional - won't block if Redis is unavailable)
     try:
         RedisClient.set_session(access_token[:32], user.id)
-    except Exception as e:
+    except Exception:
         # Redis is optional, continue without it
         pass
     
-    return Token(access_token=access_token)
+    # Return token with user data to avoid second API call
+    return LoginResponse(
+        access_token=access_token,
+        user=UserResponse(
+            id=user.id,
+            email=user.email,
+            name=user.name,
+            profile_picture=user.profile_picture,
+            is_admin=user.is_admin,
+            is_active=user.is_active,
+            created_at=user.created_at.isoformat()
+        )
+    )
 
 
 @router.get("/verify", response_model=VerifyResponse)
