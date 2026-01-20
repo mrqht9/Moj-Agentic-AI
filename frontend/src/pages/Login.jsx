@@ -6,7 +6,7 @@ import axios from 'axios'
 import logoLight from '../assets/logos/logo-light.png'
 import logoDark from '../assets/logos/logo-dark.png'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = 'http://localhost:8000'
 
 const Login = ({ onLogin }) => {
   const navigate = useNavigate()
@@ -52,10 +52,7 @@ const Login = ({ onLogin }) => {
       const userData = {
         id: userResponse.data.id,
         email: userResponse.data.email,
-        name: userResponse.data.name || userResponse.data.email.split('@')[0],
-        profile_picture: userResponse.data.profile_picture,
-        is_admin: userResponse.data.is_admin || false,
-        is_active: userResponse.data.is_active || true
+        name: userResponse.data.email.split('@')[0]
       }
       
       onLogin(userData)

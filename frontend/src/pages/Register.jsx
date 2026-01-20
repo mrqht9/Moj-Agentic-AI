@@ -6,7 +6,7 @@ import axios from 'axios'
 import logoLight from '../assets/logos/logo-light.png'
 import logoDark from '../assets/logos/logo-dark.png'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = 'http://localhost:8000'
 
 const Register = ({ onRegister }) => {
   const navigate = useNavigate()
@@ -64,16 +64,6 @@ const Register = ({ onRegister }) => {
       const { access_token } = response.data
       localStorage.setItem('token', access_token)
       
-      // تحديث الاسم في البروفايل
-      await axios.put(`${API_URL}/api/auth/profile`, 
-        { name: formData.name },
-        {
-          headers: {
-            'Authorization': `Bearer ${access_token}`
-          }
-        }
-      )
-      
       // جلب بيانات المستخدم الكاملة
       const userResponse = await axios.get(`${API_URL}/api/auth/me`, {
         headers: {
@@ -84,10 +74,7 @@ const Register = ({ onRegister }) => {
       const userData = {
         id: userResponse.data.id,
         email: userResponse.data.email,
-        name: userResponse.data.name || formData.name,
-        profile_picture: userResponse.data.profile_picture,
-        is_admin: userResponse.data.is_admin || false,
-        is_active: userResponse.data.is_active || true
+        name: formData.name
       }
       
       onRegister(userData)

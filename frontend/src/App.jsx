@@ -3,8 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import ChatInterface from './components/ChatInterface'
 import Login from './pages/Login'
 import Register from './pages/Register'
-import Profile from './pages/Profile'
-import AdminDashboard from './pages/AdminDashboard'
 
 function App() {
   const [darkMode, setDarkMode] = useState(false)
@@ -69,33 +67,6 @@ function App() {
                 />
               ) : (
                 <Navigate to="/login" replace />
-              )
-            } 
-          />
-          <Route 
-            path="/profile" 
-            element={
-              user ? (
-                <Profile 
-                  user={user}
-                  setUser={setUser}
-                  darkMode={darkMode}
-                />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            } 
-          />
-          <Route 
-            path="/admin" 
-            element={
-              user?.is_admin ? (
-                <AdminDashboard 
-                  user={user}
-                  darkMode={darkMode}
-                />
-              ) : (
-                <Navigate to="/chat" replace />
               )
             } 
           />
