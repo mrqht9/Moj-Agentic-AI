@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="grid">
+    <div class="card" style="grid-column: span 6">
+      <h3>إضافة كوكيز (رفع ملف storage_state.json)</h3>
+      <form method="POST" enctype="multipart/form-data" class="form">
+        <div class="field">
+          <label>Label (اسم الحساب)</label>
+          <input class="input" name="label" placeholder="acc1" required />
+          <div class="hint">سيتم الحفظ داخل <code>cookies/acc1.json</code></div>
+        </div>
+        <div class="field">
+          <label>ملف JSON</label>
+          <input class="input" type="file" name="file" accept=".json" required />
+        </div>
+        <div class="field">
+          <button class="btn primary" type="submit">حفظ</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="grid-column: span 6">
+      <h3>الحسابات المتاحة</h3>
+      <table class="table">
+        <thead><tr><th>الاسم</th><th>الملف</th><th>تاريخ الإضافة</th><th></th></tr></thead>
+        <tbody>
+          {% for c in cookies %}
+            <tr>
+              <td>{{ c.label }}</td>
+              <td>{{ c.filename }}</td>
+              <td>{{ c.created_at }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('cookie_delete', cookie_id=c.id) }}" onsubmit="return confirm('حذف هذا الحساب؟')">
+                  <button class="btn ghost" type="submit">حذف</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="hint">الحذف يحذف السجل + الملف من مجلد cookies/</div>
+    </div>
+  </div>
+{% endblock %}

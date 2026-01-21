@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="grid">
+    <div class="card" style="grid-column: span 12">
+      <h3>📡 API Documentation</h3>
+      <div class="hint">كل طلب يحتاج: <code>Authorization: Bearer TOKEN</code></div>
+      <table class="table">
+        <thead><tr><th>Method</th><th>Path</th><th>وصف</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td>/api/health</td><td>فحص الخدمة</td></tr>
+          <tr><td>GET</td><td>/api/cookies</td><td>قائمة الحسابات</td></tr>
+          <tr><td>POST</td><td>/api/cookies/upload</td><td>رفع كوكيز (multipart: label,file)</td></tr>
+          <tr><td>POST</td><td>/api/login</td><td>تسجيل دخول وحفظ كوكيز (json)</td></tr>
+          <tr><td>POST</td><td>/api/post</td><td>نشر منشور (json أو multipart)</td></tr>
+          <tr><td>POST</td><td>/api/profile/update</td><td>تعديل بروفايل (multipart)</td></tr>
+          <tr><td>GET</td><td>/api/stats</td><td>إحصائيات</td></tr>
+          <tr><td>GET</td><td>/api/logs</td><td>سجل</td></tr>
+          <tr><td>GET</td><td>/api/task/&lt;id&gt;</td><td>تفاصيل عملية</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

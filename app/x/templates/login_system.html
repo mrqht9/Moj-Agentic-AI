@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تسجيل الدخول - X Suite</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="main" style="max-width:520px;margin:0 auto;padding-top:42px">
+    <div class="card">
+      <h3 style="margin-bottom:6px">🔐 تسجيل دخول لوحة التحكم</h3>
+      <div class="hint">أدخل بيانات لوحة التحكم (ليست بيانات X).</div>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for cat, msg in messages %}
+            <div class="alert {{ 'error' if cat in ['error','danger'] else 'success' }}">{{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <form method="POST" class="form" style="margin-top:12px">
+        <div class="field">
+          <label>اسم المستخدم</label>
+          <input class="input" name="username" placeholder="admin" required />
+        </div>
+        <div class="field">
+          <label>كلمة المرور</label>
+          <input class="input" type="password" name="password" placeholder="••••••" required />
+        </div>
+        <div class="field">
+          <button class="btn primary" type="submit">دخول</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
