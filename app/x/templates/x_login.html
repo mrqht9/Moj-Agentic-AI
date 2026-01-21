@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="grid">
+    <div class="card" style="grid-column: span 7">
+      <h3>تسجيل دخول X وحفظ الكوكيز</h3>
+      <form method="POST" class="form">
+        <div class="field half">
+          <label>Label (اسم الحفظ)</label>
+          <input class="input" name="label" placeholder="acc1" required />
+        </div>
+        <div class="field half">
+          <label>Headless</label>
+          <select name="headless">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Username / Email</label>
+          <input class="input" name="username" required />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input class="input" type="password" name="password" required />
+        </div>
+        <div class="field">
+          <button class="btn primary" type="submit">بدء تسجيل الدخول</button>
+          <div class="hint">قد يظهر تحقق إضافي داخل المتصفح — اتبع التعليمات إن ظهرت.</div>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="grid-column: span 5">
+      <h3>ملاحظات</h3>
+      <ul style="margin:0;padding-right:18px;line-height:1.9;color:var(--muted);font-size:13px">
+        <li>سيتم حفظ الكوكيز في <code>cookies/&lt;label&gt;.json</code></li>
+        <li>يمكن لاحقاً اختيار نفس الكوكيز للنشر أو تعديل البروفايل</li>
+        <li>هذا يعتمد على Playwright؛ وجود حماية من X قد يتطلب تدخل يدوي</li>
+      </ul>
+    </div>
+  </div>
+{% endblock %}

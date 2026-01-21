@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="grid">
+    <div class="card" style="grid-column: span 7">
+      <h3>نشر منشور (اختيار كوكيز)</h3>
+      <form method="POST" enctype="multipart/form-data" class="form">
+        <div class="field">
+          <label>الحساب (Cookie)</label>
+          <select name="cookie_label" required>
+            <option value="">-- اختر --</option>
+            {% for c in cookies %}
+              <option value="{{ c.label }}">{{ c.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>نص المنشور</label>
+          <textarea name="text" required placeholder="اكتب منشورك هنا..."></textarea>
+        </div>
+        <div class="field half">
+          <label>رابط ميديا (اختياري)</label>
+          <input class="input" type="url" name="media_url" placeholder="https://..." />
+        </div>
+        <div class="field half">
+          <label>أو رفع ميديا (اختياري)</label>
+          <input class="input" type="file" name="media_file" accept="image/*,video/*" />
+        </div>
+        <div class="field half">
+          <label>Headless</label>
+          <select name="headless">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        <div class="field half">
+          <label>ملاحظة</label>
+          <div class="hint">إذا وضعت رابط ورَفعت ملف، سيتم تفضيل الملف.</div>
+        </div>
+        <div class="field">
+          <button class="btn primary" type="submit">نشر الآن</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="grid-column: span 5">
+      <h3>API سريع</h3>
+      <div class="hint">Endpoint: <code>POST /api/post</code> (Bearer Token)</div>
+      <pre style="white-space:pre-wrap;background:#fff;border:1px solid var(--border);padding:12px;border-radius:12px;font-size:12px;overflow:auto">
+curl -X POST http://localhost:5789/api/post \
+  -H "Authorization: Bearer your-secure-token-here" \
+  -H "Content-Type: application/json" \
+  -d '{"cookie_label":"acc1","text":"مرحبا","headless":true}'
+      </pre>
+    </div>
+  </div>
+{% endblock %}

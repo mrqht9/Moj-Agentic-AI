@@ -1,21 +1,18 @@
 import requests
 
-url = "http://127.0.0.1:5789/api/profile"
+url = "http://localhost:5789/api/profile/update"
 headers = {"Authorization": "Bearer your-secure-token-here"}
 
-files = {
-    "cookies_file": open("xx1.json", "rb"),
-}
-
 data = {
-    "name": "",
+    "cookie_label": "mualqahtani1",
+    "name": "mualqahtani",
     "bio": "مرحبا",
     "location": "الرياض",
     "website": "https://google.com",
     "avatar_url": "https://tweetdelete.net/resources/wp-content/uploads/2024/04/craig-whitehead-lbekri_riMg-unsplash.jpg",
     "banner_url": "https://example.com/banner.jpg",
-    "headless": "0",
+    "headless": "0",   # مهم: السيرفر يتحقق headless == '1'
 }
 
-r = requests.post(url, headers=headers, files=files, data=data, timeout=600)
+r = requests.post(url, headers=headers, data=data, timeout=600)
 print(r.status_code, r.text)

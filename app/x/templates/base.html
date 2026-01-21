@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title or "X Suite" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">X</div>
+        <div>
+          <h1>X Suite</h1>
+          <p>Dashboard + API</p>
+        </div>
+      </div>
+
+      <div class="nav">
+        <a href="{{ url_for('dashboard') }}" class="{% if active=='dashboard' %}active{% endif %}">لوحة التحكم <span>🏠</span></a>
+        <a href="{{ url_for('cookies_page') }}" class="{% if active=='cookies' %}active{% endif %}">الكوكيز (الحسابات) <span>🍪</span></a>
+        <a href="{{ url_for('login_page') }}" class="{% if active=='login' %}active{% endif %}">تسجيل دخول وحفظ كوكيز <span>🔐</span></a>
+        <a href="{{ url_for('post_page') }}" class="{% if active=='post' %}active{% endif %}">نشر منشور <span>📝</span></a>
+        <a href="{{ url_for('profile_page') }}" class="{% if active=='profile' %}active{% endif %}">تعديل بروفايل <span>🧩</span></a>
+        <a href="{{ url_for('logs_page') }}" class="{% if active=='logs' %}active{% endif %}">سجل العمليات <span>🧾</span></a>
+        <a href="{{ url_for('logout') }}">خروج <span>🚪</span></a>
+      </div>
+
+      <div style="margin-top:18px;opacity:.85;font-size:12px;line-height:1.6">
+        <div>📁 cookies/ مسار موحد</div>
+        <div>🛡️ API محمية Bearer Token</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="title">
+          <h2>{{ header or title or "X Suite" }}</h2>
+          {% if subtitle %}<div class="sub">{{ subtitle }}</div>{% endif %}
+        </div>
+        <div class="actions">
+          <a class="btn ghost" href="{{ url_for('api_docs') }}">API</a>
+          <a class="btn primary" href="{{ url_for('cookies_page') }}">إدارة الكوكيز</a>
+        </div>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for cat, msg in messages %}
+            <div class="alert {{ 'error' if cat in ['error','danger'] else 'success' }}">{{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

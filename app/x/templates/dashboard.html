@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="grid">
+    <div class="card" style="grid-column: span 4">
+      <div class="stat">
+        <div>
+          <div class="num">{{ stats.cookies }}</div>
+          <div class="label">عدد الحسابات (Cookies)</div>
+        </div>
+        <div style="font-size:22px">🍪</div>
+      </div>
+    </div>
+    <div class="card" style="grid-column: span 4">
+      <div class="stat">
+        <div>
+          <div class="num">{{ stats.posts }}</div>
+          <div class="label">عمليات النشر</div>
+        </div>
+        <div style="font-size:22px">📝</div>
+      </div>
+    </div>
+    <div class="card" style="grid-column: span 4">
+      <div class="stat">
+        <div>
+          <div class="num">{{ stats.profiles }}</div>
+          <div class="label">عمليات تعديل البروفايل</div>
+        </div>
+        <div style="font-size:22px">🧩</div>
+      </div>
+    </div>
+
+    <div class="card" style="grid-column: span 12">
+      <h3>آخر العمليات</h3>
+      <table class="table">
+        <thead>
+          <tr><th>الوقت</th><th>النوع</th><th>الحساب</th><th>الحالة</th><th>رسالة</th></tr>
+        </thead>
+        <tbody>
+          {% for r in recent %}
+            <tr>
+              <td>{{ r.created_at }}</td>
+              <td>{{ r.action }}</td>
+              <td>{{ r.cookie_label or '-' }}</td>
+              <td>
+                {% if r.status == 'success' %}
+                  <span class="badge success">نجاح</span>
+                {% elif r.status == 'error' %}
+                  <span class="badge error">فشل</span>
+                {% else %}
+                  <span class="badge warn">{{ r.status }}</span>
+                {% endif %}
+              </td>
+              <td style="max-width:520px">{{ r.message }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

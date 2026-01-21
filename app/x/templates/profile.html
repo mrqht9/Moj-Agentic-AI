@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="grid">
+    <div class="card" style="grid-column: span 7">
+      <h3>تعديل بروفايل (اختيار كوكيز)</h3>
+      <form method="POST" enctype="multipart/form-data" class="form">
+        <div class="field">
+          <label>الحساب (Cookie)</label>
+          <select name="cookie_label" required>
+            <option value="">-- اختر --</option>
+            {% for c in cookies %}
+              <option value="{{ c.label }}">{{ c.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field half">
+          <label>الاسم</label>
+          <input class="input" name="name" placeholder="مثال: mu alqahtani" />
+        </div>
+        <div class="field half">
+          <label>الموقع</label>
+          <input class="input" name="location" placeholder="الرياض" />
+        </div>
+
+        <div class="field">
+          <label>البايو</label>
+          <textarea name="bio" placeholder="اكتب البايو..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>الموقع الإلكتروني (اختياري)</label>
+          <input class="input" type="url" name="website" placeholder="https://example.com" />
+        </div>
+
+        <div class="field half">
+          <label>Avatar URL (اختياري)</label>
+          <input class="input" type="url" name="avatar_url" placeholder="https://..." />
+        </div>
+        <div class="field half">
+          <label>Avatar File (اختياري)</label>
+          <input class="input" type="file" name="avatar_file" accept="image/*" />
+        </div>
+
+        <div class="field half">
+          <label>Banner URL (اختياري)</label>
+          <input class="input" type="url" name="banner_url" placeholder="https://..." />
+        </div>
+        <div class="field half">
+          <label>Banner File (اختياري)</label>
+          <input class="input" type="file" name="banner_file" accept="image/*" />
+        </div>
+
+        <div class="field half">
+          <label>Headless</label>
+          <select name="headless">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        <div class="field half">
+          <label>تنبيه</label>
+          <div class="hint">قد تظهر نافذة قص/حفظ أثناء رفع الصور، والنظام يحاول الضغط عليها تلقائياً.</div>
+        </div>
+
+        <div class="field">
+          <button class="btn primary" type="submit">تطبيق التعديل</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="grid-column: span 5">
+      <h3>API سريع</h3>
+      <div class="hint">Endpoint: <code>POST /api/profile/update</code> (multipart)</div>
+      <pre style="white-space:pre-wrap;background:#fff;border:1px solid var(--border);padding:12px;border-radius:12px;font-size:12px;overflow:auto">
+curl -X POST http://localhost:5789/api/profile/update \
+  -H "Authorization: Bearer your-secure-token-here" \
+  -F "cookie_label=acc1" \
+  -F "bio=مرحبا" \
+  -F "location=Riyadh" \
+  -F "headless=1"
+      </pre>
+    </div>
+  </div>
+{% endblock %}
