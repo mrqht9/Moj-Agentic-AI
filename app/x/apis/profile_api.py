@@ -4,8 +4,8 @@ url = "http://localhost:5789/api/profile/update"
 headers = {"Authorization": "Bearer your-secure-token-here"}
 
 data = {
-    "cookie_label": "mualqahtani1",
-    "name": "mualqahtani",
+    "cookie_label": "",
+    "name": "",
     "bio": "مرحبا",
     "location": "الرياض",
     "website": "https://google.com",

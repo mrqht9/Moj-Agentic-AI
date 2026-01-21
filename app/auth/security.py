@@ -5,13 +5,34 @@ import bcrypt
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
+from cryptography.fernet import Fernet
+import base64
 
 load_dotenv()
 
-# JWT Configuration
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-here-change-in-production-min-32-chars")
+# JWT Configuration with validation
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY or len(SECRET_KEY) < 32:
+    raise ValueError(
+        "JWT_SECRET_KEY must be set in .env and at least 32 characters. "
+        "Generate one with: python -c 'import secrets; print(secrets.token_urlsafe(64))'"
+    )
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
+
+# Encryption Configuration
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
+if not ENCRYPTION_KEY:
+    raise ValueError(
+        "ENCRYPTION_KEY must be set in .env. "
+        "Generate one with: python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'"
+    )
+
+try:
+    cipher = Fernet(ENCRYPTION_KEY.encode())
+except Exception as e:
+    raise ValueError(f"Invalid ENCRYPTION_KEY format: {e}")
 
 
 class Token(BaseModel):
@@ -76,13 +97,16 @@ def decode_token(token: str) -> Optional[TokenData]:
 
 
 def encrypt_credentials(credentials: str) -> str:
-    """Encrypt sensitive credentials (for X account credentials)"""
-    # Simple base64 encoding for now - in production use proper encryption
-    import base64
-    return base64.b64encode(credentials.encode()).decode()
+    """Encrypt sensitive credentials using Fernet (AES-128)"""
+    try:
+        return cipher.encrypt(credentials.encode()).decode()
+    except Exception as e:
+        raise ValueError(f"Encryption failed: {e}")
 
 
 def decrypt_credentials(encrypted: str) -> str:
     """Decrypt sensitive credentials"""
-    import base64
-    return base64.b64decode(encrypted.encode()).decode()
+    try:
+        return cipher.decrypt(encrypted.encode()).decode()
+    except Exception as e:
+        raise ValueError(f"Decryption failed: {e}")

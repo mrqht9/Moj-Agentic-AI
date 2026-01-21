@@ -70,7 +70,6 @@ def logout():
 # Dashboard Pages
 # =====================
 @app.route('/')
-@login_required
 def dashboard():
     s = db_stats()
     recent = list_operations(limit=20)
@@ -78,7 +77,6 @@ def dashboard():
 
 
 @app.route('/cookies', methods=['GET', 'POST'])
-@login_required
 def cookies_page():
     if request.method == 'POST':
         label = safe_label(request.form.get('label', ''))
@@ -101,7 +99,6 @@ def cookies_page():
 
 
 @app.route('/cookies/<int:cookie_id>/delete', methods=['POST'])
-@login_required
 def cookie_delete(cookie_id: int):
     c = get_cookie_by_id(cookie_id)
     if not c:
@@ -119,7 +116,6 @@ def cookie_delete(cookie_id: int):
 
 
 @app.route('/x-login', methods=['GET', 'POST'])
-@login_required
 def login_page():
     if request.method == 'GET':
         return render_template('x_login.html', title='تسجيل دخول X', header='تسجيل دخول X', subtitle='حفظ storage_state باسم الحساب', active='login')
@@ -153,7 +149,6 @@ def login_page():
 
 
 @app.route('/post', methods=['GET', 'POST'])
-@login_required
 def post_page():
     cookies = list_cookies()
     if request.method == 'GET':
@@ -203,7 +198,6 @@ def post_page():
 
 
 @app.route('/profile', methods=['GET', 'POST'])
-@login_required
 def profile_page():
     cookies = list_cookies()
     if request.method == 'GET':
@@ -264,14 +258,12 @@ def profile_page():
 
 
 @app.route('/logs')
-@login_required
 def logs_page():
     rows = list_operations(limit=200)
     return render_template('logs.html', title='السجل', header='سجل العمليات', subtitle='آخر 200 عملية', active='logs', rows=rows)
 
 
 @app.route('/api')
-@login_required
 def api_docs():
     return render_template('api.html', title='API', header='API', subtitle='توثيق سريع', active='')
 

@@ -14,17 +14,43 @@ from pathlib import Path
 from app.services.ai_service import AIService
 from app.services.webhook_service import WebhookService
 from app.core.config import settings
-from app.db.database import init_db
+from app.db.database import init_db, get_db
 from app.auth.routes import router as auth_router
 from app.api.intent_routes import router as intent_router
+from app.api.admin_routes import router as admin_router
+from app.api.agent_routes import router as agent_router
+from app.api.conversation_routes import router as conversation_router
+from app.api.x_routes import router as x_router
+from app.api.admin_accounts_routes import router as admin_accounts_router
+from app.api.user_accounts_routes import router as user_accounts_router
+from app.agents.agent_manager import agent_manager
 
 app = FastAPI(title="كنق الاتمته - Chatbot API", version="1.0.0")
+
+# Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    return response
 
 # Initialize database on startup
 @app.on_event("startup")
 async def startup_event():
     init_db()
     print("Database initialized")
+    
+    try:
+        agent_manager.initialize()
+        print("AI Agents initialized successfully")
+    except Exception as e:
+        print(f"Warning: AI Agents initialization failed: {str(e)}")
+        print("Check .env.agents file for LLM configuration")
 
 # Include auth routes
 app.include_router(auth_router)
@@ -32,12 +58,33 @@ app.include_router(auth_router)
 # Include intent recognition routes
 app.include_router(intent_router)
 
+# Include admin routes
+app.include_router(admin_router)
+
+# Include agent routes
+app.include_router(agent_router)
+
+# Include conversation routes
+app.include_router(conversation_router)
+
+# Include X platform routes
+app.include_router(x_router)
+
+# Include accounts management routes
+app.include_router(admin_accounts_router)
+app.include_router(user_accounts_router)
+
+# CORS Configuration - تقييد النطاقات المسموحة
+import os
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
+    max_age=3600,
 )
 
 static_path = Path(__file__).parent.parent / "static"
@@ -102,13 +149,15 @@ async def websocket_endpoint(websocket: WebSocket):
             }, websocket)
             
             try:
-                # الحصول على الرد من n8n webhook فقط
-                n8n_response = await webhook_service.send_message_to_n8n(
-                    user_message=user_message,
-                    session_id=session_id,
+                # الحصول على جلسة قاعدة البيانات
+                db = next(get_db())
+                
+                # استخدام نظام الوكلاء الذكية مع الذاكرة
+                agent_result = agent_manager.process_user_message(
+                    message=user_message,
                     user_id=user_id,
-                    user_email=user_email,
-                    metadata={"source": "websocket"}
+                    session_id=session_id,
+                    db=db
                 )
                 
                 await manager.send_message({
@@ -116,20 +165,32 @@ async def websocket_endpoint(websocket: WebSocket):
                     "status": False
                 }, websocket)
                 
-                # إذا كان هناك رد من n8n، أرسله
-                if n8n_response:
+                # إرسال رد الوكيل
+                if agent_result.get("success"):
+                    response_message = agent_result.get("message", "")
+                    
+                    # إضافة معلومات إضافية إذا كانت متاحة
+                    metadata = {}
+                    if agent_result.get("intent_result"):
+                        metadata["intent"] = agent_result["intent_result"].get("intent")
+                        metadata["confidence"] = agent_result["intent_result"].get("confidence")
+                    if agent_result.get("agent"):
+                        metadata["agent"] = agent_result["agent"]
+                    
                     await manager.send_message({
                         "type": "assistant_message",
-                        "message": n8n_response,
+                        "message": response_message,
+                        "metadata": metadata,
                         "timestamp": datetime.now().isoformat()
                     }, websocket)
                 else:
-                    # إذا لم يكن هناك رد من n8n، أرسل رسالة خطأ
+                    # في حالة الفشل
                     await manager.send_message({
-                        "type": "error",
-                        "message": "عذراً، لم أتمكن من الحصول على رد من النظام. يرجى المحاولة مرة أخرى.",
+                        "type": "assistant_message",
+                        "message": agent_result.get("message", "عذراً، لم أتمكن من معالجة طلبك."),
                         "timestamp": datetime.now().isoformat()
                     }, websocket)
+                    
             except Exception as e:
                 await manager.send_message({
                     "type": "typing",
