@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { FiUsers, FiUserCheck, FiShield, FiTrash2, FiArrowRight } from 'react-icons/fi'
+import { FiUsers, FiUserCheck, FiShield, FiTrash2, FiArrowRight, FiMessageSquare, FiTwitter, FiEye } from 'react-icons/fi'
 import { MdAdminPanelSettings } from 'react-icons/md'
 
 const AdminDashboard = ({ user, darkMode }) => {
@@ -10,6 +10,9 @@ const AdminDashboard = ({ user, darkMode }) => {
   const [stats, setStats] = useState(null)
   const [users, setUsers] = useState([])
   const [message, setMessage] = useState({ text: '', type: '' })
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [userDetails, setUserDetails] = useState(null)
+  const [detailsLoading, setDetailsLoading] = useState(false)
 
   useEffect(() => {
     if (!user?.is_admin) {
@@ -110,6 +113,28 @@ const AdminDashboard = ({ user, darkMode }) => {
       fetchDashboardData()
     } catch (error) {
       showMessage(error.response?.data?.detail || 'فشل حذف المستخدم', 'error')
+    }
+  }
+
+  const fetchUserDetails = async (userId) => {
+    setDetailsLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const response = await axios.get(
+        `${API_URL}/api/admin/users/${userId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      )
+      setUserDetails(response.data)
+      setSelectedUser(userId)
+    } catch (error) {
+      showMessage('فشل تحميل تفاصيل المستخدم', 'error')
+    } finally {
+      setDetailsLoading(false)
     }
   }
 
@@ -234,6 +259,12 @@ const AdminDashboard = ({ user, darkMode }) => {
                     الصلاحيات
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
+                    المحادثات
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
+                    الحسابات
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
                     تاريخ الإنشاء
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
@@ -287,20 +318,41 @@ const AdminDashboard = ({ user, darkMode }) => {
                         {u.is_admin ? 'مسؤول' : 'مستخدم'}
                       </button>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-text-secondary-light dark:text-text-secondary-dark">
+                        <FiMessageSquare size={16} />
+                        <span className="font-medium">{u.conversations_count || 0}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-text-secondary-light dark:text-text-secondary-dark">
+                        <FiTwitter size={16} />
+                        <span className="font-medium">{u.social_accounts_count || 0}</span>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-text-secondary-light dark:text-text-secondary-dark text-sm">
                       {new Date(u.created_at).toLocaleDateString('ar-SA')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleDeleteUser(u.id, u.email)}
-                        disabled={u.id === user.id}
-                        className={`text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 ${
-                          u.id === user.id ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                        title="حذف المستخدم"
-                      >
-                        <FiTrash2 size={18} />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => fetchUserDetails(u.id)}
+                          className="text-primary hover:text-primary/80"
+                          title="عرض التفاصيل"
+                        >
+                          <FiEye size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(u.id, u.email)}
+                          disabled={u.id === user.id}
+                          className={`text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 ${
+                            u.id === user.id ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          title="حذف المستخدم"
+                        >
+                          <FiTrash2 size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -308,6 +360,117 @@ const AdminDashboard = ({ user, darkMode }) => {
             </table>
           </div>
         </div>
+
+        {selectedUser && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedUser(null)}>
+            <div className="bg-card-light dark:bg-card-dark rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="p-6 border-b border-border-light dark:border-border-dark flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-text-primary-light dark:text-text-primary-dark">
+                  تفاصيل المستخدم
+                </h2>
+                <button
+                  onClick={() => setSelectedUser(null)}
+                  className="text-text-secondary-light dark:text-text-secondary-dark hover:text-text-primary-light dark:hover:text-text-primary-dark"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {detailsLoading ? (
+                <div className="p-12 text-center">
+                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-text-secondary-light dark:text-text-secondary-dark">جاري التحميل...</p>
+                </div>
+              ) : userDetails && (
+                <div className="p-6 space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-text-secondary-light dark:text-text-secondary-dark text-sm mb-1">الاسم</p>
+                      <p className="text-text-primary-light dark:text-text-primary-dark font-medium">{userDetails.name || 'بدون اسم'}</p>
+                    </div>
+                    <div>
+                      <p className="text-text-secondary-light dark:text-text-secondary-dark text-sm mb-1">البريد الإلكتروني</p>
+                      <p className="text-text-primary-light dark:text-text-primary-dark font-medium">{userDetails.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-text-secondary-light dark:text-text-secondary-dark text-sm mb-1">إجمالي الرسائل</p>
+                      <p className="text-text-primary-light dark:text-text-primary-dark font-medium">{userDetails.total_messages}</p>
+                    </div>
+                    <div>
+                      <p className="text-text-secondary-light dark:text-text-secondary-dark text-sm mb-1">تاريخ التسجيل</p>
+                      <p className="text-text-primary-light dark:text-text-primary-dark font-medium">{new Date(userDetails.created_at).toLocaleDateString('ar-SA')}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark mb-3 flex items-center gap-2">
+                      <FiTwitter /> الحسابات الاجتماعية ({userDetails.social_accounts.length})
+                    </h3>
+                    {userDetails.social_accounts.length > 0 ? (
+                      <div className="space-y-2">
+                        {userDetails.social_accounts.map((acc) => (
+                          <div key={acc.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 flex items-center justify-between">
+                            <div>
+                              <p className="text-text-primary-light dark:text-text-primary-dark font-medium">
+                                {acc.username}
+                              </p>
+                              <p className="text-text-secondary-light dark:text-text-secondary-dark text-sm">
+                                المنصة: {acc.platform === 'x' ? 'X (Twitter)' : acc.platform}
+                              </p>
+                            </div>
+                            <div className="text-left">
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                acc.status === 'active'
+                                  ? 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+                                  : 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                              }`}>
+                                {acc.status === 'active' ? 'نشط' : acc.status}
+                              </span>
+                              {acc.last_used && (
+                                <p className="text-text-secondary-light dark:text-text-secondary-dark text-xs mt-1">
+                                  آخر استخدام: {new Date(acc.last_used).toLocaleDateString('ar-SA')}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-text-secondary-light dark:text-text-secondary-dark text-center py-4">لا توجد حسابات</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark mb-3 flex items-center gap-2">
+                      <FiMessageSquare /> المحادثات ({userDetails.conversations.length})
+                    </h3>
+                    {userDetails.conversations.length > 0 ? (
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {userDetails.conversations.map((conv) => (
+                          <div key={conv.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-text-primary-light dark:text-text-primary-dark font-medium">
+                                {conv.title || `محادثة #${conv.id}`}
+                              </p>
+                              <span className="text-text-secondary-light dark:text-text-secondary-dark text-sm">
+                                {conv.messages_count} رسالة
+                              </span>
+                            </div>
+                            <p className="text-text-secondary-light dark:text-text-secondary-dark text-xs">
+                              آخر تحديث: {new Date(conv.updated_at).toLocaleDateString('ar-SA')}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-text-secondary-light dark:text-text-secondary-dark text-center py-4">لا توجد محادثات</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

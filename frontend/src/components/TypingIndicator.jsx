@@ -8,7 +8,7 @@ const TypingIndicator = () => {
       </div>
       <div className="flex flex-col gap-2 w-full min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-gray-900 dark:text-white">المساعد</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">موج</span>
         </div>
         <div className="flex gap-1 py-2">
           <span className="w-2 h-2 bg-primary rounded-full typing-dot"></span>

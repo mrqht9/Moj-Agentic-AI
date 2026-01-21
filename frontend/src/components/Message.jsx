@@ -11,6 +11,11 @@ const Message = ({ message }) => {
   }
 
   const formatMessage = (text) => {
+    // معالجة الحالة التي يكون فيها النص null أو undefined
+    if (!text || text === null || text === undefined) {
+      return ''
+    }
+    
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g
     const inlineCodeRegex = /`([^`]+)`/g
     
@@ -70,7 +75,7 @@ const Message = ({ message }) => {
       <div className="flex flex-col gap-3 w-full min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-900 dark:text-white">
-            {message.type === 'error' ? 'خطأ' : 'المساعد'}
+            {message.type === 'error' ? 'خطأ' : 'موج'}
           </span>
           <span className="text-xs text-gray-400">{formatTime(message.timestamp)}</span>
         </div>

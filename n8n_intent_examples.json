@@ -1,0 +1,213 @@
+{
+  "n8n_workflow_examples": {
+    "description": "أمثلة لاستخدام Intent API في n8n",
+    "base_url": "http://localhost:5789",
+    
+    "example_1_detect_intent": {
+      "name": "التعرف على النية من رسالة",
+      "method": "POST",
+      "url": "http://localhost:5789/api/intent/detect",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "أضف حساب تويتر الخاص بي",
+        "context": {},
+        "user_id": 1
+      },
+      "expected_response": {
+        "intent": "add_account",
+        "confidence": 0.95,
+        "entities": {},
+        "platform": "twitter",
+        "raw_text": "أضف حساب تويتر الخاص بي",
+        "timestamp": "2024-01-01T00:00:00",
+        "suggestions": [
+          "قم بتوفير بيانات الاعتماد للحساب",
+          "اختر المنصة: Twitter, Instagram, Facebook, LinkedIn"
+        ]
+      }
+    },
+    
+    "example_2_create_post": {
+      "name": "إنشاء منشور",
+      "method": "POST",
+      "url": "http://localhost:5789/api/intent/detect",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "انشر 'مرحباً بالجميع!' على تويتر",
+        "user_id": 1
+      },
+      "expected_response": {
+        "intent": "create_post",
+        "confidence": 0.95,
+        "entities": {
+          "post_content": "مرحباً بالجميع!"
+        },
+        "platform": "twitter",
+        "suggestions": [
+          "يمكنك إضافة صور أو فيديو"
+        ]
+      }
+    },
+    
+    "example_3_schedule_post": {
+      "name": "جدولة منشور",
+      "method": "POST",
+      "url": "http://localhost:5789/api/intent/detect",
+      "body": {
+        "text": "جدول منشور على انستقرام غداً الساعة 10 صباحاً",
+        "user_id": 1
+      },
+      "expected_response": {
+        "intent": "schedule_post",
+        "platform": "instagram",
+        "entities": {
+          "schedule_time": {
+            "type": "tomorrow",
+            "value": "غداً"
+          }
+        }
+      }
+    },
+    
+    "example_4_get_analytics": {
+      "name": "الحصول على الإحصائيات",
+      "method": "POST",
+      "url": "http://localhost:5789/api/intent/detect",
+      "body": {
+        "text": "أرني إحصائيات حسابي على تويتر",
+        "user_id": 1
+      },
+      "expected_response": {
+        "intent": "get_analytics",
+        "platform": "twitter",
+        "suggestions": [
+          "اختر الفترة الزمنية: آخر 7 أيام، 30 يوم، 90 يوم",
+          "حدد نوع التحليل: إحصائيات عامة، تفاعل، نمو المتابعين"
+        ]
+      }
+    },
+    
+    "example_5_list_intents": {
+      "name": "عرض جميع النوايا المدعومة",
+      "method": "GET",
+      "url": "http://localhost:5789/api/intent/list",
+      "expected_response": {
+        "intents": [
+          {
+            "intent": "add_account",
+            "description": "إضافة حساب جديد على منصة التواصل",
+            "category": "account_management"
+          }
+        ],
+        "platforms": ["twitter", "x", "instagram", "facebook", "linkedin", "tiktok"]
+      }
+    },
+    
+    "example_6_batch_detection": {
+      "name": "معالجة عدة رسائل دفعة واحدة",
+      "method": "POST",
+      "url": "http://localhost:5789/api/intent/batch",
+      "body": [
+        {
+          "text": "أضف حساب تويتر",
+          "user_id": 1
+        },
+        {
+          "text": "انشر منشور على انستقرام",
+          "user_id": 1
+        },
+        {
+          "text": "أرني الإحصائيات",
+          "user_id": 1
+        }
+      ],
+      "expected_response": [
+        {
+          "intent": "add_account",
+          "confidence": 0.95,
+          "platform": "twitter"
+        },
+        {
+          "intent": "create_post",
+          "confidence": 0.95,
+          "platform": "instagram"
+        },
+        {
+          "intent": "get_analytics",
+          "confidence": 0.95
+        }
+      ]
+    }
+  },
+  
+  "n8n_workflow_structure": {
+    "description": "هيكل workflow مقترح في n8n",
+    "steps": [
+      {
+        "step": 1,
+        "node_type": "Webhook",
+        "name": "استقبال الرسالة",
+        "description": "استقبال رسالة من المستخدم"
+      },
+      {
+        "step": 2,
+        "node_type": "HTTP Request",
+        "name": "التعرف على النية",
+        "method": "POST",
+        "url": "http://localhost:5789/api/intent/detect",
+        "body": {
+          "text": "={{$json.message}}",
+          "user_id": "={{$json.user_id}}"
+        }
+      },
+      {
+        "step": 3,
+        "node_type": "Switch",
+        "name": "توجيه حسب النية",
+        "description": "توجيه الطلب حسب النية المكتشفة",
+        "rules": [
+          {
+            "intent": "add_account",
+            "action": "إضافة حساب جديد"
+          },
+          {
+            "intent": "create_post",
+            "action": "إنشاء منشور"
+          },
+          {
+            "intent": "schedule_post",
+            "action": "جدولة منشور"
+          },
+          {
+            "intent": "get_analytics",
+            "action": "عرض الإحصائيات"
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "node_type": "Function/Code",
+        "name": "تنفيذ الإجراء",
+        "description": "تنفيذ الإجراء المناسب حسب النية"
+      },
+      {
+        "step": 5,
+        "node_type": "Respond to Webhook",
+        "name": "إرسال الرد",
+        "description": "إرسال الرد للمستخدم"
+      }
+    ]
+  },
+  
+  "usage_tips": {
+    "tip_1": "استخدم {{$json.intent}} للوصول إلى النية المكتشفة",
+    "tip_2": "استخدم {{$json.confidence}} للتحقق من مستوى الثقة",
+    "tip_3": "استخدم {{$json.entities}} للوصول إلى الكيانات المستخرجة",
+    "tip_4": "استخدم {{$json.platform}} لمعرفة المنصة المستهدفة",
+    "tip_5": "استخدم {{$json.suggestions}} للحصول على اقتراحات للمستخدم"
+  }
+}

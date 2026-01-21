@@ -24,10 +24,14 @@ if sys.platform == 'win32':
 # Set environment variable for UTF-8
 os.environ['PYTHONIOENCODING'] = 'utf-8'
 
-import uvicorn
 from pathlib import Path
-
 sys.path.insert(0, str(Path(__file__).parent))
+
+# Check if running in venv
+print(f"Python executable: {sys.executable}")
+print(f"Python version: {sys.version}")
+
+import uvicorn
 
 if __name__ == "__main__":
     print("=" * 60)

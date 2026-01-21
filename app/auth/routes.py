@@ -36,10 +36,28 @@ class RegisterRequest(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: str
+    name: Optional[str] = None
+    profile_picture: Optional[str] = None
+    is_admin: bool = False
+    is_active: bool = True
     created_at: str
     
     class Config:
         from_attributes = True
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class UpdateProfileRequest(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+
+class ProfilePictureRequest(BaseModel):
+    profile_picture: str
 
 
 class VerifyResponse(BaseModel):
@@ -204,5 +222,89 @@ async def get_current_user_info(current_user: User = Depends(require_current_use
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
+        name=current_user.name,
+        profile_picture=current_user.profile_picture,
+        is_admin=current_user.is_admin,
+        is_active=current_user.is_active,
+        created_at=current_user.created_at.isoformat()
+    )
+
+
+@router.post("/change-password", response_model=MessageResponse)
+async def change_password(
+    request: ChangePasswordRequest,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db)
+):
+    """Change user password"""
+    if not verify_password(request.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    current_user.password_hash = hash_password(request.new_password)
+    db.commit()
+    
+    return MessageResponse(
+        message="Password changed successfully",
+        success=True
+    )
+
+
+@router.put("/profile", response_model=UserResponse)
+async def update_profile(
+    request: UpdateProfileRequest,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user profile"""
+    if request.name is not None:
+        current_user.name = request.name
+    
+    if request.email is not None:
+        existing_user = db.query(User).filter(
+            User.email == request.email,
+            User.id != current_user.id
+        ).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already exists"
+            )
+        current_user.email = request.email
+    
+    db.commit()
+    db.refresh(current_user)
+    
+    return UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        name=current_user.name,
+        profile_picture=current_user.profile_picture,
+        is_admin=current_user.is_admin,
+        is_active=current_user.is_active,
+        created_at=current_user.created_at.isoformat()
+    )
+
+
+@router.post("/profile-picture", response_model=UserResponse)
+async def upload_profile_picture(
+    request: ProfilePictureRequest,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload profile picture"""
+    current_user.profile_picture = request.profile_picture
+    db.commit()
+    db.refresh(current_user)
+    
+    return UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        name=current_user.name,
+        profile_picture=current_user.profile_picture,
+        is_admin=current_user.is_admin,
+        is_active=current_user.is_active,
         created_at=current_user.created_at.isoformat()
     )

@@ -75,17 +75,22 @@ const ChatInterface = ({ darkMode, setDarkMode, user, onLogout }) => {
     if (data.type === 'typing') {
       setIsTyping(data.status)
     } else if (data.type === 'assistant_message') {
-      setMessages(prev => [...prev, {
-        id: Date.now(),
-        type: 'assistant',
-        content: data.message,
-        timestamp: data.timestamp
-      }])
+      // تجاهل الرسائل الفارغة أو null
+      if (data.message && data.message !== null) {
+        setMessages(prev => [...prev, {
+          id: Date.now(),
+          type: 'assistant',
+          content: data.message,
+          timestamp: data.timestamp
+        }])
+      }
     } else if (data.type === 'error') {
+      // عرض رسالة خطأ عامة إذا كانت الرسالة null
+      const errorMessage = data.message || 'حدث خطأ غير متوقع'
       setMessages(prev => [...prev, {
         id: Date.now(),
         type: 'error',
-        content: data.message,
+        content: errorMessage,
         timestamp: data.timestamp
       }])
     }
@@ -131,12 +136,53 @@ const ChatInterface = ({ darkMode, setDarkMode, user, onLogout }) => {
         content: 'مرحباً! أنا مساعدك الذكي في MOJ AI. يمكنني مساعدتك في إدارة وسائل التواصل الاجتماعي، التحليلات، والأتمتة. كيف يمكنني مساعدتك اليوم؟',
         timestamp: new Date().toISOString()
       }])
+      // إنشاء session_id جديد
+      localStorage.setItem('session_id', `session_${Date.now()}`)
+    }
+  }
+
+  const handleLoadConversation = async (conversationId) => {
+    try {
+      const token = localStorage.getItem('token')
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const response = await axios.get(
+        `${API_URL}/api/conversations/${conversationId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      )
+      
+      if (response.data && response.data.messages) {
+        // تحويل الرسائل إلى التنسيق المطلوب
+        const loadedMessages = response.data.messages.map(msg => ({
+          id: msg.id,
+          type: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content,
+          timestamp: msg.created_at
+        }))
+        
+        setMessages(loadedMessages)
+        
+        // تحديث session_id للمحادثة المحملة
+        localStorage.setItem('session_id', response.data.session_id || `session_${conversationId}`)
+      }
+    } catch (error) {
+      console.error('Failed to load conversation:', error)
+      alert('فشل تحميل المحادثة')
     }
   }
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <Sidebar darkMode={darkMode} setDarkMode={setDarkMode} user={user} onLogout={onLogout} />
+      <Sidebar 
+        darkMode={darkMode} 
+        setDarkMode={setDarkMode} 
+        user={user} 
+        onLogout={onLogout}
+        onLoadConversation={handleLoadConversation}
+      />
       
       {/* فاصل عمودي بين Sidebar والمحتوى */}
       <div className="w-px bg-border-light dark:bg-border-dark"></div>

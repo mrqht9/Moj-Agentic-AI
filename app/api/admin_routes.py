@@ -6,10 +6,27 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.db.database import get_db
-from app.db.models import User, XAccount
+from app.db.models import User, XAccount, Conversation, Message, SocialAccount
 from app.auth.admin_dependencies import require_admin
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
+
+
+class SocialAccountInfo(BaseModel):
+    id: int
+    platform: str
+    username: str
+    status: str
+    last_login: Optional[str] = None
+    last_used: Optional[str] = None
+
+
+class ConversationInfo(BaseModel):
+    id: int
+    title: Optional[str] = None
+    messages_count: int
+    created_at: str
+    updated_at: str
 
 
 class UserListResponse(BaseModel):
@@ -21,6 +38,24 @@ class UserListResponse(BaseModel):
     is_active: bool
     created_at: str
     x_accounts_count: int
+    conversations_count: int
+    social_accounts_count: int
+    
+    class Config:
+        from_attributes = True
+
+
+class UserDetailResponse(BaseModel):
+    id: int
+    email: str
+    name: Optional[str] = None
+    profile_picture: Optional[str] = None
+    is_admin: bool
+    is_active: bool
+    created_at: str
+    social_accounts: List[SocialAccountInfo]
+    conversations: List[ConversationInfo]
+    total_messages: int
     
     class Config:
         from_attributes = True
@@ -83,6 +118,16 @@ async def get_all_users(
     
     result = []
     for user in users:
+        # عدد المحادثات
+        conversations_count = db.query(Conversation).filter(
+            Conversation.user_id == user.id
+        ).count()
+        
+        # عدد الحسابات الاجتماعية
+        social_accounts_count = db.query(SocialAccount).filter(
+            SocialAccount.user_id == user.id
+        ).count()
+        
         result.append(UserListResponse(
             id=user.id,
             email=user.email,
@@ -91,7 +136,9 @@ async def get_all_users(
             is_admin=user.is_admin,
             is_active=user.is_active,
             created_at=user.created_at.isoformat(),
-            x_accounts_count=len(user.x_accounts)
+            x_accounts_count=len(user.x_accounts),
+            conversations_count=conversations_count,
+            social_accounts_count=social_accounts_count
         ))
     
     return result
@@ -136,6 +183,73 @@ async def update_user(
         is_active=user.is_active,
         created_at=user.created_at.isoformat(),
         x_accounts_count=len(user.x_accounts)
+    )
+
+
+@router.get("/users/{user_id}", response_model=UserDetailResponse)
+async def get_user_details(
+    user_id: int,
+    admin_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """الحصول على تفاصيل المستخدم الكاملة مع المحادثات والحسابات"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # الحسابات الاجتماعية
+    social_accounts = db.query(SocialAccount).filter(
+        SocialAccount.user_id == user_id
+    ).all()
+    
+    social_accounts_info = [
+        SocialAccountInfo(
+            id=acc.id,
+            platform=acc.platform,
+            username=acc.username,
+            status=acc.status,
+            last_login=acc.last_login.isoformat() if acc.last_login else None,
+            last_used=acc.last_used.isoformat() if acc.last_used else None
+        )
+        for acc in social_accounts
+    ]
+    
+    # المحادثات
+    conversations = db.query(Conversation).filter(
+        Conversation.user_id == user_id
+    ).all()
+    
+    conversations_info = []
+    total_messages = 0
+    
+    for conv in conversations:
+        messages_count = db.query(Message).filter(
+            Message.conversation_id == conv.id
+        ).count()
+        total_messages += messages_count
+        
+        conversations_info.append(ConversationInfo(
+            id=conv.id,
+            title=conv.title,
+            messages_count=messages_count,
+            created_at=conv.created_at.isoformat(),
+            updated_at=conv.updated_at.isoformat()
+        ))
+    
+    return UserDetailResponse(
+        id=user.id,
+        email=user.email,
+        name=user.name,
+        profile_picture=user.profile_picture,
+        is_admin=user.is_admin,
+        is_active=user.is_active,
+        created_at=user.created_at.isoformat(),
+        social_accounts=social_accounts_info,
+        conversations=conversations_info,
+        total_messages=total_messages
     )
 
 

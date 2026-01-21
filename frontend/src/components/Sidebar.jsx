@@ -1,19 +1,58 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MdDashboard, MdSettings, MdPerson, MdLogout } from 'react-icons/md'
 import { BsListUl, BsFileText } from 'react-icons/bs'
 import { FiSun, FiMoon, FiMessageSquare, FiUser, FiChevronUp } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 import logoLight from '../assets/logos/logo-light.png'
 import logoDark from '../assets/logos/logo-dark.png'
 
-const Sidebar = ({ darkMode, setDarkMode, user, onLogout }) => {
+const Sidebar = ({ darkMode, setDarkMode, user, onLogout, onLoadConversation }) => {
   const navigate = useNavigate()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [lastConversation, setLastConversation] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const handleLogout = () => {
     if (window.confirm('هل أنت متأكد من تسجيل الخروج؟')) {
       onLogout()
       navigate('/login')
+    }
+  }
+
+  useEffect(() => {
+    if (user) {
+      fetchLastConversation()
+    }
+  }, [user])
+
+  const fetchLastConversation = async () => {
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const response = await axios.get(
+        `${API_URL}/api/conversations/`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      )
+      
+      if (response.data && response.data.length > 0) {
+        setLastConversation(response.data[0])
+      }
+    } catch (error) {
+      console.error('Failed to fetch last conversation:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleLoadConversation = async (conversationId) => {
+    if (onLoadConversation) {
+      await onLoadConversation(conversationId)
     }
   }
   return (
@@ -37,22 +76,30 @@ const Sidebar = ({ darkMode, setDarkMode, user, onLogout }) => {
 
         {/* قسم المحادثات السابقة */}
         <div className="flex flex-col gap-2">
-          <h3 className="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark px-3 mt-2">المحادثات</h3>
+          <h3 className="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark px-3 mt-2">آخر محادثة</h3>
           
-          <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-card-dark transition-colors text-right group">
-            <FiMessageSquare className="text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark" size={18} />
-            <span className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark truncate">خطة محتوى الأسبوع</span>
-          </button>
-          
-          <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-card-dark transition-colors text-right group">
-            <FiMessageSquare className="text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark" size={18} />
-            <span className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark truncate">تحليل المنافسين</span>
-          </button>
-          
-          <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-card-dark transition-colors text-right group">
-            <FiMessageSquare className="text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark" size={18} />
-            <span className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-text-primary-light dark:group-hover:text-text-primary-dark truncate">استراتيجية إطلاق المنتج</span>
-          </button>
+          {loading ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : lastConversation ? (
+            <button 
+              onClick={() => handleLoadConversation(lastConversation.id)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-card-dark transition-colors text-right group"
+            >
+              <FiMessageSquare className="text-text-secondary-light dark:text-text-secondary-dark group-hover:text-primary" size={18} />
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark truncate">
+                  {lastConversation.title || 'محادثة بدون عنوان'}
+                </span>
+                <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                  {new Date(lastConversation.updated_at).toLocaleDateString('ar-SA')}
+                </span>
+              </div>
+            </button>
+          ) : (
+            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark px-3 py-2">لا توجد محادثات سابقة</p>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto pr-2"></div>

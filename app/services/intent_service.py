@@ -102,28 +102,70 @@ class IntentService:
                 r"أضف حساب",
                 r"إضافة حساب",
                 r"ربط حساب",
+                r"سجل حساب",
+                r"أريد إضافة",
+                r"تسجيل دخول",
+                r"سجل دخول",
+                r"تسجيل الدخول",
+                r"ابي اسوي تسجيل",
+                r"ابغى اسجل",
+                r"ابي تسجل",
+                r"ابيك تسجل",
+                r"ابغاك تسجل",
+                r"مرحبا ابي.*تسجل",
+                r"ودي اسجل",
+                r"ابغى اضيف حساب",
+                r"ممكن اضيف",
+                r"اضف لي حساب",
+                r"سجل لي",
+                r"دخلني",
                 r"add account",
                 r"connect account",
                 r"link account",
-                r"سجل حساب",
-                r"أريد إضافة"
+                r"login",
+                r"sign in",
+                r"log in"
             ],
             IntentType.REMOVE_ACCOUNT: [
                 r"احذف حساب",
                 r"إزالة حساب",
                 r"فك ربط",
+                r"حذف حسابي",
+                r"احذف حسابي",
+                r"امسح حساب",
+                r"ازالة حسابي",
+                r"ابي احذف",
+                r"ابغى احذف",
+                r"ودي احذف",
+                r"شيل حساب",
+                r"الغي حساب",
+                r"ابغى امسح",
+                r"امسح لي",
+                r"شيل لي",
                 r"remove account",
                 r"delete account",
-                r"unlink account"
+                r"unlink account",
+                r"remove my account",
+                r"delete my account"
             ],
             IntentType.LIST_ACCOUNTS: [
                 r"اعرض حساباتي",
                 r"قائمة الحسابات",
                 r"حساباتي",
+                r"ما هي حساباتي",
+                r"وش حساباتي",
+                r"ايش عندي من حسابات",
+                r"شوف حساباتي",
+                r"ورني حساباتي",
+                r"عندي كم حساب",
+                r"كم حساب عندي",
+                r"الحسابات المربوطة",
+                r"الحسابات النشطة",
                 r"list accounts",
                 r"show accounts",
                 r"my accounts",
-                r"ما هي حساباتي"
+                r"show my accounts",
+                r"list my accounts"
             ],
             IntentType.SWITCH_ACCOUNT: [
                 r"انتقل إلى حساب",
@@ -138,12 +180,29 @@ class IntentService:
                 r"انشر",
                 r"اكتب منشور",
                 r"أريد النشر",
+                r"غرد",
+                r"نشر",
+                r"تغريد",
+                r"تغريدة",
+                r"نص التغريدة",
+                r"طيب غرد",
+                r"ابي انشر",
+                r"ابغى اغرد",
+                r"اكتب تغريدة",
+                r"ودي انشر",
+                r"ابغى اكتب",
+                r"انشر لي",
+                r"غرد لي",
+                r"اكتب في",
+                r"بوست",
+                r"منشور",
                 r"create post",
                 r"publish post",
                 r"write post",
                 r"post",
-                r"غرد",
-                r"tweet"
+                r"tweet",
+                r"make a post",
+                r"publish"
             ],
             IntentType.SCHEDULE_POST: [
                 r"جدول منشور",
@@ -233,11 +292,25 @@ class IntentService:
             IntentType.GREETING: [
                 r"مرحبا",
                 r"السلام عليكم",
+                r"أهلا",
+                r"هلا",
+                r"اهلين",
+                r"يا هلا",
+                r"حياك",
+                r"صباح الخير",
+                r"مساء الخير",
+                r"صباحك",
+                r"مساك",
+                r"كيف حالك",
+                r"كيفك",
+                r"شلونك",
+                r"وش اخبارك",
                 r"hello",
                 r"hi",
                 r"hey",
-                r"صباح الخير",
-                r"مساء الخير"
+                r"good morning",
+                r"good evening",
+                r"how are you"
             ]
         }
     
@@ -331,21 +404,43 @@ class IntentService:
                 }
         
         # استخراج اسم الحساب
-        account_pattern = r"@(\w+)|حساب (\w+)|account (\w+)"
-        match = re.search(account_pattern, text, re.IGNORECASE)
-        if match:
-            entities["account_name"] = match.group(1) or match.group(2) or match.group(3)
+        account_patterns = [
+            r"من حساب\s+(\w+)",
+            r"حساب\s+(\w+)",
+            r"@(\w+)",
+            r"account\s+(\w+)",
+            r"في حساب\s+(\w+)",
+            r"على حساب\s+(\w+)"
+        ]
+        
+        for pattern in account_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                entities["account_name"] = match.group(1)
+                break
         
         # استخراج محتوى المنشور
         if intent in [IntentType.CREATE_POST, IntentType.SCHEDULE_POST]:
             # البحث عن محتوى بين علامات اقتباس
             content_match = re.search(r'["\'](.+?)["\']|"(.+?)"|«(.+?)»', text)
             if content_match:
-                entities["post_content"] = (
+                entities["content"] = (
                     content_match.group(1) or 
                     content_match.group(2) or 
                     content_match.group(3)
                 )
+            else:
+                # إذا لم يكن هناك علامات اقتباس، استخرج النص بعد الكلمات المفتاحية
+                for keyword in ["غرد", "انشر", "تغريدة", "نص التغريدة", "tweet", "post"]:
+                    if keyword in text.lower():
+                        parts = text.lower().split(keyword, 1)
+                        if len(parts) > 1:
+                            content = parts[1].strip()
+                            # إزالة كلمات مثل "في الحساب", "بالنص التالي", إلخ
+                            content = re.sub(r'^(في الحساب|بالنص التالي|النص التالي|بالنص|:)\s*', '', content, flags=re.IGNORECASE)
+                            if content:
+                                entities["content"] = content
+                                break
         
         # استخراج الأرقام
         numbers = re.findall(r'\d+', text)
