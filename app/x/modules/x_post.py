@@ -50,47 +50,21 @@ def _pick_composer_file_input(page):
 
 
 def _get_textbox(page):
-    """البحث عن textbox بطرق متعددة مع انتظار أفضل"""
-    # انتظر ظهور dialog أو composer
-    page.wait_for_timeout(1000)
-    
     scope = _get_scope(page)
-    
-    # الطريقة 1: data-testid مع role
-    try:
-        tb = scope.locator('div[data-testid="tweetTextarea_0"][role="textbox"]')
-        if tb.count():
-            tb.first.wait_for(state="visible", timeout=10000)
-            return tb.first
-    except Exception:
-        pass
-    
-    # الطريقة 2: data-testid فقط
-    try:
-        tb2 = scope.locator('div[data-testid="tweetTextarea_0"]')
-        if tb2.count():
-            tb2.first.wait_for(state="visible", timeout=10000)
-            return tb2.first
-    except Exception:
-        pass
-    
-    # الطريقة 3: أي textbox في الصفحة
-    try:
-        tb3 = page.locator('[contenteditable="true"][role="textbox"]').first
-        tb3.wait_for(state="visible", timeout=10000)
-        return tb3
-    except Exception:
-        pass
-    
-    # الطريقة 4: البحث بـ placeholder
-    try:
-        tb4 = page.locator('[placeholder*="What"], [placeholder*="happening"], [placeholder*="يحدث"]').first
-        tb4.wait_for(state="visible", timeout=10000)
-        return tb4
-    except Exception:
-        pass
-    
-    raise Exception("لم يتم العثور على textbox للكتابة")
+
+    tb = scope.locator('div[data-testid="tweetTextarea_0"][role="textbox"]')
+    if tb.count():
+        tb.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+        return tb.first
+
+    tb2 = scope.locator('div[data-testid="tweetTextarea_0"]')
+    if tb2.count():
+        tb2.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+        return tb2.first
+
+    tb3 = page.get_by_role("textbox")
+    tb3.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+    return tb3
 
 
 def _media_preview_visible(page) -> bool:
@@ -244,93 +218,30 @@ def _wait_publish_button_enabled(page, timeout_ms: int = MEDIA_TIMEOUT_MS):
 
 
 def _click_publish(page):
-    """البحث عن زر النشر والضغط عليه بطرق متعددة"""
-    # انتظر قليلاً للتأكد من تحميل الزر
-    page.wait_for_timeout(1000)
-    
     scope = _get_scope(page)
-    btn = None
-    
-    # الطريقة 1: tweetButtonInline (في dialog)
+
+    btn = scope.locator('button[data-testid="tweetButtonInline"]')
+    if not (btn.count() and btn.first.is_visible()):
+        btn = scope.locator('button[data-testid="tweetButton"]')
+
+    btn.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+    btn.first.scroll_into_view_if_needed()
+
     try:
-        btn_inline = scope.locator('button[data-testid="tweetButtonInline"]')
-        if btn_inline.count() > 0 and btn_inline.first.is_visible():
-            btn = btn_inline.first
-            print("[DEBUG] Found tweetButtonInline")
-    except Exception as e:
-        print(f"[DEBUG] tweetButtonInline not found: {e}")
-    
-    # الطريقة 2: tweetButton (العادي)
-    if not btn:
-        try:
-            btn_normal = scope.locator('button[data-testid="tweetButton"]')
-            if btn_normal.count() > 0:
-                btn_normal.first.wait_for(state="visible", timeout=10000)
-                btn = btn_normal.first
-                print("[DEBUG] Found tweetButton")
-        except Exception as e:
-            print(f"[DEBUG] tweetButton not found: {e}")
-    
-    # الطريقة 3: البحث بالنص "Post" أو "Tweet"
-    if not btn:
-        try:
-            btn_text = scope.locator('button:has-text("Post"), button:has-text("Tweet"), button:has-text("نشر")')
-            if btn_text.count() > 0:
-                btn = btn_text.first
-                print("[DEBUG] Found button by text")
-        except Exception as e:
-            print(f"[DEBUG] Button by text not found: {e}")
-    
-    # الطريقة 4: البحث في الصفحة كاملة (خارج dialog)
-    if not btn:
-        try:
-            btn_page = page.locator('button[data-testid="tweetButton"], button[data-testid="tweetButtonInline"]')
-            if btn_page.count() > 0:
-                btn = btn_page.first
-                print("[DEBUG] Found button in page")
-        except Exception as e:
-            print(f"[DEBUG] Button in page not found: {e}")
-    
-    if not btn:
-        # أخذ screenshot للتشخيص
-        try:
-            page.screenshot(path="debug_no_button.png", full_page=True)
-            print("[DEBUG] Screenshot saved to debug_no_button.png")
-        except Exception:
-            pass
-        raise Exception("لم يتم العثور على زر النشر. تم حفظ screenshot للتشخيص.")
-    
-    # محاولة الضغط
-    btn.scroll_into_view_if_needed()
-    page.wait_for_timeout(500)
-    
-    # المحاولة 1: click عادي
-    try:
-        btn.click(timeout=8_000)
-        print("[DEBUG] Button clicked successfully")
+        btn.first.click(timeout=8_000)
         return
-    except Exception as e:
-        print(f"[DEBUG] Normal click failed: {e}")
-    
-    # المحاولة 2: force click
+    except Exception:
+        pass
+
     try:
-        btn.click(timeout=8_000, force=True)
-        print("[DEBUG] Button force clicked successfully")
+        btn.first.click(timeout=8_000, force=True)
         return
-    except Exception as e:
-        print(f"[DEBUG] Force click failed: {e}")
-    
-    # المحاولة 3: mouse click على الإحداثيات
-    try:
-        box = btn.bounding_box()
-        if box:
-            page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
-            print("[DEBUG] Button clicked via mouse coordinates")
-            return
-    except Exception as e:
-        print(f"[DEBUG] Mouse click failed: {e}")
-    
-    raise Exception("فشل الضغط على زر النشر بجميع الطرق")
+    except Exception:
+        pass
+
+    box = btn.first.bounding_box()
+    if box:
+        page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
 
 
 def _wait_post_done(page, timeout_ms: int = POST_DONE_TIMEOUT_MS):
@@ -367,82 +278,21 @@ def post_to_x(storage_state_path: str, text: str, media_path: Optional[str], hea
 
         try:
             page.goto("https://x.com/home", wait_until="domcontentloaded")
-            page.wait_for_timeout(2000)
-            
-            # التحقق من تسجيل الدخول
-            print("[DEBUG] Checking if logged in...")
-            if page.locator('input[name="text"]').count() > 0 or "login" in page.url.lower() or "signin" in page.url.lower():
-                print("[ERROR] Not logged in - session expired!")
-                raise Exception("الجلسة منتهية. يجب إعادة تسجيل الدخول.")
-            
-            print("[DEBUG] Login verified, proceeding to post...")
+            page.wait_for_timeout(1500)
 
-            # محاولة الضغط على زر New Tweet بطرق متعددة
-            new_tweet_clicked = False
-            
-            # الطريقة 1: data-testid
-            try:
-                btn = page.get_by_test_id("SideNav_NewTweet_Button")
-                if btn.count() > 0:
-                    btn.click(timeout=5000)
-                    new_tweet_clicked = True
-            except Exception:
-                pass
-            
-            # الطريقة 2: البحث بالنص
-            if not new_tweet_clicked:
-                try:
-                    # ابحث عن زر يحتوي على "Post" أو "Tweet"
-                    btn = page.locator('a[href="/compose/tweet"], a[href="/compose/post"]')
-                    if btn.count() > 0:
-                        btn.first.click(timeout=5000)
-                        new_tweet_clicked = True
-                except Exception:
-                    pass
-            
-            # الطريقة 3: البحث بـ aria-label
-            if not new_tweet_clicked:
-                try:
-                    btn = page.locator('[aria-label*="Post"], [aria-label*="Tweet"], [aria-label*="New"]')
-                    if btn.count() > 0:
-                        btn.first.click(timeout=5000)
-                        new_tweet_clicked = True
-                except Exception:
-                    pass
-            
-            # الطريقة 4: استخدام الاختصار (Ctrl+N أو Cmd+N)
-            if not new_tweet_clicked:
-                try:
-                    page.keyboard.press("Control+N")
-                    new_tweet_clicked = True
-                except Exception:
-                    pass
-            
-            if not new_tweet_clicked:
-                raise Exception("لم يتم العثور على زر New Tweet. قد تحتاج إلى إعادة تسجيل الدخول.")
-            
-            page.wait_for_timeout(2000)
-            
-            print("[DEBUG] Looking for textbox...")
+            page.get_by_test_id("SideNav_NewTweet_Button").click(timeout=DEFAULT_TIMEOUT)
+            page.wait_for_timeout(900)
+
             textbox = _get_textbox(page)
-            print("[DEBUG] Textbox found, clicking...")
             textbox.click()
-            page.wait_for_timeout(500)
 
             # اكتب النص أولاً
-            print(f"[DEBUG] Writing text: {text[:50]}...")
             try:
                 textbox.fill(text)
-                print("[DEBUG] Text filled successfully")
-            except Exception as e:
-                print(f"[DEBUG] Fill failed, trying type: {e}")
+            except Exception:
                 textbox.click()
                 textbox.press("Control+A")
                 textbox.type(text, delay=10)
-                print("[DEBUG] Text typed successfully")
-            
-            # انتظر قليلاً بعد الكتابة
-            page.wait_for_timeout(1000)
 
             # لو فيه ميديا
             if media_path and str(media_path).strip():
@@ -469,11 +319,7 @@ def post_to_x(storage_state_path: str, text: str, media_path: Optional[str], hea
             # (اختياري) تأكيد سريع
             _wait_post_done(page, timeout_ms=POST_DONE_TIMEOUT_MS)
 
-            print("[DEBUG] Post completed successfully!")
-            return True
-            
-        except Exception as e:
-            print(f"[ERROR] Post failed: {e}")
+        except Exception:
             try:
                 page.screenshot(path="debug_post.png", full_page=True)
             except Exception:
