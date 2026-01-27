@@ -17,20 +17,28 @@
         </div>
       </div>
 
-      <div class="nav">
+            <div class="nav">
         <a href="{{ url_for('dashboard') }}" class="{% if active=='dashboard' %}active{% endif %}">لوحة التحكم <span>🏠</span></a>
         <a href="{{ url_for('cookies_page') }}" class="{% if active=='cookies' %}active{% endif %}">الكوكيز (الحسابات) <span>🍪</span></a>
         <a href="{{ url_for('login_page') }}" class="{% if active=='login' %}active{% endif %}">تسجيل دخول وحفظ كوكيز <span>🔐</span></a>
+
         <a href="{{ url_for('post_page') }}" class="{% if active=='post' %}active{% endif %}">نشر منشور <span>📝</span></a>
+        <a href="{{ url_for('repost_page') }}" class="{% if active=='repost' %}active{% endif %}">إعادة النشر <span>🔁</span></a>
+        <a href="{{ url_for('like_page') }}" class="{% if active=='like' %}active{% endif %}">إعجاب <span>❤️</span></a>
+        <a href="{{ url_for('reply_page') }}" class="{% if active=='reply' %}active{% endif %}">رد <span>💬</span></a>
+
+        <a href="{{ url_for('bookmark_page') }}" class="{% if active=='bookmark' %}active{% endif %}">بوك مارك <span>🔖</span></a>
+        <a href="{{ url_for('quote_page') }}" class="{% if active=='quote' %}active{% endif %}">اقتباس + نشر <span>✍️</span></a>
+        <a href="{{ url_for('share_page') }}" class="{% if active=='share' %}active{% endif %}">مشاركة (نسخ الرابط) <span>📤</span></a>
+
+        <a href="{{ url_for('follow_page') }}" class="{% if active=='follow' %}active{% endif %}">متابعة <span>➕</span></a>
+        <a href="{{ url_for('unfollow_page') }}" class="{% if active=='unfollow' %}active{% endif %}">إلغاء المتابعة <span>➖</span></a>
+
         <a href="{{ url_for('profile_page') }}" class="{% if active=='profile' %}active{% endif %}">تعديل بروفايل <span>🧩</span></a>
         <a href="{{ url_for('logs_page') }}" class="{% if active=='logs' %}active{% endif %}">سجل العمليات <span>🧾</span></a>
         <a href="{{ url_for('logout') }}">خروج <span>🚪</span></a>
       </div>
 
-      <div style="margin-top:18px;opacity:.85;font-size:12px;line-height:1.6">
-        <div>📁 cookies/ مسار موحد</div>
-        <div>🛡️ API محمية Bearer Token</div>
-      </div>
     </aside>
 
     <main class="main">
