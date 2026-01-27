@@ -8,7 +8,6 @@ from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
 from .tools import detect_user_intent
 from .x_agent_simple import XAgent
-from .content_generator_agent import ContentGeneratorAgent
 from app.services.memory_service import memory_service
 
 
@@ -18,7 +17,6 @@ class MainAgent:
     def __init__(self, llm_config: Dict[str, Any]):
         self.llm_config = llm_config
         self.x_agent = XAgent(llm_config)
-        self.content_generator = ContentGeneratorAgent(llm_config)
     
     def process_message(
         self, 
@@ -58,36 +56,11 @@ class MainAgent:
             confidence = intent_result.get("confidence", 0)
             
             if confidence < 0.5:
-                # ثقة منخفضة - اطلب توضيح
-                low_confidence_msg = """لم أفهم طلبك بشكل واضح. 🤔
-
-يمكنك قول:
-• "أضف حساب تويتر" - لإضافة حساب جديد
-• "انشر تغريدة" - لنشر محتوى
-• "اعرض حساباتي" - لعرض حساباتك
-• "مساعدة" - لعرض جميع الأوامر
-
-كيف يمكنني مساعدتك؟"""
-                
-                if db and conversation_id:
-                    try:
-                        memory_service.add_message(
-                            db=db, conversation_id=conversation_id,
-                            role="assistant", content=low_confidence_msg,
-                            intent="unknown", confidence=confidence, agent="Main_Agent"
-                        )
-                    except: pass
-                
-                return {
-                    "success": True,
-                    "message": low_confidence_msg,
-                    "intent_result": intent_result,
-                    "agent": "Main_Agent",
-                    "conversation_id": conversation_id
-                }
+                # لا ترجع رد تلقائي - دع الوكيل يتعامل مع الطلب
+                return None
             
             # توجيه للوكيل المناسب
-            if platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post", "generate_content"]:
+            if platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post"]:
                 context = {
                     "intent": intent,
                     "entities": entities,
@@ -261,33 +234,12 @@ class MainAgent:
                 }
             
             else:
-                # نية غير مدعومة حالياً - رد ودي
-                print(f"[DEBUG] Intent not supported yet: {intent}")
-                
-                unsupported_msg = f"""أفهم أنك تريد {intent}، لكن هذه الميزة قيد التطوير حالياً. 🚧
-
-حالياً يمكنني مساعدتك في:
-• إدارة حسابات X (Twitter)
-• نشر التغريدات
-• عرض حساباتك
-
-قل 'مساعدة' لعرض جميع الأوامر المتاحة."""
-                
-                if db and conversation_id:
-                    try:
-                        memory_service.add_message(
-                            db=db, conversation_id=conversation_id,
-                            role="assistant", content=unsupported_msg,
-                            intent=intent, confidence=confidence, agent="Main_Agent"
-                        )
-                    except: pass
-                
+                # ميزة غير متاحة
+                print(f"[DEBUG] Feature not available: {intent}")
                 return {
-                    "success": True,
-                    "message": unsupported_msg,
-                    "intent_result": intent_result,
-                    "agent": "Main_Agent",
-                    "conversation_id": conversation_id
+                    "success": False,
+                    "message": None,  # لا رد تلقائي
+                    "intent_result": intent_result
                 }
         
         except Exception as e:

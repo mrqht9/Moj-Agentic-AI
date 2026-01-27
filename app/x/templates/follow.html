@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="grid">
+    <div class="card" style="grid-column: span 7">
+      <h3>متابعة (Follow)</h3>
+      <form method="POST" class="form">
+        <div class="field">
+          <label>الحساب (Cookie)</label>
+          <select name="cookie_label" required>
+            <option value="">-- اختر --</option>
+            {% for c in cookies %}
+              <option value="{{ c.label }}">{{ c.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field">
+          <label>رابط/يوزر البروفايل</label>
+          <input class="input" type="url" name="profile_url" required placeholder="https://x.com/H_swilhy" />
+        </div>
+
+        <div class="field half">
+          <label>Headless</label>
+          <select name="headless">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        <div class="field half">
+          <label>انتظار بعد التنفيذ (ms)</label>
+          <input class="input" type="number" name="wait_after_ms" value="2000" min="0" step="250" />
+        </div>
+
+        <div class="field">
+          <button class="btn primary" type="submit">تنفيذ المتابعة</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="grid-column: span 5">
+      <h3>API سريع</h3>
+      <div class="hint">Endpoint: <code>POST /api/follow</code></div>
+      <pre style="white-space:pre-wrap;background:#fff;border:1px solid var(--border);padding:12px;border-radius:12px;font-size:12px;overflow:auto">
+import requests
+
+url = "http://localhost:5789/api/follow"
+headers = {"Authorization": "Bearer your-secure-token-here"}
+
+data = {
+  "cookie_label": "mualqahtani1",
+  "profile_url": "https://x.com/H_swilhy",
+  "headless": False,
+  "wait_after_ms": 2000
+}
+
+r = requests.post(url, headers=headers, json=data, timeout=600)
+print(r.status_code, r.text)
+      </pre>
+    </div>
+  </div>
+{% endblock %}

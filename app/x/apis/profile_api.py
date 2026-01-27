@@ -4,13 +4,13 @@ url = "http://localhost:5789/api/profile/update"
 headers = {"Authorization": "Bearer your-secure-token-here"}
 
 data = {
-    "cookie_label": "",
-    "name": "",
-    "bio": "مرحبا",
+    "cookie_label": "mualqahtani1",
+    "name": "mualqahtan5",
+    "bio": "استغفر الله واتوب اليه",
     "location": "الرياض",
     "website": "https://google.com",
-    "avatar_url": "https://tweetdelete.net/resources/wp-content/uploads/2024/04/craig-whitehead-lbekri_riMg-unsplash.jpg",
-    "banner_url": "https://example.com/banner.jpg",
+    "avatar_url": "https://pbs.twimg.com/media/EhsuMDLXkAA1tNm?format=jpg",
+    "banner_url": "https://pbs.twimg.com/media/EymWxBwWgAERKcS?format=png",
     "headless": "0",   # مهم: السيرفر يتحقق headless == '1'
 }
 
