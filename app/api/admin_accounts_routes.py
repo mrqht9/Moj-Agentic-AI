@@ -26,6 +26,8 @@ class AccountResponse(BaseModel):
     username: str
     display_name: Optional[str]
     account_label: Optional[str]
+    category: Optional[str]
+    nationality: Optional[str]
     status: str
     last_login: Optional[str]
     last_used: Optional[str]
@@ -167,6 +169,8 @@ async def get_user_accounts_admin(
             "username": account.username,
             "display_name": account.display_name,
             "account_label": account.account_label,
+            "category": account.category,
+            "nationality": account.nationality,
             "status": account.status,
             "last_login": account.last_login.isoformat() if account.last_login else None,
             "last_used": account.last_used.isoformat() if account.last_used else None,

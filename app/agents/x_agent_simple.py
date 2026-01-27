@@ -6,7 +6,11 @@
 
 from typing import Dict, Any, Optional
 import re
-from .tools import x_login, x_post, x_update_profile, x_delete_account
+from .tools import (
+    x_login, x_post, x_update_profile, x_delete_account,
+    generate_x_profile, create_and_apply_x_profile, process_profile_request
+)
+from .content_generator_agent import ContentGeneratorAgent
 from app.utils.validators import sanitize_text, sanitize_username, sanitize_account_name
 
 
@@ -15,6 +19,7 @@ class XAgent:
     
     def __init__(self, llm_config: Dict[str, Any]):
         self.llm_config = llm_config
+        self.content_generator = ContentGeneratorAgent(llm_config)
     
     def _extract_credentials(self, message: str) -> Dict[str, str]:
         """استخراج بيانات الاعتماد من الرسالة"""
@@ -141,6 +146,42 @@ class XAgent:
             content = entities.get("content")
             account = self._extract_account_name(message, entities, context)
             
+            # التحقق إذا كان المستخدم يريد محتوى من اختيار الذكاء الاصطناعي
+            generate_ai_content = "من اختيارك" in message or "من اختيارك" in message.lower()
+            
+            # إذا لم يتم استخراج المحتوى من entities، حاول استخراجه من الرسالة
+            if not content:
+                # أنماط لاستخراج المحتوى
+                patterns = [
+                    r'(?:غرد|انشر|تغريدة|بوست)\s+(?:بحساب(?:ي)?\s+\w+\s+)?(?:تغريد(?:ة|ه))?\s+(.+?)(?:\s+من اختيارك)?$',
+                    r'تغريد(?:ة|ه)\s+(.+)',
+                ]
+                
+                for pattern in patterns:
+                    match = re.search(pattern, message, re.IGNORECASE)
+                    if match:
+                        content = match.group(1).strip()
+                        # تنظيف
+                        content = re.sub(r'^(جميل(?:ة|ه)|رائع(?:ة|ه)|حلو(?:ة|ه))\s+', '', content, flags=re.IGNORECASE)
+                        content = re.sub(r'\s+من اختيارك\s*$', '', content, flags=re.IGNORECASE)
+                        break
+            
+            # إذا كان المستخدم يريد محتوى من الذكاء الاصطناعي
+            if generate_ai_content and content:
+                # استخدام Content Generator لتوليد المحتوى
+                gen_result = self.content_generator.generate_tweet(
+                    topic=content,
+                    language="arabic",
+                    include_emoji=True,
+                    include_hashtags=False
+                )
+                
+                if gen_result["success"]:
+                    content = gen_result["content"]
+                else:
+                    # إذا فشل التوليد، استخدم المحتوى الأصلي
+                    pass
+            
             # تنظيف المحتوى
             if content:
                 content = sanitize_text(content, max_length=280, allow_arabic=True)
@@ -174,6 +215,56 @@ class XAgent:
             else:
                 return "⚠️ يرجى تقديم محتوى التغريدة\n\nمثال: انشر \"سبحان الله\""
         
+        elif intent == "generate_content":
+            # توليد محتوى تغريدة باستخدام AI
+            topic = entities.get("content") or message
+            
+            # استخراج الموضوع من الرسالة
+            topic_patterns = [
+                r'(?:اكتب|ولد|اقترح)\s+(?:لي\s+)?(?:تغريدة|محتوى)\s+(?:عن|حول)\s+(.+)',
+                r'(?:محتوى|تغريدة)\s+(?:عن|حول)\s+(.+)',
+                r'(?:generate|write|create)\s+(?:tweet|content)\s+about\s+(.+)',
+            ]
+            
+            for pattern in topic_patterns:
+                match = re.search(pattern, message, re.IGNORECASE)
+                if match:
+                    topic = match.group(1).strip()
+                    break
+            
+            # تنظيف الموضوع
+            if topic:
+                topic = sanitize_text(topic, max_length=100, allow_arabic=True)
+            
+            if topic:
+                # توليد المحتوى
+                result = self.content_generator.generate_tweet(
+                    topic=topic,
+                    language="arabic",
+                    include_emoji=True,
+                    include_hashtags=True
+                )
+                
+                if result["success"]:
+                    content = result["content"]
+                    tokens_used = result.get("metadata", {}).get("tokens_used", 0)
+                    
+                    response = f"✅ تم توليد التغريدة بنجاح!\n\n"
+                    response += f"📝 **المحتوى:**\n{content}\n\n"
+                    response += f"💡 **الموضوع:** {topic}\n"
+                    response += f"🤖 **النموذج:** {result.get('metadata', {}).get('model', 'GPT-4')}\n"
+                    
+                    if tokens_used:
+                        response += f"⚡ **Tokens:** {tokens_used}\n"
+                    
+                    response += f"\n💬 يمكنك نشرها بقول: انشر \"{content[:50]}...\""
+                    
+                    return response
+                else:
+                    return result.get("message", "❌ فشل توليد المحتوى")
+            else:
+                return "⚠️ يرجى تحديد موضوع التغريدة\n\nمثال: اكتب لي تغريدة عن الأمل"
+        
         elif intent == "remove_account":
             # استخراج اسم الحساب
             account = self._extract_account_name(message, entities, context)
@@ -193,9 +284,51 @@ class XAgent:
                 return "⚠️ يرجى تحديد اسم الحساب المراد حذفه\n\nمثال: احذف حساب test_user"
         
         elif intent == "update_profile":
+            # التحقق إذا كان المستخدم يريد توليد هوية بالذكاء الاصطناعي
+            if any(keyword in message.lower() for keyword in ["أنشئ هوية", "إنشاء هوية", "هوية جديدة", "ولد هوية", "اصنع هوية"]):
+                # استخراج المجال/النيش
+                niche = None
+                niche_keywords = ["مجال", "نيش", "تخصص", "موضوع", "عن"]
+                for keyword in niche_keywords:
+                    if keyword in message:
+                        words = message.split()
+                        for i, word in enumerate(words):
+                            if keyword in word:
+                                if i + 1 < len(words):
+                                    niche = " ".join(words[i + 1:i + 4])
+                                    break
+                
+                # استخراج اسم الحساب
+                account = self._extract_account_name(message, entities, context)
+                if not account:
+                    account = entities.get("account_name", "default_account")
+                
+                # تنظيف اسم الحساب
+                if account:
+                    account = sanitize_account_name(account)
+                
+                # توليد وتطبيق الهوية
+                result = create_and_apply_x_profile(
+                    label=account,
+                    niche=niche,
+                    style="professional",
+                    headless=False
+                )
+                
+                return result.get("message", "تم محاولة إنشاء الهوية")
+            
+            # تعديل عادي للملف الشخصي
             account = entities.get("account_name", "default_account")
             name = entities.get("name")
             bio = entities.get("bio")
+            
+            # تنظيف المدخلات
+            if account:
+                account = sanitize_account_name(account)
+            if name:
+                name = sanitize_text(name, max_length=50, allow_arabic=True)
+            if bio:
+                bio = sanitize_text(bio, max_length=160, allow_arabic=True)
             
             result = x_update_profile(account, name=name, bio=bio)
             return result.get("message", "تم محاولة تحديث الملف الشخصي")

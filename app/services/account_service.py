@@ -28,6 +28,8 @@ class AccountService:
         display_name: Optional[str] = None,
         account_label: Optional[str] = None,
         cookie_filename: Optional[str] = None,
+        category: Optional[str] = None,
+        nationality: Optional[str] = None,
         metadata: Optional[Dict] = None
     ) -> SocialAccount:
         """
@@ -41,6 +43,8 @@ class AccountService:
             display_name: الاسم المعروض
             account_label: تسمية مخصصة
             cookie_filename: اسم ملف الكوكيز
+            category: تصنيف الحساب (ترفيهي، سياسي، اقتصادي، تقني، رياضي، إخباري، فني، تعليمي)
+            nationality: جنسية الحساب (سعودي، مصري، إماراتي، أمريكي، إلخ)
             metadata: معلومات إضافية
             
         Returns:
@@ -53,6 +57,8 @@ class AccountService:
             display_name=display_name or username,
             account_label=account_label or username,
             cookie_filename=cookie_filename,
+            category=category,
+            nationality=nationality,
             status="active",
             last_login=datetime.utcnow(),
             extra_metadata=json.dumps(metadata) if metadata else None

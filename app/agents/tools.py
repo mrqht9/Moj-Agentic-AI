@@ -22,6 +22,7 @@ from app.x.modules.x_login import TwitterLoginAdvanced
 from app.x.modules.x_post import post_to_x
 from app.x.modules.x_profile import update_profile_on_x
 from app.x.modules.utils import safe_label, download_to_temp, is_url
+from app.agents.profile_agent import profile_agent
 
 # مسار حفظ الكوكيز
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -46,7 +47,7 @@ def detect_user_intent(text: str) -> Dict[str, Any]:
     return result.to_dict()
 
 
-def _x_login_sync(username: str, password: str, label: str, headless: bool = True, user_id: Optional[int] = None) -> Dict[str, Any]:
+def _x_login_sync(username: str, password: str, label: str, headless: bool = False, user_id: Optional[int] = None) -> Dict[str, Any]:
     """تسجيل الدخول المتزامن (يعمل في thread منفصل)"""
     try:
         # استخدام username كاسم للملف بدلاً من label
@@ -228,7 +229,7 @@ def x_delete_account(account_name: str, user_id: Optional[int] = None) -> Dict[s
         }
 
 
-def x_login(username: str, password: str, label: str, headless: bool = True, user_id: Optional[int] = None) -> Dict[str, Any]:
+def x_login(username: str, password: str, label: str, headless: bool = False, user_id: Optional[int] = None) -> Dict[str, Any]:
     """
     تسجيل الدخول إلى منصة X (Twitter)
     
@@ -267,7 +268,7 @@ def x_login(username: str, password: str, label: str, headless: bool = True, use
         }
 
 
-def _x_post_sync(label: str, text: str, media_url: Optional[str] = None, headless: bool = True) -> Dict[str, Any]:
+def _x_post_sync(label: str, text: str, media_url: Optional[str] = None, headless: bool = False) -> Dict[str, Any]:
     """نشر تغريدة متزامن (يعمل في thread منفصل)"""
     try:
         label = safe_label(label)
@@ -348,7 +349,7 @@ def _x_post_sync(label: str, text: str, media_url: Optional[str] = None, headles
         }
 
 
-def x_post(label: str, text: str, media_url: Optional[str] = None, headless: bool = True) -> Dict[str, Any]:
+def x_post(label: str, text: str, media_url: Optional[str] = None, headless: bool = False) -> Dict[str, Any]:
     """
     نشر تغريدة على منصة X
     
@@ -503,4 +504,136 @@ def x_update_profile(
         return {
             "success": False,
             "message": f"خطأ في التحديث: {str(e)}"
+        }
+
+
+def generate_x_profile(niche: Optional[str] = None, style: str = "professional") -> Dict[str, Any]:
+    """
+    توليد هوية كاملة لحساب X باستخدام AI
+    
+    Args:
+        niche: المجال أو التخصص (مثل: تقنية، رياضة، طبخ)
+        style: نمط الهوية (professional, creative, casual)
+        
+    Returns:
+        قاموس يحتوي على الهوية المولدة (name, bio, location, website)
+    """
+    try:
+        profile = profile_agent.generate_complete_profile(niche=niche, style=style)
+        return {
+            "success": True,
+            "profile": profile,
+            "message": f"✅ تم توليد الهوية بنجاح!\n\n📝 **الاسم:** {profile['name']}\n💬 **البايو:** {profile['bio']}\n📍 **الموقع:** {profile.get('location', 'غير محدد')}"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"❌ فشل توليد الهوية: {str(e)}"
+        }
+
+
+def apply_generated_profile_to_x(
+    label: str,
+    profile: Dict[str, Any],
+    headless: bool = False
+) -> Dict[str, Any]:
+    """
+    تطبيق الهوية المولدة على حساب X
+    
+    Args:
+        label: اسم الحساب المحفوظ
+        profile: الهوية المولدة من generate_x_profile
+        headless: تشغيل المتصفح في الخلفية
+        
+    Returns:
+        نتيجة تطبيق الهوية
+    """
+    try:
+        return x_update_profile(
+            label=label,
+            name=profile.get("name"),
+            bio=profile.get("bio"),
+            location=profile.get("location"),
+            website=profile.get("website"),
+            headless=headless
+        )
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"❌ فشل تطبيق الهوية: {str(e)}"
+        }
+
+
+def create_and_apply_x_profile(
+    label: str,
+    niche: Optional[str] = None,
+    style: str = "professional",
+    headless: bool = False
+) -> Dict[str, Any]:
+    """
+    توليد وتطبيق هوية كاملة على حساب X في خطوة واحدة
+    
+    Args:
+        label: اسم الحساب المحفوظ
+        niche: المجال أو التخصص
+        style: نمط الهوية
+        headless: تشغيل المتصفح في الخلفية
+        
+    Returns:
+        نتيجة العملية الكاملة
+    """
+    try:
+        # 1. توليد الهوية
+        print(f"[INFO] Generating profile for niche: {niche}")
+        profile_result = generate_x_profile(niche=niche, style=style)
+        
+        if not profile_result["success"]:
+            return profile_result
+        
+        profile = profile_result["profile"]
+        
+        # 2. تطبيق الهوية على الحساب
+        print(f"[INFO] Applying profile to account: {label}")
+        apply_result = apply_generated_profile_to_x(
+            label=label,
+            profile=profile,
+            headless=headless
+        )
+        
+        if apply_result["success"]:
+            return {
+                "success": True,
+                "profile": profile,
+                "message": f"✅ تم إنشاء وتطبيق الهوية بنجاح على حساب '{label}'!\n\n📝 **الاسم:** {profile['name']}\n💬 **البايو:** {profile['bio']}\n📍 **الموقع:** {profile.get('location', 'غير محدد')}"
+            }
+        else:
+            return {
+                "success": False,
+                "profile": profile,
+                "message": f"⚠️ تم توليد الهوية لكن فشل تطبيقها:\n\n{apply_result['message']}\n\n📝 **الهوية المولدة:**\n- الاسم: {profile['name']}\n- البايو: {profile['bio']}"
+            }
+    
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"❌ خطأ في العملية: {str(e)}"
+        }
+
+
+def process_profile_request(user_input: str) -> Dict[str, Any]:
+    """
+    معالجة طلب المستخدم المتعلق بالهوية
+    
+    Args:
+        user_input: نص الطلب من المستخدم
+        
+    Returns:
+        نتيجة المعالجة
+    """
+    try:
+        return profile_agent.process_request(user_input)
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"❌ خطأ في معالجة الطلب: {str(e)}"
         }

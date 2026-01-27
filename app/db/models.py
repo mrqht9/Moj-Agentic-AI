@@ -52,6 +52,8 @@ class SocialAccount(Base):
     display_name = Column(String(255), nullable=True)
     account_label = Column(String(255), nullable=True)  # اسم مخصص للحساب
     cookie_filename = Column(String(255), nullable=True)  # اسم ملف الكوكيز
+    category = Column(String(100), nullable=True, index=True)  # ترفيهي، سياسي، اقتصادي، تقني، رياضي، إخباري، فني، تعليمي
+    nationality = Column(String(100), nullable=True, index=True)  # الجنسية: سعودي، مصري، إماراتي، أمريكي، إلخ
     status = Column(String(50), default="active")  # active, inactive, expired, error
     last_login = Column(DateTime, nullable=True)
     last_used = Column(DateTime, nullable=True)
