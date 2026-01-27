@@ -27,6 +27,7 @@ class IntentType(str, Enum):
     SCHEDULE_POST = "schedule_post"
     DELETE_POST = "delete_post"
     EDIT_POST = "edit_post"
+    GENERATE_CONTENT = "generate_content"
     
     # التحليلات والإحصائيات
     GET_ANALYTICS = "get_analytics"
@@ -225,6 +226,19 @@ class IntentService:
                 r"modify post",
                 r"update post"
             ],
+            IntentType.GENERATE_CONTENT: [
+                r"اكتب لي تغريدة",
+                r"اكتب تغريدة",
+                r"ولد تغريدة",
+                r"اقترح تغريدة",
+                r"اقترح محتوى",
+                r"محتوى عن",
+                r"generate tweet",
+                r"generate content",
+                r"create content about",
+                r"suggest tweet",
+                r"write a tweet about"
+            ],
             
             # التحليلات
             IntentType.GET_ANALYTICS: [
@@ -285,13 +299,43 @@ class IntentService:
                 r"مساعدة",
                 r"help",
                 r"ساعدني",
+                r"ساعدوني",
+                r"ابي مساعدة",
+                r"ابغى مساعدة",
+                r"محتاج مساعدة",
                 r"كيف",
                 r"how to",
-                r"ماذا يمكنك"
+                r"how can",
+                r"ماذا يمكنك",
+                r"وش تقدر تسوي",
+                r"ايش تقدر تسوي",
+                r"شو بتقدر تعمل",
+                r"what can you do",
+                r"ما هي قدراتك",
+                r"وش تعرف تسوي",
+                r"شرح",
+                r"explain",
+                r"اشرح لي"
             ],
             IntentType.GREETING: [
                 r"مرحبا",
+                r"مرحباً",
+                r"هلا",
+                r"اهلا",
+                r"أهلاً",
                 r"السلام عليكم",
+                r"صباح الخير",
+                r"مساء الخير",
+                r"كيف حالك",
+                r"كيفك",
+                r"شلونك",
+                r"وش اخبارك",
+                r"ايش اخبارك",
+                r"hello",
+                r"hi",
+                r"hey",
+                r"good morning",
+                r"good evening",
                 r"أهلا",
                 r"هلا",
                 r"اهلين",
@@ -310,7 +354,12 @@ class IntentService:
                 r"hey",
                 r"good morning",
                 r"good evening",
-                r"how are you"
+                r"how are you",
+                r"السلام",
+                r"سلام",
+                r"يا سلام",
+                r"تحياتي",
+                r"greetings"
             ]
         }
     
@@ -431,16 +480,30 @@ class IntentService:
                 )
             else:
                 # إذا لم يكن هناك علامات اقتباس، استخرج النص بعد الكلمات المفتاحية
-                for keyword in ["غرد", "انشر", "تغريدة", "نص التغريدة", "tweet", "post"]:
-                    if keyword in text.lower():
-                        parts = text.lower().split(keyword, 1)
-                        if len(parts) > 1:
-                            content = parts[1].strip()
-                            # إزالة كلمات مثل "في الحساب", "بالنص التالي", إلخ
-                            content = re.sub(r'^(في الحساب|بالنص التالي|النص التالي|بالنص|:)\s*', '', content, flags=re.IGNORECASE)
-                            if content:
-                                entities["content"] = content
-                                break
+                # الأنماط الجديدة لاستخراج المحتوى
+                patterns = [
+                    # "غرد بحسابي X تغريدة عن Y" -> استخرج "عن Y"
+                    r'(?:غرد|انشر|تغريدة|بوست|منشور)\s+(?:بحساب(?:ي)?\s+\w+\s+)?(?:تغريد(?:ة|ه))?\s+(.+?)(?:\s+من اختيارك)?$',
+                    # "غرد X" -> استخرج X
+                    r'(?:غرد|انشر|اكتب)\s+(.+)',
+                    # "تغريدة عن X" -> استخرج "عن X"
+                    r'تغريد(?:ة|ه)\s+(.+)',
+                    # "post X" -> استخرج X
+                    r'(?:post|tweet)\s+(.+)',
+                ]
+                
+                for pattern in patterns:
+                    match = re.search(pattern, text, re.IGNORECASE)
+                    if match:
+                        content = match.group(1).strip()
+                        # تنظيف المحتوى من الكلمات غير المرغوبة
+                        content = re.sub(r'^(في الحساب|بالنص التالي|النص التالي|بالنص|بحساب(?:ي)?|من حساب|على حساب)\s+\w+\s*', '', content, flags=re.IGNORECASE)
+                        content = re.sub(r'\s+من اختيارك\s*$', '', content, flags=re.IGNORECASE)
+                        content = content.strip()
+                        
+                        if content and len(content) > 3:
+                            entities["content"] = content
+                            break
         
         # استخراج الأرقام
         numbers = re.findall(r'\d+', text)

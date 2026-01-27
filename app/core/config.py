@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     N8N_WEBHOOK_URL: Optional[str] = None
     N8N_WEBHOOK_ENABLED: bool = False
     
+    # Security Configuration
+    JWT_SECRET_KEY: Optional[str] = None
+    ENCRYPTION_KEY: Optional[str] = None
+    ALLOWED_ORIGINS: Optional[str] = None
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

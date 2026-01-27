@@ -46,6 +46,15 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
+.env*
+!.env.example
+!.env.security.example
+
+# Secrets / keys
+*.pem
+*.key
+*.pfx
+*.p12
 
 # Logs
 *.log

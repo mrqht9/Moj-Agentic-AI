@@ -244,9 +244,9 @@ def _wait_publish_button_enabled(page, timeout_ms: int = MEDIA_TIMEOUT_MS):
 
 
 def _click_publish(page):
-    """البحث عن زر النشر والضغط عليه بطرق متعددة"""
+    """البحث عن زر النشر والضغط عليه بطرق متعددة مع التحقق من التفعيل"""
     # انتظر قليلاً للتأكد من تحميل الزر
-    page.wait_for_timeout(1000)
+    page.wait_for_timeout(1500)
     
     scope = _get_scope(page)
     btn = None
@@ -300,67 +300,169 @@ def _click_publish(page):
             pass
         raise Exception("لم يتم العثور على زر النشر. تم حفظ screenshot للتشخيص.")
     
+    # التحقق من أن الزر مفعّل وجاهز للضغط
+    print("[DEBUG] Checking if button is enabled...")
+    try:
+        aria_disabled = btn.get_attribute("aria-disabled")
+        is_enabled = btn.is_enabled()
+        print(f"[DEBUG] Button state - aria-disabled: {aria_disabled}, is_enabled: {is_enabled}")
+        
+        if aria_disabled == "true" or not is_enabled:
+            print("[WARNING] Button is disabled! Waiting for it to be enabled...")
+            # انتظر حتى يصبح الزر مفعلاً
+            deadline = time.time() + 30
+            while time.time() < deadline:
+                aria_disabled = btn.get_attribute("aria-disabled")
+                is_enabled = btn.is_enabled()
+                if aria_disabled != "true" and is_enabled:
+                    print("[DEBUG] Button is now enabled!")
+                    break
+                page.wait_for_timeout(500)
+            else:
+                raise Exception("الزر لم يصبح مفعلاً. قد يكون هناك مشكلة في المحتوى.")
+    except Exception as e:
+        print(f"[WARNING] Could not check button state: {e}")
+    
     # محاولة الضغط
     btn.scroll_into_view_if_needed()
-    page.wait_for_timeout(500)
+    page.wait_for_timeout(1000)
     
-    # المحاولة 1: click عادي
+    print("[DEBUG] Attempting to click the button...")
+    clicked = False
+    
+    # المحاولة 1: hover ثم click عادي
     try:
-        btn.click(timeout=8_000)
-        print("[DEBUG] Button clicked successfully")
-        return
+        btn.hover()
+        page.wait_for_timeout(800)
+        btn.click(timeout=10_000)
+        print("[DEBUG] Button clicked successfully (hover + normal click)")
+        clicked = True
     except Exception as e:
-        print(f"[DEBUG] Normal click failed: {e}")
+        print(f"[DEBUG] Hover + normal click failed: {e}")
     
-    # المحاولة 2: force click
-    try:
-        btn.click(timeout=8_000, force=True)
-        print("[DEBUG] Button force clicked successfully")
-        return
-    except Exception as e:
-        print(f"[DEBUG] Force click failed: {e}")
+    # المحاولة 2: JavaScript click
+    if not clicked:
+        try:
+            page.evaluate('(element) => element.click()', btn)
+            print("[DEBUG] Button clicked successfully (JavaScript click)")
+            clicked = True
+        except Exception as e:
+            print(f"[DEBUG] JavaScript click failed: {e}")
     
-    # المحاولة 3: mouse click على الإحداثيات
-    try:
-        box = btn.bounding_box()
-        if box:
-            page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
-            print("[DEBUG] Button clicked via mouse coordinates")
-            return
-    except Exception as e:
-        print(f"[DEBUG] Mouse click failed: {e}")
+    # المحاولة 3: dispatch event
+    if not clicked:
+        try:
+            btn.dispatch_event('click')
+            print("[DEBUG] Button clicked successfully (dispatch event)")
+            clicked = True
+        except Exception as e:
+            print(f"[DEBUG] Dispatch event failed: {e}")
     
-    raise Exception("فشل الضغط على زر النشر بجميع الطرق")
+    # المحاولة 4: force click
+    if not clicked:
+        try:
+            btn.click(timeout=10_000, force=True)
+            print("[DEBUG] Button clicked successfully (force click)")
+            clicked = True
+        except Exception as e:
+            print(f"[DEBUG] Force click failed: {e}")
+    
+    # المحاولة 5: mouse click على الإحداثيات
+    if not clicked:
+        try:
+            box = btn.bounding_box()
+            if box:
+                page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+                print("[DEBUG] Button clicked successfully (mouse coordinates)")
+                clicked = True
+        except Exception as e:
+            print(f"[DEBUG] Mouse click failed: {e}")
+    
+    if not clicked:
+        raise Exception("فشل الضغط على زر النشر بجميع الطرق")
+    
+    # انتظر قليلاً بعد الضغط للتأكد من تنفيذ الإجراء
+    page.wait_for_timeout(1000)
+    print("[DEBUG] Click action completed")
 
 
 def _wait_post_done(page, timeout_ms: int = POST_DONE_TIMEOUT_MS):
+    """
+    انتظار اكتمال النشر مع التحقق من النجاح الفعلي
+    Returns: True إذا نجح النشر، False إذا فشل أو انتهت المهلة
+    """
     deadline = time.time() + (timeout_ms / 1000.0)
     dialog = page.locator("div[role='dialog']")
-    toast = page.locator("div[role='status'], div[aria-live='polite'], div[aria-live='assertive']")
+    
+    # علامات النجاح المحتملة
+    success_indicators = [
+        "div[data-testid='toast']:has-text('Your post was sent')",
+        "div[data-testid='toast']:has-text('تم إرسال')",
+        "div[role='status']:has-text('sent')",
+        "div[role='status']:has-text('posted')",
+        "div[aria-live='polite']:has-text('sent')",
+        "div[aria-live='assertive']:has-text('sent')",
+    ]
+    
+    # علامات الفشل
+    error_indicators = [
+        "div[data-testid='toast']:has-text('error')",
+        "div[data-testid='toast']:has-text('failed')",
+        "div[data-testid='toast']:has-text('خطأ')",
+        "div[data-testid='toast']:has-text('فشل')",
+        "div[role='alert']:has-text('error')",
+        "div[role='alert']:has-text('failed')",
+    ]
 
     while time.time() < deadline:
+        # فحص علامات النجاح
+        for selector in success_indicators:
+            try:
+                loc = page.locator(selector)
+                if loc.count() > 0 and loc.first.is_visible():
+                    print("[DEBUG] Success indicator found!")
+                    return True
+            except Exception:
+                pass
+        
+        # فحص علامات الفشل
+        for selector in error_indicators:
+            try:
+                loc = page.locator(selector)
+                if loc.count() > 0 and loc.first.is_visible():
+                    print("[ERROR] Error indicator found!")
+                    return False
+            except Exception:
+                pass
+        
+        # فحص اختفاء dialog (علامة محتملة للنجاح)
         try:
             if dialog.count() == 0:
+                print("[DEBUG] Dialog disappeared")
+                page.wait_for_timeout(2000)  # انتظر قليلاً للتأكد
                 return True
             if dialog.first.is_visible() is False:
+                print("[DEBUG] Dialog hidden")
+                page.wait_for_timeout(2000)
                 return True
         except Exception:
             pass
 
-        try:
-            if toast.count() and toast.first.is_visible():
-                return True
-        except Exception:
-            pass
+        page.wait_for_timeout(500)
 
-        page.wait_for_timeout(300)
-
+    print("[WARNING] Timeout waiting for post confirmation")
     return False
 
 
 def post_to_x(storage_state_path: str, text: str, media_path: Optional[str], headless: bool):
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel="chrome", headless=headless)
+        launch_options = {
+            "channel": "chrome",
+            "headless": headless
+        }
+        if headless:
+            launch_options["args"] = ["--headless=new"]
+        browser = p.chromium.launch(**launch_options)
         context = browser.new_context(storage_state=storage_state_path)
         page = context.new_page()
         page.set_default_timeout(DEFAULT_TIMEOUT)
@@ -461,15 +563,47 @@ def post_to_x(storage_state_path: str, text: str, media_path: Optional[str], hea
                 _wait_publish_button_enabled(page, timeout_ms=MEDIA_TIMEOUT_MS)
 
             # انشر
+            print("[DEBUG] Clicking publish button...")
             _click_publish(page)
 
-            # انتظر 5 ثواني بعد الضغط ثم اخرج
-            page.wait_for_timeout(POST_CLICK_DELAY_MS)
+            # انتظر 10 ثواني بعد الضغط لإعطاء X وقتاً كافياً لمعالجة النشر
+            print("[DEBUG] Waiting for post to be processed...")
+            page.wait_for_timeout(10000)
 
-            # (اختياري) تأكيد سريع
-            _wait_post_done(page, timeout_ms=POST_DONE_TIMEOUT_MS)
-
-            print("[DEBUG] Post completed successfully!")
+            # التحقق من نجاح النشر
+            print("[DEBUG] Verifying post success...")
+            post_success = _wait_post_done(page, timeout_ms=POST_DONE_TIMEOUT_MS)
+            
+            if not post_success:
+                # أخذ screenshot للتشخيص
+                print("[WARNING] Could not verify post success, taking screenshot...")
+                try:
+                    page.screenshot(path="debug_post_verification_failed.png", full_page=True)
+                    print("[DEBUG] Screenshot saved: debug_post_verification_failed.png")
+                    
+                    # حفظ HTML أيضاً
+                    with open("debug_post_verification_failed.html", "w", encoding="utf-8") as f:
+                        f.write(page.content())
+                    print("[DEBUG] HTML saved: debug_post_verification_failed.html")
+                except Exception as e:
+                    print(f"[ERROR] Could not save debug files: {e}")
+                
+                raise Exception("لم يتم التأكد من نجاح النشر. قد تكون التغريدة لم تُنشر فعلياً. تحقق من الملفات: debug_post_verification_failed.png و debug_post_verification_failed.html")
+            
+            # انتظر إضافي للتأكد من اكتمال النشر
+            print("[DEBUG] Post verified, waiting for final confirmation...")
+            page.wait_for_timeout(3000)
+            
+            # محاولة التحقق من وجود التغريدة في الصفحة الرئيسية
+            try:
+                print("[DEBUG] Navigating to home to verify post...")
+                page.goto("https://x.com/home", wait_until="domcontentloaded")
+                page.wait_for_timeout(3000)
+                print("[DEBUG] Home page loaded")
+            except Exception as e:
+                print(f"[WARNING] Could not navigate to home: {e}")
+            
+            print("[DEBUG] Post completed and verified successfully!")
             return True
             
         except Exception as e:

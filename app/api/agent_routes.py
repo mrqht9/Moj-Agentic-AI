@@ -61,29 +61,39 @@ async def send_message_to_agent(
         if current_user:
             user_id = current_user.id
         
+        # معالجة الرسالة
         result = agent_manager.process_user_message(
             message=request.message,
             user_id=user_id
         )
         
-        # معالجة الحالة التي يرجع فيها result = None
-        if result is None:
-            result = {
-                "success": False,
-                "message": "عذراً، لم أتمكن من معالجة طلبك. يرجى إعادة صياغته.",
-                "intent_result": None,
-                "agent": None,
-                "action": None
+        # إذا كان result None (لم يتعرف على النية أو ثقة منخفضة)
+        if result is None or not isinstance(result, dict):
+            return {
+                "success": True,
+                "message": "أنا هنا لمساعدتك! 😊 يمكنني مساعدتك في إدارة حساباتك على X (Twitter) والنشر والمزيد. قل 'مساعدة' لعرض الأوامر المتاحة.",
+                "timestamp": datetime.now().isoformat()
             }
         
-        return AgentMessageResponse(
-            success=result.get("success", False),
-            message=result.get("message", ""),
-            intent_result=result.get("intent_result"),
-            agent=result.get("agent"),
-            action=result.get("action"),
-            timestamp=datetime.now().isoformat()
-        )
+        # إذا كان message في result هو None
+        if result.get("message") is None:
+            return {
+                "success": True,
+                "message": "شكراً لك! 👍 كيف يمكنني مساعدتك اليوم؟ قل 'مساعدة' لعرض ما يمكنني فعله.",
+                "intent": result.get("intent_result", {}).get("intent") if result.get("intent_result") else None,
+                "confidence": result.get("intent_result", {}).get("confidence") if result.get("intent_result") else None,
+                "timestamp": datetime.now().isoformat()
+            }
+        
+        return {
+            "success": result.get("success", False),
+            "message": result.get("message", "تمت معالجة الطلب"),
+            "intent": result.get("intent_result", {}).get("intent") if result.get("intent_result") else None,
+            "confidence": result.get("intent_result", {}).get("confidence") if result.get("intent_result") else None,
+            "agent": result.get("agent"),
+            "conversation_id": result.get("conversation_id"),
+            "timestamp": datetime.now().isoformat()
+        }
     
     except Exception as e:
         raise HTTPException(

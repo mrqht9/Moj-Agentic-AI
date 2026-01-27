@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 from pathlib import Path
+import secrets
 
 from dotenv import load_dotenv
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
@@ -31,11 +32,11 @@ COOKIES_DIR = BASE_DIR / 'cookies'
 COOKIES_DIR.mkdir(exist_ok=True)
 
 ADMIN_USER = os.getenv('XSUITE_ADMIN_USER', 'admin')
-ADMIN_PASS = os.getenv('XSUITE_ADMIN_PASS', 'Mm112233@@')
+ADMIN_PASS = os.getenv('XSUITE_ADMIN_PASS', secrets.token_urlsafe(16))
 DEFAULT_HEADLESS = os.getenv('XSUITE_DEFAULT_HEADLESS', '0') == '1'
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'change-me')
+app.secret_key = os.getenv('SECRET_KEY') or secrets.token_urlsafe(32)
 
 
 @app.before_request
