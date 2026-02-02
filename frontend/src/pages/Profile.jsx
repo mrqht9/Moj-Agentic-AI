@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { FiCamera, FiUser, FiMail, FiLock, FiArrowRight, FiCheck } from 'react-icons/fi'
+import { FiCamera, FiUser, FiMail, FiLock, FiCheck } from 'react-icons/fi'
 import { MdClose } from 'react-icons/md'
 
 const Profile = ({ user, setUser, darkMode }) => {
-  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState({ text: '', type: '' })
   
@@ -176,19 +174,12 @@ const Profile = ({ user, setUser, darkMode }) => {
   }
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark">
+    <div className="w-full bg-background-light dark:bg-background-dark">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-text-primary-light dark:text-text-primary-dark">
             إعدادات الحساب
           </h1>
-          <button
-            onClick={() => navigate('/chat')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card-light dark:bg-card-dark hover:bg-gray-100 dark:hover:bg-gray-700 text-text-primary-light dark:text-text-primary-dark transition-colors"
-          >
-            <span>العودة للمحادثة</span>
-            <FiArrowRight />
-          </button>
         </div>
 
         {message.text && (

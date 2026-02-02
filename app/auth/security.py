@@ -7,16 +7,26 @@ import os
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 import base64
+import secrets
 
 load_dotenv()
+
+DEBUG_MODE = (
+    os.getenv("DEBUG", "").lower() in {"1", "true", "yes", "on"}
+    or os.getenv("ENV", "").lower() in {"dev", "development"}
+)
 
 # JWT Configuration with validation
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 if not SECRET_KEY or len(SECRET_KEY) < 32:
-    raise ValueError(
-        "JWT_SECRET_KEY must be set in .env and at least 32 characters. "
-        "Generate one with: python -c 'import secrets; print(secrets.token_urlsafe(64))'"
-    )
+    if DEBUG_MODE:
+        SECRET_KEY = secrets.token_urlsafe(64)
+        print("WARNING: JWT_SECRET_KEY missing/too short. Generated a temporary key for this run.")
+    else:
+        raise ValueError(
+            "JWT_SECRET_KEY must be set in .env and at least 32 characters. "
+            "Generate one with: python -c 'import secrets; print(secrets.token_urlsafe(64))'"
+        )
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
@@ -24,10 +34,14 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 # Encryption Configuration
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 if not ENCRYPTION_KEY:
-    raise ValueError(
-        "ENCRYPTION_KEY must be set in .env. "
-        "Generate one with: python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'"
-    )
+    if DEBUG_MODE:
+        ENCRYPTION_KEY = Fernet.generate_key().decode()
+        print("WARNING: ENCRYPTION_KEY missing. Generated a temporary key for this run.")
+    else:
+        raise ValueError(
+            "ENCRYPTION_KEY must be set in .env. "
+            "Generate one with: python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'"
+        )
 
 try:
     cipher = Fernet(ENCRYPTION_KEY.encode())

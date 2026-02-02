@@ -1,17 +1,26 @@
 import { useState, useEffect } from 'react'
-import { MdDashboard, MdSettings, MdPerson, MdLogout } from 'react-icons/md'
+import { MdDashboard, MdSettings, MdPerson, MdLogout, MdDeleteOutline } from 'react-icons/md'
 import { BsListUl, BsFileText } from 'react-icons/bs'
-import { FiSun, FiMoon, FiMessageSquare, FiUser, FiChevronUp } from 'react-icons/fi'
+import { FiMessageSquare, FiUser, FiChevronUp } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import logoLight from '../assets/logos/logo-light.png'
 import logoDark from '../assets/logos/logo-dark.png'
 
-const Sidebar = ({ darkMode, setDarkMode, user, onLogout, onLoadConversation }) => {
+const Sidebar = ({ darkMode, setDarkMode, user, onLogout, onLoadConversation, onNewChat }) => {
   const navigate = useNavigate()
   const [showUserMenu, setShowUserMenu] = useState(false)
-  const [lastConversation, setLastConversation] = useState(null)
+  const [conversations, setConversations] = useState([])
   const [loading, setLoading] = useState(false)
+
+  const handleNewChatClick = () => {
+    if (onNewChat) return onNewChat()
+
+    const newSessionId = `session_${Date.now()}`
+    localStorage.setItem('session_id', newSessionId)
+    window.dispatchEvent(new CustomEvent('mwj:new_chat', { detail: { session_id: newSessionId } }))
+    navigate('/chat')
+  }
 
   const handleLogout = () => {
     if (window.confirm('هل أنت متأكد من تسجيل الخروج؟')) {
@@ -22,29 +31,53 @@ const Sidebar = ({ darkMode, setDarkMode, user, onLogout, onLoadConversation }) 
 
   useEffect(() => {
     if (user) {
-      fetchLastConversation()
+      fetchConversations()
     }
   }, [user])
 
-  const fetchLastConversation = async () => {
+  useEffect(() => {
+    const handler = () => {
+      if (user) fetchConversations()
+    }
+    window.addEventListener('mwj:conversation_updated', handler)
+    return () => window.removeEventListener('mwj:conversation_updated', handler)
+  }, [user])
+
+  const fetchConversations = async () => {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
+      if (!token) {
+        setConversations([])
+        return
+      }
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
       const response = await axios.get(
         `${API_URL}/api/conversations/`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
-          }
+          },
+          timeout: 8000
         }
       )
       
-      if (response.data && response.data.length > 0) {
-        setLastConversation(response.data[0])
-      }
+      setConversations(Array.isArray(response.data) ? response.data : [])
     } catch (error) {
-      console.error('Failed to fetch last conversation:', error)
+      const status = error?.response?.status
+      const detail = error?.response?.data?.detail
+      console.error('Failed to fetch conversations:', {
+        status,
+        detail,
+        message: error?.message,
+        url: error?.config?.url
+      })
+      if (status === 401 || status === 403) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/login')
+      }
+      setConversations([])
     } finally {
       setLoading(false)
     }
@@ -53,6 +86,28 @@ const Sidebar = ({ darkMode, setDarkMode, user, onLogout, onLoadConversation }) 
   const handleLoadConversation = async (conversationId) => {
     if (onLoadConversation) {
       await onLoadConversation(conversationId)
+      return
+    }
+
+    window.dispatchEvent(new CustomEvent('mwj:load_conversation', { detail: { conversationId } }))
+    navigate('/chat')
+  }
+
+  const handleDeleteConversation = async (conversationId) => {
+    if (!window.confirm('هل تريد حذف هذه المحادثة؟')) return
+    try {
+      const token = localStorage.getItem('token')
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      await axios.delete(`${API_URL}/api/conversations/${conversationId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      await fetchConversations()
+      window.dispatchEvent(new CustomEvent('mwj:conversation_updated'))
+    } catch (error) {
+      console.error('Failed to delete conversation:', error)
+      alert('فشل حذف المحادثة')
     }
   }
   return (
@@ -61,42 +116,70 @@ const Sidebar = ({ darkMode, setDarkMode, user, onLogout, onLoadConversation }) 
         {/* فاصل خفيف في الأعلى */}
         <div className="border-b border-border-light dark:border-border-dark pb-4">
           <div className="flex justify-center px-3 pt-4">
-            <img 
-              src={darkMode ? logoLight : logoDark} 
-              alt="MOJ AI Logo" 
-              className="h-14 w-auto object-contain"
-            />
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              aria-label="الذهاب إلى الصفحة الرئيسية"
+            >
+              <img 
+                src={darkMode ? logoLight : logoDark} 
+                alt="Mwj AI Logo" 
+                className="h-14 w-auto object-contain"
+                draggable={false}
+              />
+            </button>
           </div>
         </div>
 
-        <button className="flex w-full items-center gap-3 px-4 py-3 rounded-xl bg-primary hover:bg-secondary transition-all duration-200 shadow-sm group">
+        <button
+          onClick={handleNewChatClick}
+          className="flex w-full items-center gap-3 px-4 py-3 rounded-xl bg-primary hover:bg-navy-light transition-all duration-200 shadow-md ring-1 ring-primary/10 group"
+        >
           <MdDashboard className="text-white group-hover:scale-110 transition-transform" size={22} />
           <span className="text-sm font-semibold text-white">+ محادثة جديدة</span>
         </button>
 
         {/* قسم المحادثات السابقة */}
         <div className="flex flex-col gap-2">
-          <h3 className="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark px-3 mt-2">آخر محادثة</h3>
+          <h3 className="text-xs font-semibold text-text-secondary-light dark:text-text-secondary-dark px-3 mt-2">المحادثات السابقة</h3>
           
           {loading ? (
             <div className="flex items-center justify-center py-4">
               <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
             </div>
-          ) : lastConversation ? (
-            <button 
-              onClick={() => handleLoadConversation(lastConversation.id)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-card-dark transition-colors text-right group"
-            >
-              <FiMessageSquare className="text-text-secondary-light dark:text-text-secondary-dark group-hover:text-primary" size={18} />
-              <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark truncate">
-                  {lastConversation.title || 'محادثة بدون عنوان'}
-                </span>
-                <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
-                  {new Date(lastConversation.updated_at).toLocaleDateString('ar-SA')}
-                </span>
-              </div>
-            </button>
+          ) : conversations.length > 0 ? (
+            <div className="flex flex-col gap-1">
+              {conversations.map((conv) => (
+                <div
+                  key={conv.id}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-card-dark transition-colors"
+                >
+                  <button
+                    onClick={() => handleLoadConversation(conv.id)}
+                    className="flex items-center gap-3 flex-1 min-w-0 text-right group"
+                  >
+                    <FiMessageSquare className="text-text-secondary-light dark:text-text-secondary-dark group-hover:text-primary shrink-0" size={18} />
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark truncate">
+                        {conv.title || 'محادثة بدون عنوان'}
+                      </span>
+                      <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                        {new Date(conv.updated_at).toLocaleDateString('ar-SA')}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteConversation(conv.id)}
+                    className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0"
+                    title="حذف"
+                  >
+                    <MdDeleteOutline className="text-text-secondary-light dark:text-text-secondary-dark" size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
           ) : (
             <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark px-3 py-2">لا توجد محادثات سابقة</p>
           )}
@@ -138,20 +221,6 @@ const Sidebar = ({ darkMode, setDarkMode, user, onLogout, onLoadConversation }) 
                 >
                   <MdPerson className="text-text-secondary-light dark:text-text-secondary-dark" size={18} />
                   <span className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">كاتب المحتوى</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setShowUserMenu(false)
-                    setDarkMode(!darkMode)
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-right"
-                >
-                  {darkMode ? (
-                    <FiSun className="text-text-secondary-light dark:text-text-secondary-dark" size={18} />
-                  ) : (
-                    <FiMoon className="text-text-secondary-light dark:text-text-secondary-dark" size={18} />
-                  )}
-                  <span className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark">المظهر</span>
                 </button>
                 <button
                   onClick={() => {

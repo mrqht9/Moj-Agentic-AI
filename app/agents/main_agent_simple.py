@@ -23,7 +23,8 @@ class MainAgent:
         message: str, 
         user_id: Optional[int] = None,
         session_id: Optional[str] = None,
-        db: Optional[Session] = None
+        db: Optional[Session] = None,
+        metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """معالجة رسالة من المستخدم"""
         
@@ -42,7 +43,8 @@ class MainAgent:
                     db=db,
                     conversation_id=conversation_id,
                     role="user",
-                    content=message
+                    content=message,
+                    metadata=metadata
                 )
             except Exception as e:
                 print(f"Warning: Memory service error: {str(e)}")
@@ -57,7 +59,12 @@ class MainAgent:
             
             if confidence < 0.5:
                 # لا ترجع رد تلقائي - دع الوكيل يتعامل مع الطلب
-                return None
+                return {
+                    "success": False,
+                    "message": None,
+                    "intent_result": intent_result,
+                    "conversation_id": conversation_id
+                }
             
             # توجيه للوكيل المناسب
             if platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post"]:

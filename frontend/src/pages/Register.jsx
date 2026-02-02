@@ -102,13 +102,13 @@ const Register = ({ onRegister }) => {
         <div className="text-center mb-10">
           <div className="flex justify-center mb-6">
             <img 
-              src={logoDark} 
-              alt="MOJ AI Logo" 
+              src={darkMode ? logoLight : logoDark} 
+              alt="Mwj AI Logo" 
               className="h-20 w-auto object-contain"
             />
           </div>
           <h1 className="text-3xl font-bold text-text-primary-light dark:text-text-primary-dark mb-3 flex items-center justify-center gap-2">
-            انضم إلى MOJ AI
+            انضم إلى Mwj AI
           </h1>
           <p className="text-text-secondary-light dark:text-text-secondary-dark text-base">
             ابدأ رحلتك في إدارة وسائل التواصل الاجتماعي
@@ -223,9 +223,9 @@ const Register = ({ onRegister }) => {
               />
               <label className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
                 أوافق على{' '}
-                <a href="#" className="text-primary hover:underline">شروط الخدمة</a>
+                <a href="#" className="text-primary dark:text-blue-200 dark:hover:text-blue-100 hover:underline">شروط الخدمة</a>
                 {' '}و{' '}
-                <a href="#" className="text-primary hover:underline">سياسة الخصوصية</a>
+                <a href="#" className="text-primary dark:text-blue-200 dark:hover:text-blue-100 hover:underline">سياسة الخصوصية</a>
               </label>
             </div>
 
@@ -259,7 +259,7 @@ const Register = ({ onRegister }) => {
           {/* Sign In Link */}
           <p className="text-center text-sm text-text-secondary-light dark:text-text-secondary-dark mt-6">
             لديك حساب بالفعل؟{' '}
-            <Link to="/login" className="text-primary hover:text-secondary font-semibold">
+            <Link to="/login" className="text-primary hover:text-secondary dark:text-blue-200 dark:hover:text-blue-100 font-semibold">
               تسجيل الدخول
             </Link>
           </p>
