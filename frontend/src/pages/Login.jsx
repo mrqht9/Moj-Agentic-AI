@@ -79,13 +79,13 @@ const Login = ({ onLogin }) => {
         <div className="text-center mb-10">
           <div className="flex justify-center mb-6">
             <img 
-              src={logoDark} 
-              alt="MOJ AI Logo" 
+              src={darkMode ? logoLight : logoDark} 
+              alt="Mwj AI Logo" 
               className="h-20 w-auto object-contain"
             />
           </div>
           <h1 className="text-3xl font-bold text-text-primary-light dark:text-text-primary-dark mb-3 flex items-center justify-center gap-2">
-            مرحباً بك في MOJ AI
+            مرحباً بك في Mwj AI
           </h1>
           <p className="text-text-secondary-light dark:text-text-secondary-dark text-base">
             نظام إدارة وسائل التواصل الاجتماعي بالذكاء الاصطناعي
@@ -151,7 +151,7 @@ const Login = ({ onLogin }) => {
                 />
                 <span className="text-text-secondary-light dark:text-text-secondary-dark">تذكرني</span>
               </label>
-              <Link to="#" className="text-primary hover:text-secondary font-medium">
+              <Link to="#" className="text-primary hover:text-secondary dark:text-blue-200 dark:hover:text-blue-100 font-semibold">
                 نسيت كلمة المرور؟
               </Link>
             </div>
@@ -186,7 +186,7 @@ const Login = ({ onLogin }) => {
           {/* Sign Up Link */}
           <p className="text-center text-sm text-text-secondary-light dark:text-text-secondary-dark mt-6">
             ليس لديك حساب؟{' '}
-            <Link to="/register" className="text-primary hover:text-secondary font-semibold">
+            <Link to="/register" className="text-primary hover:text-secondary dark:text-blue-200 dark:hover:text-blue-100 font-semibold">
               إنشاء حساب جديد
             </Link>
           </p>
@@ -195,9 +195,9 @@ const Login = ({ onLogin }) => {
         {/* Footer */}
         <p className="text-center text-xs text-text-secondary-light dark:text-text-secondary-dark mt-6">
           بتسجيل الدخول، أنت توافق على{' '}
-          <a href="#" className="text-primary hover:underline">شروط الخدمة</a>
+          <a href="#" className="text-primary dark:text-blue-200 dark:hover:text-blue-100 hover:underline">شروط الخدمة</a>
           {' '}و{' '}
-          <a href="#" className="text-primary hover:underline">سياسة الخصوصية</a>
+          <a href="#" className="text-primary dark:text-blue-200 dark:hover:text-blue-100 hover:underline">سياسة الخصوصية</a>
         </p>
       </div>
     </div>

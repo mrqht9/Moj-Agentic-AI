@@ -51,6 +51,7 @@ class AgentManager:
         message: str, 
         user_id: Optional[int] = None,
         session_id: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
         db: Optional[Any] = None
     ) -> Dict[str, Any]:
         """
@@ -66,7 +67,7 @@ class AgentManager:
             الرد من النظام
         """
         main_agent = self.get_main_agent()
-        return main_agent.process_message(message, user_id, session_id, db)
+        return main_agent.process_message(message, user_id, session_id, db, metadata=metadata)
     
     def reset(self):
         """إعادة تعيين نظام الوكلاء"""

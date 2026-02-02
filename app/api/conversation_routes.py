@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from sqlalchemy.orm import Session
+import json
 
 from app.services.memory_service import memory_service
 from app.db.database import get_db
@@ -39,6 +40,7 @@ class MessageResponse(BaseModel):
     intent: Optional[str]
     confidence: Optional[str]
     agent: Optional[str]
+    attachment: Optional[Dict[str, Any]] = None
     created_at: str
 
 
@@ -76,9 +78,11 @@ async def get_user_conversations(
         قائمة المحادثات
     """
     try:
+        if not current_user:
+            raise HTTPException(status_code=401, detail="غير مصرح")
+
         # استخدام user_id من current_user إذا كان متاحاً
-        if current_user:
-            user_id = current_user.id
+        user_id = current_user.id
         
         if not user_id:
             raise HTTPException(status_code=400, detail="user_id مطلوب")
@@ -97,7 +101,9 @@ async def get_user_conversations(
             )
             for conv in conversations
         ]
-    
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -154,6 +160,7 @@ async def get_conversation_detail(
                     intent=msg.intent,
                     confidence=msg.confidence,
                     agent=msg.agent,
+                    attachment=(json.loads(msg.extra_data).get("attachment") if msg.extra_data else None),
                     created_at=msg.created_at.isoformat()
                 )
                 for msg in messages
