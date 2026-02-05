@@ -38,6 +38,17 @@ def init_db() -> None:
             )
             """
         )
+        con.execute(
+            """
+            CREATE TABLE IF NOT EXISTS tweets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                cookie_label TEXT NOT NULL,
+                tweet_url TEXT NOT NULL,
+                tweet_text TEXT,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
 
 
 def now_iso() -> str:
@@ -111,4 +122,42 @@ def stats() -> Dict[str, int]:
         posts = con.execute("SELECT COUNT(*) c FROM operations WHERE action='post' AND status='success'").fetchone()["c"]
         profiles = con.execute("SELECT COUNT(*) c FROM operations WHERE action='profile' AND status='success'").fetchone()["c"]
         logins = con.execute("SELECT COUNT(*) c FROM operations WHERE action='login' AND status='success'").fetchone()["c"]
-    return {"cookies": int(cookies), "posts": int(posts), "profiles": int(profiles), "logins": int(logins)}
+        tweets = con.execute("SELECT COUNT(*) c FROM tweets").fetchone()["c"]
+    return {"cookies": int(cookies), "posts": int(posts), "profiles": int(profiles), "logins": int(logins), "tweets": int(tweets)}
+
+
+def save_tweet(cookie_label: str, tweet_url: str, tweet_text: str = "") -> int:
+    with connect() as con:
+        con.execute(
+            "INSERT INTO tweets(cookie_label, tweet_url, tweet_text, created_at) VALUES(?,?,?,?)",
+            (cookie_label, tweet_url, tweet_text, now_iso()),
+        )
+        rid = con.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
+        return int(rid)
+
+
+def list_tweets(limit: int = 100, cookie_label: Optional[str] = None) -> List[Dict[str, Any]]:
+    with connect() as con:
+        if cookie_label:
+            rows = con.execute(
+                "SELECT * FROM tweets WHERE cookie_label=? ORDER BY id DESC LIMIT ?",
+                (cookie_label, limit)
+            ).fetchall()
+        else:
+            rows = con.execute("SELECT * FROM tweets ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+        return [dict(r) for r in rows]
+
+
+def get_tweet(tweet_id: int) -> Optional[Dict[str, Any]]:
+    with connect() as con:
+        r = con.execute("SELECT * FROM tweets WHERE id=?", (tweet_id,)).fetchone()
+        return dict(r) if r else None
+
+
+def delete_tweet_from_db(tweet_id: int) -> Optional[Dict[str, Any]]:
+    with connect() as con:
+        r = con.execute("SELECT * FROM tweets WHERE id=?", (tweet_id,)).fetchone()
+        if not r:
+            return None
+        con.execute("DELETE FROM tweets WHERE id=?", (tweet_id,))
+        return dict(r)

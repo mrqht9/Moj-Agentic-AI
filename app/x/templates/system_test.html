@@ -1,0 +1,736 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.test-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.test-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  color: white;
+}
+
+.test-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+}
+
+.test-header p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.test-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .test-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.test-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--border);
+}
+
+.test-card h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.test-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.test-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.test-option:hover {
+  background: #e9ecef;
+}
+
+.test-option.selected {
+  background: #e3f2fd;
+  border-color: #1da1f2;
+}
+
+.test-option input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.test-option .icon {
+  font-size: 24px;
+}
+
+.test-option .info {
+  flex: 1;
+}
+
+.test-option .info .name {
+  font-weight: 600;
+  color: #333;
+}
+
+.test-option .info .desc {
+  font-size: 12px;
+  color: #666;
+}
+
+.config-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.config-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.config-section select,
+.config-section input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.btn-test {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 16px;
+}
+
+.btn-test:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-test:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-select-all {
+  padding: 8px 16px;
+  background: #e9ecef;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.btn-select-all:hover {
+  background: #dee2e6;
+}
+
+.results-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--border);
+}
+
+.results-card h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.result-item {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+}
+
+.result-item.success {
+  background: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.result-item.error {
+  background: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+.result-item.pending {
+  background: #fff3cd;
+  border-color: #ffeeba;
+}
+
+.result-item.running {
+  background: #cce5ff;
+  border-color: #b8daff;
+}
+
+.result-item .header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.result-item .header .icon {
+  font-size: 20px;
+}
+
+.result-item .header .name {
+  font-weight: 600;
+  flex: 1;
+}
+
+.result-item .header .status {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.result-item.success .status {
+  background: #28a745;
+  color: white;
+}
+
+.result-item.error .status {
+  background: #dc3545;
+  color: white;
+}
+
+.result-item.pending .status {
+  background: #ffc107;
+  color: #333;
+}
+
+.result-item.running .status {
+  background: #007bff;
+  color: white;
+}
+
+.result-item .message {
+  font-size: 13px;
+  color: #555;
+}
+
+.result-item .time {
+  font-size: 11px;
+  color: #888;
+  margin-top: 8px;
+}
+
+.summary-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.summary-item {
+  text-align: center;
+  flex: 1;
+}
+
+.summary-item .count {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.summary-item .label {
+  font-size: 12px;
+  color: #666;
+}
+
+.summary-item.total .count { color: #333; }
+.summary-item.success .count { color: #28a745; }
+.summary-item.error .count { color: #dc3545; }
+
+.empty-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
+}
+
+.empty-results .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.progress-bar .fill {
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s;
+}
+</style>
+
+<div class="test-container">
+  <div class="test-header">
+    <h2>🧪 اختبار النظام</h2>
+    <p>اختر العمليات التي تريد اختبارها ثم اضغط على زر الاختبار</p>
+  </div>
+
+  <div class="test-grid">
+    <div class="test-card">
+      <h3>📋 اختر العمليات للاختبار</h3>
+      
+      <button type="button" class="btn-select-all" onclick="toggleSelectAll()">تحديد/إلغاء الكل</button>
+      
+      <div class="test-options" id="testOptions">
+        <label class="test-option" data-test="health">
+          <input type="checkbox" name="tests" value="health" checked>
+          <span class="icon">💚</span>
+          <div class="info">
+            <div class="name">فحص صحة الخادم</div>
+            <div class="desc">التحقق من أن الخادم يعمل بشكل صحيح</div>
+          </div>
+        </label>
+
+        <label class="test-option" data-test="cookies">
+          <input type="checkbox" name="tests" value="cookies" checked>
+          <span class="icon">🍪</span>
+          <div class="info">
+            <div class="name">قراءة الكوكيز</div>
+            <div class="desc">الحصول على قائمة الحسابات المحفوظة</div>
+          </div>
+        </label>
+
+        <label class="test-option" data-test="stats">
+          <input type="checkbox" name="tests" value="stats" checked>
+          <span class="icon">📊</span>
+          <div class="info">
+            <div class="name">الإحصائيات</div>
+            <div class="desc">الحصول على إحصائيات النظام</div>
+          </div>
+        </label>
+
+        <label class="test-option" data-test="logs">
+          <input type="checkbox" name="tests" value="logs" checked>
+          <span class="icon">📝</span>
+          <div class="info">
+            <div class="name">سجل العمليات</div>
+            <div class="desc">قراءة آخر العمليات المسجلة</div>
+          </div>
+        </label>
+
+        <label class="test-option" data-test="tweets">
+          <input type="checkbox" name="tests" value="tweets" checked>
+          <span class="icon">📋</span>
+          <div class="info">
+            <div class="name">التغريدات المنشورة</div>
+            <div class="desc">الحصول على قائمة التغريدات</div>
+          </div>
+        </label>
+
+        <label class="test-option" data-test="post">
+          <input type="checkbox" name="tests" value="post">
+          <span class="icon">📝</span>
+          <div class="info">
+            <div class="name">نشر تغريدة</div>
+            <div class="desc">اختبار نشر تغريدة جديدة</div>
+          </div>
+        </label>
+
+        <label class="test-option" data-test="like">
+          <input type="checkbox" name="tests" value="like">
+          <span class="icon">❤️</span>
+          <div class="info">
+            <div class="name">الإعجاب</div>
+            <div class="desc">اختبار الإعجاب بتغريدة</div>
+          </div>
+        </label>
+
+        <label class="test-option" data-test="repost">
+          <input type="checkbox" name="tests" value="repost">
+          <span class="icon">🔁</span>
+          <div class="info">
+            <div class="name">إعادة النشر</div>
+            <div class="desc">اختبار إعادة نشر تغريدة</div>
+          </div>
+        </label>
+
+        <label class="test-option" data-test="bookmark">
+          <input type="checkbox" name="tests" value="bookmark">
+          <span class="icon">🔖</span>
+          <div class="info">
+            <div class="name">البوك مارك</div>
+            <div class="desc">اختبار إضافة تغريدة للإشارات المرجعية</div>
+          </div>
+        </label>
+
+        <label class="test-option" data-test="follow">
+          <input type="checkbox" name="tests" value="follow">
+          <span class="icon">➕</span>
+          <div class="info">
+            <div class="name">المتابعة</div>
+            <div class="desc">اختبار متابعة حساب</div>
+          </div>
+        </label>
+      </div>
+
+      <div class="config-section">
+        <label>الحساب (Cookie)</label>
+        <select id="cookieLabel">
+          <option value="">-- اختر حساب --</option>
+          {% for c in cookies %}
+          <option value="{{ c.label }}">{{ c.label }}</option>
+          {% endfor %}
+        </select>
+
+        <label>رابط تغريدة للاختبار (اختياري)</label>
+        <input type="url" id="testTweetUrl" placeholder="https://x.com/user/status/...">
+
+        <label>نص تغريدة الاختبار</label>
+        <input type="text" id="testText" value="اختبار من X Suite API 🧪" placeholder="نص التغريدة">
+
+        <label>رابط بروفايل للاختبار (اختياري)</label>
+        <input type="url" id="testProfileUrl" placeholder="https://x.com/username">
+      </div>
+
+      <button type="button" class="btn-test" id="btnRunTests" onclick="runTests()">
+        🚀 بدء الاختبار
+      </button>
+    </div>
+
+    <div class="results-card">
+      <h3>📊 نتائج الاختبار</h3>
+      
+      <div class="summary-bar" id="summaryBar" style="display: none;">
+        <div class="summary-item total">
+          <div class="count" id="totalCount">0</div>
+          <div class="label">إجمالي</div>
+        </div>
+        <div class="summary-item success">
+          <div class="count" id="successCount">0</div>
+          <div class="label">ناجح</div>
+        </div>
+        <div class="summary-item error">
+          <div class="count" id="errorCount">0</div>
+          <div class="label">فاشل</div>
+        </div>
+      </div>
+
+      <div class="progress-bar" id="progressBar" style="display: none;">
+        <div class="fill" id="progressFill" style="width: 0%"></div>
+      </div>
+
+      <div class="results-list" id="resultsList">
+        <div class="empty-results">
+          <div class="icon">🧪</div>
+          <div>اختر العمليات واضغط على زر الاختبار</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_TOKEN = "{{ api_token }}";
+const testNames = {
+  health: "فحص صحة الخادم",
+  cookies: "قراءة الكوكيز",
+  stats: "الإحصائيات",
+  logs: "سجل العمليات",
+  tweets: "التغريدات المنشورة",
+  post: "نشر تغريدة",
+  like: "الإعجاب",
+  repost: "إعادة النشر",
+  bookmark: "البوك مارك",
+  follow: "المتابعة"
+};
+
+const testIcons = {
+  health: "💚",
+  cookies: "🍪",
+  stats: "📊",
+  logs: "📝",
+  tweets: "📋",
+  post: "📝",
+  like: "❤️",
+  repost: "🔁",
+  bookmark: "🔖",
+  follow: "➕"
+};
+
+// Update option styling on checkbox change
+document.querySelectorAll('.test-option input').forEach(cb => {
+  cb.addEventListener('change', function() {
+    this.closest('.test-option').classList.toggle('selected', this.checked);
+  });
+  // Initial state
+  if (cb.checked) cb.closest('.test-option').classList.add('selected');
+});
+
+function toggleSelectAll() {
+  const checkboxes = document.querySelectorAll('.test-option input');
+  const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+  checkboxes.forEach(cb => {
+    cb.checked = !allChecked;
+    cb.closest('.test-option').classList.toggle('selected', cb.checked);
+  });
+}
+
+function getSelectedTests() {
+  return Array.from(document.querySelectorAll('.test-option input:checked')).map(cb => cb.value);
+}
+
+function updateResults(results) {
+  const list = document.getElementById('resultsList');
+  const summary = document.getElementById('summaryBar');
+  
+  if (results.length === 0) {
+    list.innerHTML = `<div class="empty-results"><div class="icon">🧪</div><div>لا توجد نتائج</div></div>`;
+    summary.style.display = 'none';
+    return;
+  }
+
+  summary.style.display = 'flex';
+  
+  const total = results.length;
+  const success = results.filter(r => r.status === 'success').length;
+  const error = results.filter(r => r.status === 'error').length;
+  
+  document.getElementById('totalCount').textContent = total;
+  document.getElementById('successCount').textContent = success;
+  document.getElementById('errorCount').textContent = error;
+
+  list.innerHTML = results.map(r => `
+    <div class="result-item ${r.status}">
+      <div class="header">
+        <span class="icon">${testIcons[r.test] || '🔹'}</span>
+        <span class="name">${testNames[r.test] || r.test}</span>
+        <span class="status">${r.status === 'success' ? 'ناجح ✅' : r.status === 'error' ? 'فاشل ❌' : r.status === 'running' ? 'جاري...' : 'انتظار'}</span>
+      </div>
+      <div class="message">${r.message || ''}</div>
+      <div class="time">${r.time || ''}</div>
+    </div>
+  `).join('');
+}
+
+async function runTests() {
+  const tests = getSelectedTests();
+  if (tests.length === 0) {
+    alert('اختر عملية واحدة على الأقل');
+    return;
+  }
+
+  const cookieLabel = document.getElementById('cookieLabel').value;
+  const tweetUrl = document.getElementById('testTweetUrl').value;
+  const testText = document.getElementById('testText').value;
+  const profileUrl = document.getElementById('testProfileUrl').value;
+
+  // Check if action tests need cookie
+  const actionTests = ['post', 'like', 'repost', 'bookmark', 'follow'];
+  const needsCookie = tests.some(t => actionTests.includes(t));
+  if (needsCookie && !cookieLabel) {
+    alert('اختر حساب (Cookie) للعمليات التي تتطلب تسجيل دخول');
+    return;
+  }
+
+  const btn = document.getElementById('btnRunTests');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ جاري الاختبار... <span class="spinner"></span>';
+
+  const progressBar = document.getElementById('progressBar');
+  const progressFill = document.getElementById('progressFill');
+  progressBar.style.display = 'block';
+
+  const results = [];
+  
+  for (let i = 0; i < tests.length; i++) {
+    const test = tests[i];
+    const progress = ((i + 1) / tests.length) * 100;
+    progressFill.style.width = progress + '%';
+
+    results.push({
+      test: test,
+      status: 'running',
+      message: 'جاري التنفيذ...',
+      time: new Date().toLocaleTimeString('ar-SA')
+    });
+    updateResults(results);
+
+    try {
+      const result = await runSingleTest(test, cookieLabel, tweetUrl, testText, profileUrl);
+      results[results.length - 1] = {
+        test: test,
+        status: result.success ? 'success' : 'error',
+        message: result.message || result.error || JSON.stringify(result),
+        time: new Date().toLocaleTimeString('ar-SA')
+      };
+    } catch (err) {
+      results[results.length - 1] = {
+        test: test,
+        status: 'error',
+        message: err.message || 'خطأ غير متوقع',
+        time: new Date().toLocaleTimeString('ar-SA')
+      };
+    }
+    updateResults(results);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🚀 بدء الاختبار';
+}
+
+async function runSingleTest(test, cookieLabel, tweetUrl, testText, profileUrl) {
+  const headers = {
+    'Authorization': `Bearer ${API_TOKEN}`,
+    'Content-Type': 'application/json'
+  };
+
+  let url, method = 'GET', body = null;
+
+  switch (test) {
+    case 'health':
+      url = '/api/health';
+      break;
+    case 'cookies':
+      url = '/api/cookies';
+      break;
+    case 'stats':
+      url = '/api/stats';
+      break;
+    case 'logs':
+      url = '/api/logs?limit=10';
+      break;
+    case 'tweets':
+      url = '/api/tweets?limit=10';
+      break;
+    case 'post':
+      url = '/api/post';
+      method = 'POST';
+      body = JSON.stringify({
+        cookie_label: cookieLabel,
+        text: testText || 'اختبار من X Suite 🧪',
+        headless: true
+      });
+      break;
+    case 'like':
+      if (!tweetUrl) return { success: false, error: 'رابط التغريدة مطلوب' };
+      url = '/api/like';
+      method = 'POST';
+      body = JSON.stringify({
+        cookie_label: cookieLabel,
+        tweet_url: tweetUrl,
+        headless: true
+      });
+      break;
+    case 'repost':
+      if (!tweetUrl) return { success: false, error: 'رابط التغريدة مطلوب' };
+      url = '/api/repost';
+      method = 'POST';
+      body = JSON.stringify({
+        cookie_label: cookieLabel,
+        tweet_url: tweetUrl,
+        headless: true
+      });
+      break;
+    case 'bookmark':
+      if (!tweetUrl) return { success: false, error: 'رابط التغريدة مطلوب' };
+      url = '/api/bookmark';
+      method = 'POST';
+      body = JSON.stringify({
+        cookie_label: cookieLabel,
+        tweet_url: tweetUrl,
+        headless: true
+      });
+      break;
+    case 'follow':
+      if (!profileUrl) return { success: false, error: 'رابط البروفايل مطلوب' };
+      url = '/api/follow';
+      method = 'POST';
+      body = JSON.stringify({
+        cookie_label: cookieLabel,
+        profile_url: profileUrl,
+        headless: true
+      });
+      break;
+    default:
+      return { success: false, error: 'اختبار غير معروف' };
+  }
+
+  const options = { method, headers };
+  if (body) options.body = body;
+
+  const response = await fetch(url, options);
+  const data = await response.json();
+  
+  if (test === 'health') {
+    return { success: data.status === 'healthy', message: `الحالة: ${data.status}` };
+  }
+  
+  return data;
+}
+</script>
+{% endblock %}

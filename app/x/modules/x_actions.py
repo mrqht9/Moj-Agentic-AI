@@ -278,6 +278,59 @@ def repost_tweet(storage_state_path: str, tweet_url: str, headless: bool, wait_a
             browser.close()
 
 
+def undo_repost_tweet(storage_state_path: str, tweet_url: str, headless: bool, wait_after_ms: int = 2_000):
+    """Undo repost (unretweet) a tweet by URL."""
+    with sync_playwright() as p:
+        browser = _launch_browser(p, headless=headless)
+        context = browser.new_context(storage_state=storage_state_path)
+        page = context.new_page()
+        page.set_default_timeout(DEFAULT_TIMEOUT)
+        try:
+            _goto_tweet(page, tweet_url)
+
+            # Step 1: click unretweet button
+            page.get_by_test_id("unretweet").click()
+            page.wait_for_timeout(1000)
+
+            # Step 2: click "Undo repost" text
+            page.get_by_text("Undo repost").click()
+
+            page.wait_for_timeout(wait_after_ms)
+        finally:
+            context.close()
+            browser.close()
+
+
+def undo_like_tweet(storage_state_path: str, tweet_url: str, headless: bool, wait_after_ms: int = 2_000):
+    """Undo like (unlike) a tweet by URL."""
+    with sync_playwright() as p:
+        browser = _launch_browser(p, headless=headless)
+        context = browser.new_context(storage_state=storage_state_path)
+        page = context.new_page()
+        page.set_default_timeout(DEFAULT_TIMEOUT)
+        try:
+            _goto_tweet(page, tweet_url)
+
+            # Same selectors - clicking again will unlike
+            selectors = [
+                "div[data-testid='unlike']",
+                "button[data-testid='unlike']",
+                "div[role='button'][data-testid='unlike']",
+                "div[data-testid='like']",
+                "button[data-testid='like']",
+                "[aria-label*='Unlike']",
+                "[aria-label*='Liked']",
+                "[aria-label*='إلغاء الإعجاب']",
+                "[aria-label*='أعجبني']",
+            ]
+            _click_first_visible(page, selectors, timeout_ms=60_000)
+
+            page.wait_for_timeout(wait_after_ms)
+        finally:
+            context.close()
+            browser.close()
+
+
 def reply_to_tweet(
     storage_state_path: str,
     tweet_url: str,

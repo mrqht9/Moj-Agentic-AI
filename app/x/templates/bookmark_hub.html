@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 20px 0;
+}
+.hub-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+.hub-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  border-color: #f39c12;
+}
+.hub-card .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+}
+.hub-card h3 {
+  color: #fff;
+  font-size: 20px;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+.hub-card p {
+  color: #8899a6;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+.hub-card.bookmark {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+.hub-card.bookmark h3,
+.hub-card.bookmark p {
+  color: #fff;
+}
+.hub-card.undo-bookmark {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+}
+.hub-card.undo-bookmark h3,
+.hub-card.undo-bookmark p {
+  color: #fff;
+}
+</style>
+
+<div class="hub-grid">
+  <a href="{{ url_for('bookmark_page') }}" class="hub-card bookmark">
+    <span class="icon">🔖</span>
+    <h3>بوك مارك</h3>
+    <p>إضافة تغريدة للإشارات المرجعية</p>
+  </a>
+
+  <a href="{{ url_for('undo_bookmark_page') }}" class="hub-card undo-bookmark">
+    <span class="icon">🔓</span>
+    <h3>التراجع عن البوك مارك</h3>
+    <p>إزالة تغريدة من الإشارات المرجعية</p>
+  </a>
+</div>
+{% endblock %}

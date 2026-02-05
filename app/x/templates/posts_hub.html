@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 20px 0;
+}
+.hub-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+.hub-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  border-color: #1da1f2;
+}
+.hub-card .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+}
+.hub-card h3 {
+  color: #fff;
+  font-size: 20px;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+.hub-card p {
+  color: #8899a6;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+.hub-card.primary {
+  background: linear-gradient(135deg, #1da1f2 0%, #0d8ecf 100%);
+}
+.hub-card.primary h3,
+.hub-card.primary p {
+  color: #fff;
+}
+.hub-card.danger {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+.hub-card.danger h3,
+.hub-card.danger p {
+  color: #fff;
+}
+.hub-card.info {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+.hub-card.info h3,
+.hub-card.info p {
+  color: #fff;
+}
+</style>
+
+<div class="hub-grid">
+  <a href="{{ url_for('post_page') }}" class="hub-card primary">
+    <span class="icon">✏️</span>
+    <h3>نشر منشور</h3>
+    <p>إنشاء ونشر تغريدة جديدة مع إمكانية إرفاق صور أو فيديو</p>
+  </a>
+
+  <a href="{{ url_for('tweets_page') }}" class="hub-card info">
+    <span class="icon">📋</span>
+    <h3>عرض المنشورات</h3>
+    <p>استعراض جميع التغريدات المنشورة عبر النظام</p>
+  </a>
+
+  <a href="{{ url_for('delete_tweet_page') }}" class="hub-card danger">
+    <span class="icon">🗑️</span>
+    <h3>حذف منشور</h3>
+    <p>حذف تغريدة من حسابك على X</p>
+  </a>
+</div>
+{% endblock %}

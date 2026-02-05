@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="grid">
+    <div class="card" style="grid-column: span 7">
+      <h3>حذف تغريدة</h3>
+      <form method="POST" class="form" onsubmit="return confirm('هل أنت متأكد من حذف هذه التغريدة؟');">
+        <div class="field">
+          <label>الحساب (Cookie)</label>
+          <select name="cookie_label" required>
+            <option value="">-- اختر --</option>
+            {% for c in cookies %}
+              <option value="{{ c.label }}">{{ c.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>ID التغريدة</label>
+          <input class="input" type="text" name="tweet_id" required placeholder="1234567890123456789" />
+        </div>
+        <div class="field half">
+          <label>Headless</label>
+          <select name="headless">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        <div class="field half">
+          <label>ملاحظة</label>
+          <div class="hint">سيتم فتح x.com/i/status/{id} وحذف التغريدة.</div>
+        </div>
+        <div class="field">
+          <button class="btn primary" type="submit">حذف التغريدة 🗑️</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" style="grid-column: span 5">
+      <h3>API سريع</h3>
+      <div class="hint">Endpoint: <code>POST /api/delete-tweet</code> (Bearer Token)</div>
+      <pre style="white-space:pre-wrap;background:#fff;border:1px solid var(--border);padding:12px;border-radius:12px;font-size:12px;overflow:auto">
+curl -X POST http://localhost:5789/api/delete-tweet \
+  -H "Authorization: Bearer your-secure-token-here" \
+  -H "Content-Type: application/json" \
+  -d '{"cookie_label":"acc1","tweet_id":"1234567890123456789","headless":true}'
+      </pre>
+    </div>
+  </div>
+{% endblock %}

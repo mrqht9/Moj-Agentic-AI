@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 20px 0;
+}
+.hub-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+.hub-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  border-color: #9b59b6;
+}
+.hub-card .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+}
+.hub-card h3 {
+  color: #fff;
+  font-size: 20px;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+.hub-card p {
+  color: #8899a6;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+.hub-card.follow {
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+}
+.hub-card.follow h3,
+.hub-card.follow p {
+  color: #fff;
+}
+.hub-card.unfollow {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+}
+.hub-card.unfollow h3,
+.hub-card.unfollow p {
+  color: #fff;
+}
+</style>
+
+<div class="hub-grid">
+  <a href="{{ url_for('follow_page') }}" class="hub-card follow">
+    <span class="icon">➕</span>
+    <h3>متابعة</h3>
+    <p>متابعة حساب على X</p>
+  </a>
+
+  <a href="{{ url_for('unfollow_page') }}" class="hub-card unfollow">
+    <span class="icon">➖</span>
+    <h3>إلغاء المتابعة</h3>
+    <p>إلغاء متابعة حساب على X</p>
+  </a>
+</div>
+{% endblock %}
