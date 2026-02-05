@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 20px 0;
+}
+.hub-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+.hub-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  border-color: #2ecc71;
+}
+.hub-card .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+}
+.hub-card h3 {
+  color: #fff;
+  font-size: 20px;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+.hub-card p {
+  color: #8899a6;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+.hub-card.repost {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+}
+.hub-card.repost h3,
+.hub-card.repost p {
+  color: #fff;
+}
+.hub-card.undo-repost {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+}
+.hub-card.undo-repost h3,
+.hub-card.undo-repost p {
+  color: #fff;
+}
+</style>
+
+<div class="hub-grid">
+  <a href="{{ url_for('repost_page') }}" class="hub-card repost">
+    <span class="icon">🔁</span>
+    <h3>إعادة النشر</h3>
+    <p>إعادة نشر تغريدة على حسابك</p>
+  </a>
+
+  <a href="{{ url_for('undo_repost_page') }}" class="hub-card undo-repost">
+    <span class="icon">↩️</span>
+    <h3>التراجع عن إعادة النشر</h3>
+    <p>إلغاء إعادة نشر تغريدة</p>
+  </a>
+</div>
+{% endblock %}

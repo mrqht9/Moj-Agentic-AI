@@ -18,15 +18,20 @@ from modules.db import (
     log_operation,
     stats as db_stats,
     upsert_cookie,
+    save_tweet,
+    list_tweets,
+    get_tweet,
+    delete_tweet_from_db,
 )
-from modules.utils import download_to_temp, is_url, safe_label
+from modules.utils import download_to_temp, is_url, safe_label, normalize_cookies
 from modules.x_login import TwitterLoginAdvanced
 from modules.x_post import post_to_x
 from modules.x_profile import update_profile_on_x
-from modules.x_actions import like_tweet, repost_tweet, reply_to_tweet, quote_tweet, share_copy_link
-from modules.x_bookmark import bookmark_tweet
+from modules.x_actions import like_tweet, repost_tweet, reply_to_tweet, quote_tweet, share_copy_link, undo_repost_tweet, undo_like_tweet
+from modules.x_bookmark import bookmark_tweet, undo_bookmark_tweet
 from modules.x_follow import follow_user
 from modules.x_unfollow import unfollow_user
+from modules.x_delete import delete_tweet, delete_tweet_by_id
 
 load_dotenv()
 
@@ -105,6 +110,44 @@ def dashboard():
     return render_template('dashboard.html', title='لوحة التحكم', header='لوحة التحكم', subtitle='ملخص سريع للعمليات', active='dashboard', stats=s, recent=recent)
 
 
+@app.route('/posts-hub')
+@login_required
+def posts_hub():
+    return render_template('posts_hub.html', title='المنشورات', header='المنشورات', subtitle='نشر وعرض وحذف التغريدات', active='posts_hub')
+
+
+@app.route('/like-hub')
+@login_required
+def like_hub():
+    return render_template('like_hub.html', title='الإعجاب', header='الإعجاب', subtitle='إعجاب والتراجع عن الإعجاب', active='like_hub')
+
+
+@app.route('/repost-hub')
+@login_required
+def repost_hub():
+    return render_template('repost_hub.html', title='إعادة النشر', header='إعادة النشر', subtitle='إعادة النشر والتراجع عنها', active='repost_hub')
+
+
+@app.route('/bookmark-hub')
+@login_required
+def bookmark_hub():
+    return render_template('bookmark_hub.html', title='البوك مارك', header='البوك مارك', subtitle='بوك مارك والتراجع عنه', active='bookmark_hub')
+
+
+@app.route('/follow-hub')
+@login_required
+def follow_hub():
+    return render_template('follow_hub.html', title='المتابعة', header='المتابعة', subtitle='متابعة وإلغاء المتابعة', active='follow_hub')
+
+
+@app.route('/system-test')
+@login_required
+def system_test_page():
+    cookies = list_cookies()
+    api_token = os.getenv("API_TOKEN", "your-secure-token-here")
+    return render_template('system_test.html', title='اختبار النظام', header='اختبار النظام', subtitle='اختبار جميع عمليات API', active='system_test', cookies=cookies, api_token=api_token)
+
+
 @app.route('/cookies', methods=['GET', 'POST'])
 @login_required
 def cookies_page():
@@ -117,11 +160,31 @@ def cookies_page():
         if not f or not f.filename:
             flash('ارفع ملف JSON', 'error')
             return redirect(url_for('cookies_page'))
-        dst = COOKIES_DIR / f"{label}.json"
-        f.save(dst)
-        upsert_cookie(label, dst.name)
-        log_operation('cookie_upload', label, 'success', f'تم حفظ الكوكيز: {dst.name}')
-        flash('تم حفظ الكوكيز ✅', 'success')
+        
+        # قراءة وتحويل الكوكيز للصيغة الرسمية
+        try:
+            raw_data = json.load(f)
+            normalized_data = normalize_cookies(raw_data)
+            
+            if not normalized_data.get("cookies"):
+                flash('ملف الكوكيز فارغ أو غير صالح', 'error')
+                return redirect(url_for('cookies_page'))
+            
+            # حفظ الكوكيز بالصيغة الرسمية
+            dst = COOKIES_DIR / f"{label}.json"
+            with open(dst, 'w', encoding='utf-8') as out_file:
+                json.dump(normalized_data, out_file, indent=2, ensure_ascii=False)
+            
+            upsert_cookie(label, dst.name)
+            log_operation('cookie_upload', label, 'success', f'تم حفظ الكوكيز بالصيغة الرسمية: {dst.name} ({len(normalized_data["cookies"])} كوكيز)')
+            flash(f'تم حفظ الكوكيز ✅ ({len(normalized_data["cookies"])} كوكيز)', 'success')
+        except json.JSONDecodeError:
+            flash('ملف JSON غير صالح', 'error')
+            return redirect(url_for('cookies_page'))
+        except Exception as e:
+            flash(f'خطأ في معالجة الكوكيز: {e}', 'error')
+            return redirect(url_for('cookies_page'))
+        
         return redirect(url_for('cookies_page'))
 
     cookies = list_cookies()
@@ -220,9 +283,13 @@ def post_page():
                 return redirect(url_for('post_page'))
 
         try:
-            post_to_x(storage_state_path=storage_state_path, text=text, media_path=media_path, headless=headless)
-            log_operation('post', cookie_label, 'success', 'تمت محاولة النشر ✅', meta_json=json.dumps({'headless': headless}))
-            flash('تمت محاولة النشر ✅', 'success')
+            tweet_url = post_to_x(storage_state_path=storage_state_path, text=text, media_path=media_path, headless=headless)
+            log_operation('post', cookie_label, 'success', 'تمت محاولة النشر ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+            if tweet_url:
+                save_tweet(cookie_label, tweet_url, text)
+                flash(f'تم النشر بنجاح ✅ - الرابط: {tweet_url}', 'success')
+            else:
+                flash('تمت محاولة النشر ✅ (لم يتم الحصول على الرابط)', 'success')
         except Exception as e:
             log_operation('post', cookie_label, 'error', f'فشل النشر: {e}', meta_json=json.dumps({'headless': headless}))
             flash(f'فشل النشر: {e}', 'error')
@@ -422,6 +489,102 @@ def bookmark_page():
     return redirect(url_for('bookmark_page'))
 
 
+@app.route('/undo-repost', methods=['GET', 'POST'])
+@login_required
+def undo_repost_page():
+    cookies = list_cookies()
+    if request.method == 'GET':
+        return render_template('undo_repost.html', title='التراجع عن إعادة النشر', header='التراجع عن إعادة النشر', subtitle='اختر حساب ثم ضع رابط التغريدة', active='undo_repost', cookies=cookies)
+
+    cookie_label = (request.form.get('cookie_label') or '').strip()
+    tweet_url = (request.form.get('tweet_url') or '').strip()
+    headless = (request.form.get('headless') == '1')
+
+    if not cookie_label or not tweet_url:
+        flash('اختر حساب + ضع رابط التغريدة', 'error')
+        return redirect(url_for('undo_repost_page'))
+
+    c = get_cookie_by_label(cookie_label)
+    if not c:
+        flash('هذا الحساب غير موجود', 'error')
+        return redirect(url_for('undo_repost_page'))
+
+    storage_state_path = str(COOKIES_DIR / c['filename'])
+    try:
+        undo_repost_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
+        log_operation('undo_repost', cookie_label, 'success', 'تم التراجع عن إعادة النشر ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        flash('تم التراجع عن إعادة النشر ✅', 'success')
+    except Exception as e:
+        log_operation('undo_repost', cookie_label, 'error', f'فشل التراجع عن إعادة النشر: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        flash(f'فشل التراجع عن إعادة النشر: {e}', 'error')
+
+    return redirect(url_for('undo_repost_page'))
+
+
+@app.route('/undo-like', methods=['GET', 'POST'])
+@login_required
+def undo_like_page():
+    cookies = list_cookies()
+    if request.method == 'GET':
+        return render_template('undo_like.html', title='التراجع عن الإعجاب', header='التراجع عن الإعجاب', subtitle='اختر حساب ثم ضع رابط التغريدة', active='undo_like', cookies=cookies)
+
+    cookie_label = (request.form.get('cookie_label') or '').strip()
+    tweet_url = (request.form.get('tweet_url') or '').strip()
+    headless = (request.form.get('headless') == '1')
+
+    if not cookie_label or not tweet_url:
+        flash('اختر حساب + ضع رابط التغريدة', 'error')
+        return redirect(url_for('undo_like_page'))
+
+    c = get_cookie_by_label(cookie_label)
+    if not c:
+        flash('هذا الحساب غير موجود', 'error')
+        return redirect(url_for('undo_like_page'))
+
+    storage_state_path = str(COOKIES_DIR / c['filename'])
+    try:
+        undo_like_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
+        log_operation('undo_like', cookie_label, 'success', 'تم التراجع عن الإعجاب ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        flash('تم التراجع عن الإعجاب ✅', 'success')
+    except Exception as e:
+        log_operation('undo_like', cookie_label, 'error', f'فشل التراجع عن الإعجاب: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        flash(f'فشل التراجع عن الإعجاب: {e}', 'error')
+
+    return redirect(url_for('undo_like_page'))
+
+
+@app.route('/undo-bookmark', methods=['GET', 'POST'])
+@login_required
+def undo_bookmark_page():
+    cookies = list_cookies()
+    if request.method == 'GET':
+        return render_template('undo_bookmark.html', title='التراجع عن البوك مارك', header='التراجع عن البوك مارك', subtitle='اختر حساب ثم ضع رابط التغريدة', active='undo_bookmark', cookies=cookies)
+
+    cookie_label = (request.form.get('cookie_label') or '').strip()
+    tweet_url = (request.form.get('tweet_url') or '').strip()
+    headless = (request.form.get('headless') == '1')
+
+    if not cookie_label or not tweet_url:
+        flash('اختر حساب + ضع رابط التغريدة', 'error')
+        return redirect(url_for('undo_bookmark_page'))
+
+    c = get_cookie_by_label(cookie_label)
+    if not c:
+        flash('هذا الحساب غير موجود', 'error')
+        return redirect(url_for('undo_bookmark_page'))
+
+    storage_state_path = str(COOKIES_DIR / c['filename'])
+    try:
+        undo_bookmark_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
+        log_operation('undo_bookmark', cookie_label, 'success', 'تم التراجع عن البوك مارك ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        flash('تم التراجع عن البوك مارك ✅', 'success')
+    except Exception as e:
+        log_operation('undo_bookmark', cookie_label, 'error', f'فشل التراجع عن البوك مارك: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        flash(f'فشل التراجع عن البوك مارك: {e}', 'error')
+
+    return redirect(url_for('undo_bookmark_page'))
+
+
 @app.route('/quote', methods=['GET', 'POST'])
 @login_required
 def quote_page():
@@ -539,11 +702,27 @@ def api_cookie_upload():
         return jsonify({'success': False, 'error': 'label required'}), 400
     if not f or not f.filename:
         return jsonify({'success': False, 'error': 'file required'}), 400
-    dst = COOKIES_DIR / f"{label}.json"
-    f.save(dst)
-    upsert_cookie(label, dst.name)
-    op_id = log_operation('cookie_upload', label, 'success', f'تم حفظ الكوكيز: {dst.name}')
-    return jsonify({'success': True, 'id': op_id, 'label': label, 'filename': dst.name}), 200
+    
+    # قراءة وتحويل الكوكيز للصيغة الرسمية
+    try:
+        raw_data = json.load(f)
+        normalized_data = normalize_cookies(raw_data)
+        
+        if not normalized_data.get("cookies"):
+            return jsonify({'success': False, 'error': 'ملف الكوكيز فارغ أو غير صالح'}), 400
+        
+        # حفظ الكوكيز بالصيغة الرسمية
+        dst = COOKIES_DIR / f"{label}.json"
+        with open(dst, 'w', encoding='utf-8') as out_file:
+            json.dump(normalized_data, out_file, indent=2, ensure_ascii=False)
+        
+        upsert_cookie(label, dst.name)
+        op_id = log_operation('cookie_upload', label, 'success', f'تم حفظ الكوكيز بالصيغة الرسمية: {dst.name} ({len(normalized_data["cookies"])} كوكيز)')
+        return jsonify({'success': True, 'id': op_id, 'label': label, 'filename': dst.name, 'cookies_count': len(normalized_data["cookies"])}), 200
+    except json.JSONDecodeError:
+        return jsonify({'success': False, 'error': 'ملف JSON غير صالح'}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'خطأ في معالجة الكوكيز: {e}'}), 500
 
 
 @app.route('/api/login', methods=['POST'])
@@ -602,9 +781,11 @@ def api_post():
                     log_operation('post', cookie_label, 'error', f'فشل تنزيل الميديا: {e}')
                     return jsonify({'success': False, 'task_id': op_id, 'error': f'فشل تنزيل الميديا: {e}'}), 400
             try:
-                post_to_x(storage_state_path, text, media_path, headless=headless)
-                log_operation('post', cookie_label, 'success', 'تمت محاولة النشر ✅')
-                return jsonify({'success': True, 'task_id': op_id, 'message': 'تمت محاولة النشر ✅'}), 200
+                tweet_url = post_to_x(storage_state_path, text, media_path, headless=headless)
+                log_operation('post', cookie_label, 'success', 'تمت محاولة النشر ✅', meta_json=json.dumps({'tweet_url': tweet_url}))
+                if tweet_url:
+                    save_tweet(cookie_label, tweet_url, text)
+                return jsonify({'success': True, 'task_id': op_id, 'message': 'تمت محاولة النشر ✅', 'tweet_url': tweet_url}), 200
             except Exception as e:
                 log_operation('post', cookie_label, 'error', f'فشل النشر: {e}')
                 return jsonify({'success': False, 'task_id': op_id, 'error': str(e)}), 500
@@ -638,9 +819,11 @@ def api_post():
                 return jsonify({'success': False, 'task_id': op_id, 'error': f'فشل تنزيل الميديا: {e}'}), 400
 
         try:
-            post_to_x(storage_state_path, text, media_path, headless=headless)
-            log_operation('post', cookie_label, 'success', 'تمت محاولة النشر ✅')
-            return jsonify({'success': True, 'task_id': op_id, 'message': 'تمت محاولة النشر ✅'}), 200
+            tweet_url = post_to_x(storage_state_path, text, media_path, headless=headless)
+            log_operation('post', cookie_label, 'success', 'تمت محاولة النشر ✅', meta_json=json.dumps({'tweet_url': tweet_url}))
+            if tweet_url:
+                save_tweet(cookie_label, tweet_url, text)
+            return jsonify({'success': True, 'task_id': op_id, 'message': 'تمت محاولة النشر ✅', 'tweet_url': tweet_url}), 200
         except Exception as e:
             log_operation('post', cookie_label, 'error', f'فشل النشر: {e}')
             return jsonify({'success': False, 'task_id': op_id, 'error': str(e)}), 500
@@ -766,6 +949,84 @@ def api_like():
         return jsonify({'success': True, 'task_id': op_id, 'message': 'تمت محاولة الإعجاب ✅'}), 200
     except Exception as e:
         log_operation('like', cookie_label, 'error', f'فشل الإعجاب: {e}')
+        return jsonify({'success': False, 'task_id': op_id, 'error': str(e)}), 500
+
+
+@app.route('/api/undo-repost', methods=['POST'])
+@require_api_token
+def api_undo_repost():
+    data = request.get_json(force=True, silent=True) or {}
+    cookie_label = (data.get('cookie_label') or '').strip()
+    tweet_url = (data.get('tweet_url') or '').strip()
+    headless = bool(data.get('headless', True))
+
+    if not cookie_label or not tweet_url:
+        return jsonify({'success': False, 'error': 'cookie_label and tweet_url required'}), 400
+
+    c = get_cookie_by_label(cookie_label)
+    if not c:
+        return jsonify({'success': False, 'error': 'cookie not found'}), 404
+
+    storage_state_path = str(COOKIES_DIR / c['filename'])
+    op_id = log_operation('undo_repost', cookie_label, 'pending', 'بدأت عملية التراجع عن إعادة النشر', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    try:
+        undo_repost_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
+        log_operation('undo_repost', cookie_label, 'success', 'تم التراجع عن إعادة النشر ✅')
+        return jsonify({'success': True, 'task_id': op_id, 'message': 'تم التراجع عن إعادة النشر ✅'}), 200
+    except Exception as e:
+        log_operation('undo_repost', cookie_label, 'error', f'فشل التراجع عن إعادة النشر: {e}')
+        return jsonify({'success': False, 'task_id': op_id, 'error': str(e)}), 500
+
+
+@app.route('/api/undo-like', methods=['POST'])
+@require_api_token
+def api_undo_like():
+    data = request.get_json(force=True, silent=True) or {}
+    cookie_label = (data.get('cookie_label') or '').strip()
+    tweet_url = (data.get('tweet_url') or '').strip()
+    headless = bool(data.get('headless', True))
+
+    if not cookie_label or not tweet_url:
+        return jsonify({'success': False, 'error': 'cookie_label and tweet_url required'}), 400
+
+    c = get_cookie_by_label(cookie_label)
+    if not c:
+        return jsonify({'success': False, 'error': 'cookie not found'}), 404
+
+    storage_state_path = str(COOKIES_DIR / c['filename'])
+    op_id = log_operation('undo_like', cookie_label, 'pending', 'بدأت عملية التراجع عن الإعجاب', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    try:
+        undo_like_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
+        log_operation('undo_like', cookie_label, 'success', 'تم التراجع عن الإعجاب ✅')
+        return jsonify({'success': True, 'task_id': op_id, 'message': 'تم التراجع عن الإعجاب ✅'}), 200
+    except Exception as e:
+        log_operation('undo_like', cookie_label, 'error', f'فشل التراجع عن الإعجاب: {e}')
+        return jsonify({'success': False, 'task_id': op_id, 'error': str(e)}), 500
+
+
+@app.route('/api/undo-bookmark', methods=['POST'])
+@require_api_token
+def api_undo_bookmark():
+    data = request.get_json(force=True, silent=True) or {}
+    cookie_label = (data.get('cookie_label') or '').strip()
+    tweet_url = (data.get('tweet_url') or '').strip()
+    headless = bool(data.get('headless', True))
+
+    if not cookie_label or not tweet_url:
+        return jsonify({'success': False, 'error': 'cookie_label and tweet_url required'}), 400
+
+    c = get_cookie_by_label(cookie_label)
+    if not c:
+        return jsonify({'success': False, 'error': 'cookie not found'}), 404
+
+    storage_state_path = str(COOKIES_DIR / c['filename'])
+    op_id = log_operation('undo_bookmark', cookie_label, 'pending', 'بدأت عملية التراجع عن البوك مارك', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    try:
+        undo_bookmark_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
+        log_operation('undo_bookmark', cookie_label, 'success', 'تم التراجع عن البوك مارك ✅')
+        return jsonify({'success': True, 'task_id': op_id, 'message': 'تم التراجع عن البوك مارك ✅'}), 200
+    except Exception as e:
+        log_operation('undo_bookmark', cookie_label, 'error', f'فشل التراجع عن البوك مارك: {e}')
         return jsonify({'success': False, 'task_id': op_id, 'error': str(e)}), 500
 
 
@@ -1127,6 +1388,161 @@ def api_unfollow():
     except Exception as e:
         db_log_action(cookie_label, "unfollow", profile_url, False, str(e))
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+# =====================
+# Tweets Management (Dashboard)
+# =====================
+@app.route('/tweets')
+@login_required
+def tweets_page():
+    tweets = list_tweets(limit=200)
+    cookies = list_cookies()
+    return render_template('tweets.html', title='التغريدات', header='إدارة التغريدات', subtitle='عرض وحذف التغريدات المنشورة', active='tweets', tweets=tweets, cookies=cookies)
+
+
+@app.route('/tweets/<int:tweet_id>/delete', methods=['POST'])
+@login_required
+def tweet_delete_page(tweet_id: int):
+    tweet = get_tweet(tweet_id)
+    if not tweet:
+        flash('التغريدة غير موجودة', 'error')
+        return redirect(url_for('tweets_page'))
+    
+    cookie_label = tweet['cookie_label']
+    tweet_url = tweet['tweet_url']
+    headless = (request.form.get('headless') == '1')
+    
+    c = get_cookie_by_label(cookie_label)
+    if not c:
+        flash('الحساب غير موجود', 'error')
+        return redirect(url_for('tweets_page'))
+    
+    storage_state_path = str(COOKIES_DIR / c['filename'])
+    
+    try:
+        delete_tweet(storage_state_path, tweet_url, headless=headless)
+        delete_tweet_from_db(tweet_id)
+        log_operation('delete_tweet', cookie_label, 'success', f'تم حذف التغريدة: {tweet_url}')
+        flash('تم حذف التغريدة بنجاح ✅', 'success')
+    except Exception as e:
+        log_operation('delete_tweet', cookie_label, 'error', f'فشل حذف التغريدة: {e}')
+        flash(f'فشل حذف التغريدة: {e}', 'error')
+    
+    return redirect(url_for('tweets_page'))
+
+
+@app.route('/delete-tweet', methods=['GET', 'POST'])
+@login_required
+def delete_tweet_page():
+    cookies = list_cookies()
+    if request.method == 'GET':
+        return render_template('delete_tweet.html', title='حذف تغريدة', header='حذف تغريدة', subtitle='اختر حساب ثم ضع ID التغريدة', active='delete_tweet', cookies=cookies)
+    
+    cookie_label = (request.form.get('cookie_label') or '').strip()
+    tweet_id = (request.form.get('tweet_id') or '').strip()
+    headless = (request.form.get('headless') == '1')
+    
+    if not cookie_label or not tweet_id:
+        flash('اختر حساب + ID التغريدة', 'error')
+        return redirect(url_for('delete_tweet_page'))
+    
+    c = get_cookie_by_label(cookie_label)
+    if not c:
+        flash('هذا الحساب غير موجود', 'error')
+        return redirect(url_for('delete_tweet_page'))
+    
+    storage_state_path = str(COOKIES_DIR / c['filename'])
+    
+    try:
+        delete_tweet_by_id(storage_state_path, tweet_id, headless=headless)
+        log_operation('delete_tweet', cookie_label, 'success', f'تم حذف التغريدة: {tweet_id}')
+        flash('تم حذف التغريدة بنجاح ✅', 'success')
+    except Exception as e:
+        log_operation('delete_tweet', cookie_label, 'error', f'فشل حذف التغريدة: {e}')
+        flash(f'فشل حذف التغريدة: {e}', 'error')
+    
+    return redirect(url_for('delete_tweet_page'))
+
+
+# =====================
+# Tweets API
+# =====================
+@app.route('/api/tweets', methods=['GET'])
+@require_api_token
+def api_tweets():
+    limit = int(request.args.get('limit', '100'))
+    limit = max(1, min(500, limit))
+    cookie_label = request.args.get('cookie_label', '').strip() or None
+    return jsonify({'success': True, 'tweets': list_tweets(limit=limit, cookie_label=cookie_label)}), 200
+
+
+@app.route('/api/tweets/<int:tweet_id>', methods=['GET'])
+@require_api_token
+def api_tweet(tweet_id: int):
+    tweet = get_tweet(tweet_id)
+    if not tweet:
+        return jsonify({'success': False, 'error': 'not found'}), 404
+    return jsonify({'success': True, 'tweet': tweet}), 200
+
+
+@app.route('/api/tweets/<int:tweet_id>/delete', methods=['POST'])
+@require_api_token
+def api_tweet_delete(tweet_id: int):
+    data = request.get_json(force=True, silent=True) or {}
+    headless = bool(data.get('headless', True))
+    
+    tweet = get_tweet(tweet_id)
+    if not tweet:
+        return jsonify({'success': False, 'error': 'tweet not found'}), 404
+    
+    cookie_label = tweet['cookie_label']
+    tweet_url = tweet['tweet_url']
+    
+    c = get_cookie_by_label(cookie_label)
+    if not c:
+        return jsonify({'success': False, 'error': 'cookie not found'}), 404
+    
+    storage_state_path = str(COOKIES_DIR / c['filename'])
+    op_id = log_operation('delete_tweet', cookie_label, 'pending', f'بدأت عملية حذف التغريدة: {tweet_url}')
+    
+    try:
+        delete_tweet(storage_state_path, tweet_url, headless=headless)
+        delete_tweet_from_db(tweet_id)
+        log_operation('delete_tweet', cookie_label, 'success', f'تم حذف التغريدة: {tweet_url}')
+        return jsonify({'success': True, 'task_id': op_id, 'message': 'تم حذف التغريدة بنجاح ✅'}), 200
+    except Exception as e:
+        log_operation('delete_tweet', cookie_label, 'error', f'فشل حذف التغريدة: {e}')
+        return jsonify({'success': False, 'task_id': op_id, 'error': str(e)}), 500
+
+
+@app.route('/api/delete-tweet', methods=['POST'])
+@require_api_token
+def api_delete_tweet_by_id():
+    data = request.get_json(force=True, silent=True) or {}
+    cookie_label = (data.get('cookie_label') or '').strip()
+    tweet_id = (data.get('tweet_id') or '').strip()
+    headless = bool(data.get('headless', True))
+    
+    if not cookie_label or not tweet_id:
+        return jsonify({'success': False, 'error': 'cookie_label and tweet_id required'}), 400
+    
+    c = get_cookie_by_label(cookie_label)
+    if not c:
+        return jsonify({'success': False, 'error': 'cookie not found'}), 404
+    
+    storage_state_path = str(COOKIES_DIR / c['filename'])
+    op_id = log_operation('delete_tweet', cookie_label, 'pending', f'بدأت عملية حذف التغريدة: {tweet_id}')
+    
+    try:
+        delete_tweet_by_id(storage_state_path, tweet_id, headless=headless)
+        log_operation('delete_tweet', cookie_label, 'success', f'تم حذف التغريدة: {tweet_id}')
+        return jsonify({'success': True, 'task_id': op_id, 'message': 'تم حذف التغريدة بنجاح ✅'}), 200
+    except Exception as e:
+        log_operation('delete_tweet', cookie_label, 'error', f'فشل حذف التغريدة: {e}')
+        return jsonify({'success': False, 'task_id': op_id, 'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.getenv('PORT', '5789'))
     app.run(host='0.0.0.0', port=port, debug=True)

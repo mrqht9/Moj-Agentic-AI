@@ -269,7 +269,46 @@ def _wait_post_done(page, timeout_ms: int = POST_DONE_TIMEOUT_MS):
     return False
 
 
-def post_to_x(storage_state_path: str, text: str, media_path: Optional[str], headless: bool):
+def _copy_tweet_link(page, timeout_ms: int = 30_000) -> Optional[str]:
+    """
+    بعد النشر، اضغط على التغريدة من الـ toast ثم انسخ رابطها.
+    يُرجع رابط التغريدة أو None إذا فشل.
+    """
+    import re
+    try:
+        # انتظر ظهور الـ toast ثم اضغط على رابط التغريدة
+        page.wait_for_timeout(2000)
+        
+        # اضغط على رابط التغريدة في الـ toast
+        toast_link = page.get_by_test_id("toast").locator("a")
+        toast_link.wait_for(state="visible", timeout=timeout_ms)
+        toast_link.click()
+        page.wait_for_timeout(2500)
+        
+        # اضغط على زر المشاركة
+        share_btn = page.get_by_role("button", name="Share post")
+        share_btn.wait_for(state="visible", timeout=15_000)
+        share_btn.click()
+        page.wait_for_timeout(1000)
+        
+        # اضغط على نسخ الرابط
+        copy_link = page.locator("div").filter(has_text=re.compile(r"^Copy link$")).nth(2)
+        copy_link.wait_for(state="visible", timeout=10_000)
+        copy_link.click()
+        page.wait_for_timeout(500)
+        
+        # الحصول على الرابط من URL الحالي
+        current_url = page.url
+        if "/status/" in current_url:
+            return current_url
+        
+        return None
+    except Exception as e:
+        print(f"فشل نسخ رابط التغريدة: {e}")
+        return None
+
+
+def post_to_x(storage_state_path: str, text: str, media_path: Optional[str], headless: bool) -> Optional[str]:
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome", headless=headless)
         context = browser.new_context(storage_state=storage_state_path)
@@ -313,11 +352,12 @@ def post_to_x(storage_state_path: str, text: str, media_path: Optional[str], hea
             # انشر
             _click_publish(page)
 
-            # انتظر 5 ثواني بعد الضغط ثم اخرج
-            page.wait_for_timeout(POST_CLICK_DELAY_MS)
+            # انتظر ثانيتين بعد النشر
+            page.wait_for_timeout(2000)
 
-            # (اختياري) تأكيد سريع
-            _wait_post_done(page, timeout_ms=POST_DONE_TIMEOUT_MS)
+            # نسخ رابط التغريدة بعد النشر
+            tweet_url = _copy_tweet_link(page, timeout_ms=30_000)
+            return tweet_url
 
         except Exception:
             try:
@@ -333,3 +373,5 @@ def post_to_x(storage_state_path: str, text: str, media_path: Optional[str], hea
         finally:
             context.close()
             browser.close()
+    
+    return None
