@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h3>التغريدات المنشورة ({{ tweets|length }})</h3>
+  <p>جميع التغريدات التي تم نشرها عبر النظام</p>
+  
+  {% if tweets %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>الحساب</th>
+        <th>نص التغريدة</th>
+        <th>الرابط</th>
+        <th>التاريخ</th>
+        <th>إجراءات</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tweets %}
+      <tr>
+        <td>{{ t.id }}</td>
+        <td><strong>{{ t.cookie_label }}</strong></td>
+        <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ t.tweet_text[:100] if t.tweet_text else '-' }}{% if t.tweet_text and t.tweet_text|length > 100 %}...{% endif %}</td>
+        <td><a href="{{ t.tweet_url }}" target="_blank" rel="noopener">فتح التغريدة ↗</a></td>
+        <td>{{ t.created_at }}</td>
+        <td>
+          <form method="post" action="{{ url_for('tweet_delete_page', tweet_id=t.id) }}" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذه التغريدة من X؟');">
+            <input type="hidden" name="headless" value="0" />
+            <button type="submit" class="btn danger small">حذف من X 🗑️</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color: #888; margin-top: 20px;">لا توجد تغريدات منشورة بعد.</p>
+  {% endif %}
+</div>
+
+<style>
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+.table th, .table td {
+  padding: 12px 10px;
+  text-align: right;
+  border-bottom: 1px solid #333;
+}
+.table th {
+  background: #1a1a2e;
+  color: #fff;
+}
+.table tr:hover {
+  background: #16213e;
+}
+.table a {
+  color: #1da1f2;
+  text-decoration: none;
+}
+.table a:hover {
+  text-decoration: underline;
+}
+.btn.danger {
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn.danger:hover {
+  background: #c0392b;
+}
+.btn.small {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+</style>
+{% endblock %}
