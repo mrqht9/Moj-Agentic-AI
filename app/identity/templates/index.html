@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مولد الهوية بالذكاء الاصطناعي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+        .input-field {
+            margin-top: 0.25rem;
+            display: block;
+            width: 100%;
+            background-color: rgb(31 41 55);
+            border: 1px solid rgb(55 65 81);
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            padding: 0.5rem 0.75rem;
+            color: white;
+            font-size: 0.875rem;
+            transition: all 0.15s;
+        }
+        .input-field:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgb(99 102 241);
+            border-color: rgb(99 102 241);
+        }
+        .tutorial-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 40;
+        }
+        .tutorial-highlight {
+            position: relative;
+            z-index: 50;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.7);
+            border-radius: 8px;
+        }
+        .tutorial-tooltip {
+            position: absolute;
+            z-index: 51;
+            background: #1e1e1e;
+            border: 1px solid #374151;
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 300px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+<body class="bg-[#121212] text-white min-h-screen">
+    <div id="app" class="flex flex-col items-center p-4 sm:p-6">
+        <!-- Welcome Modal -->
+        <div id="welcome-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4 hidden">
+            <div class="bg-[#1e1e1e] border border-gray-800 rounded-xl shadow-lg max-w-md w-full p-6 text-center relative animate-fade-in">
+                <button onclick="closeWelcome()" class="absolute top-3 right-3 text-gray-400 hover:text-white transition">
+                    <svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="m16.192 6.344-4.243 4.242-4.242-4.242-1.414 1.414L10.535 12l-4.242 4.242 1.414 1.414 4.242-4.242 4.243 4.242 1.414-1.414L13.364 12l4.242-4.242z"></path></svg>
+                </button>
+                <h2 class="text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">مرحباً بكم في مولّد الهوية</h2>
+                <p class="text-gray-300">فكرة ليست جديدة، انطلقت منذ 2023 والآن وصلت إلى أفضل مراحلها. استمتع بتجربة فريدة في إنشاء هويات رقمية متكاملة.</p>
+                <button onclick="closeWelcome()" class="mt-6 w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-2 px-4 rounded-md transition-all duration-300">ابدأ الآن</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="w-full max-w-2xl mx-auto">
+            <!-- Form Card -->
+            <div class="bg-[#1e1e1e] p-5 rounded-xl shadow-lg border border-gray-800 mb-6">
+                <h1 class="text-3xl font-bold text-center mb-5 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">مولّد الهوية بالذكاء الاصطناعي</h1>
+                
+                <div class="space-y-4">
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">الوصف</label>
+                        <textarea id="description-input" class="input-field" rows="3" placeholder="مثال: معلق مصري ساخر على القضايا الاجتماعية">رائد أعمال تقني من الرياض مهتم بالذكاء الاصطناعي</textarea>
+                    </div>
+
+                    <!-- Region & Nationality & Orientation -->
+                    <div id="persona-details-section" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="sm:col-span-2 grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300">المنطقة</label>
+                                <select id="region-select" class="input-field" onchange="updateNationalities()">
+                                    {% for region in regions %}
+                                    <option value="{{ region }}">{{ region }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300">الجنسية</label>
+                                <select id="nationality-select" class="input-field" onchange="handleSelectChange('nationality', this.value)"></select>
+                                <input type="text" id="nationality-custom" class="input-field mt-2 hidden" placeholder="أدخل جنسية مخصصة" oninput="params.nationality = this.value">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300">التوجه</label>
+                            <select id="orientation-select" class="input-field" onchange="handleSelectChange('orientation', this.value)">
+                                {% for o in orientations %}
+                                <option value="{{ o }}">{{ o }}</option>
+                                {% endfor %}
+                                <option value="_CUSTOM_">أخرى...</option>
+                            </select>
+                            <input type="text" id="orientation-custom" class="input-field mt-2 hidden" placeholder="أدخل توجهًا مخصصًا" oninput="params.orientation = this.value">
+                        </div>
+                    </div>
+
+                    <!-- Custom Prompts Toggle -->
+                    <div class="border-t border-gray-700 pt-4">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" id="use-custom-prompts" class="w-5 h-5 bg-gray-800 border-gray-600 rounded text-indigo-500 focus:ring-indigo-500" onchange="toggleCustomPrompts()">
+                            <span class="text-sm font-medium text-gray-300">استخدام وصف مخصص للصور (متقدم)</span>
+                        </label>
+                    </div>
+
+                    <!-- Custom Prompts Section -->
+                    <div id="custom-prompts-section" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">وصف الصورة الشخصية</label>
+                            <textarea id="custom-profile-prompt" class="input-field" rows="2" placeholder="أدخل وصفًا تفصيليًا للصورة الشخصية"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">وصف صورة الهيدر</label>
+                            <textarea id="custom-header-prompt" class="input-field" rows="2" placeholder="أدخل وصفًا تفصيليًا لصورة الهيدر"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Standard Options Section -->
+                    <div id="image-options-section">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300">نوع الصورة الشخصية</label>
+                                <select id="image-type-select" class="input-field" onchange="handleImageTypeChange(this.value)">
+                                    {% for t in image_types %}
+                                    <option value="{{ t }}">{{ t }}</option>
+                                    {% endfor %}
+                                    <option value="_CUSTOM_">أخرى...</option>
+                                </select>
+                                <input type="text" id="image-type-custom" class="input-field mt-2 hidden" placeholder="أدخل نوعًا مخصصًا" oninput="params.imageType = this.value">
+                            </div>
+                            <div id="gender-field">
+                                <label class="block text-sm font-medium text-gray-300">الجنس</label>
+                                <select id="gender-select" class="input-field" onchange="handleSelectChange('gender', this.value)">
+                                    {% for g in genders %}
+                                    <option value="{{ g }}">{{ g }}</option>
+                                    {% endfor %}
+                                    <option value="_CUSTOM_">أخرى...</option>
+                                </select>
+                                <input type="text" id="gender-custom" class="input-field mt-2 hidden" placeholder="أدخل جنسًا مخصصًا" oninput="params.gender = this.value">
+                            </div>
+                            <div id="skin-tone-field">
+                                <label class="block text-sm font-medium text-gray-300">لون البشرة</label>
+                                <select id="skin-tone-select" class="input-field" onchange="handleSelectChange('skinTone', this.value)">
+                                    {% for s in skin_tones %}
+                                    <option value="{{ s }}">{{ s }}</option>
+                                    {% endfor %}
+                                    <option value="_CUSTOM_">أخرى...</option>
+                                </select>
+                                <input type="text" id="skin-tone-custom" class="input-field mt-2 hidden" placeholder="أدخل لونًا مخصصًا" oninput="params.skinTone = this.value">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300">نوع صورة الهيدر</label>
+                                <select id="header-type-select" class="input-field" onchange="handleSelectChange('headerImageType', this.value)">
+                                    {% for h in header_image_types %}
+                                    <option value="{{ h }}">{{ h }}</option>
+                                    {% endfor %}
+                                    <option value="_CUSTOM_">أخرى...</option>
+                                </select>
+                                <input type="text" id="header-type-custom" class="input-field mt-2 hidden" placeholder="أدخل نوعًا مخصصًا" oninput="params.headerImageType = this.value">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300">طول البايو</label>
+                                <select id="bio-length-select" class="input-field" onchange="handleSelectChange('bioLength', this.value)">
+                                    {% for b in bio_lengths %}
+                                    <option value="{{ b }}" {% if b == 'متوسط' %}selected{% endif %}>{{ b }}</option>
+                                    {% endfor %}
+                                    <option value="_CUSTOM_">أخرى...</option>
+                                </select>
+                                <input type="text" id="bio-length-custom" class="input-field mt-2 hidden" placeholder="مثال: حوالي 20 كلمة" oninput="params.bioLength = this.value">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bio Style & Header Text -->
+                    <div id="bio-style-section" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300">أسلوب البايو</label>
+                            <select id="bio-style-select" class="input-field">
+                                {% for style in bio_styles %}
+                                <option value="{{ style }}">{{ style }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300">نص الهيدر (اختياري - إنجليزي)</label>
+                            <input type="text" id="header-text-input" class="input-field" placeholder="e.g., 'Future Tech'">
+                        </div>
+                    </div>
+
+                    <!-- Generate Buttons -->
+                    <div class="flex gap-4 pt-4">
+                        <button id="generate-button" onclick="generateProfile(false)" class="flex-1 w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg">
+                            إنشاء ملف شخصي
+                        </button>
+                        <button onclick="generateProfile(true)" class="flex-1 w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-md transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                            عشوائي
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div id="preview-section" class="hidden">
+                <div class="bg-[#1e1e1e] p-4 rounded-xl shadow-lg border border-gray-800">
+                    <!-- Platform Tabs -->
+                    <div class="flex justify-center gap-2 mb-4 border-b border-gray-700 pb-3">
+                        <button onclick="switchPlatform('Twitter')" class="platform-btn px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-200" data-platform="Twitter">Twitter</button>
+                        <button onclick="switchPlatform('Instagram')" class="platform-btn px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-200" data-platform="Instagram">Instagram</button>
+                        <button onclick="switchPlatform('TikTok')" class="platform-btn px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-200" data-platform="TikTok">TikTok</button>
+                    </div>
+                    
+                    <!-- Loading State -->
+                    <div id="loading-state" class="w-full max-w-lg mx-auto bg-[#1e1e1e] border border-gray-800 rounded-lg flex flex-col justify-center items-center h-96 hidden">
+                        <div class="animate-spin rounded-full w-12 h-12 border-4 border-solid border-white border-t-transparent"></div>
+                        <p class="mt-4 text-gray-400">جاري إنشاء هويتك الجديدة...</p>
+                    </div>
+
+                    <!-- Twitter Preview -->
+                    <div id="twitter-preview" class="preview-content hidden"></div>
+                    
+                    <!-- Instagram Preview -->
+                    <div id="instagram-preview" class="preview-content hidden"></div>
+                    
+                    <!-- TikTok Preview -->
+                    <div id="tiktok-preview" class="preview-content hidden"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[1000] p-4 hidden" onclick="closeImageModal()">
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white bg-black bg-opacity-60 p-2 rounded-full hover:bg-opacity-80 transition z-[1001]">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="m16.192 6.344-4.243 4.242-4.242-4.242-1.414 1.414L10.535 12l-4.242 4.242 1.414 1.414 4.242-4.242 4.243 4.242 1.414-1.414L13.364 12l4.242-4.242z"></path></svg>
+        </button>
+        <img id="modal-image" src="" alt="Preview" class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl" onclick="event.stopPropagation()">
+    </div>
+
+    <script>
+        // Constants from server
+        const nationalitiesByRegion = {{ nationalities_by_region | tojson | safe }};
+        const tutorialSteps = {{ tutorial_steps | tojson | safe }};
+        
+        // State
+        let currentProfile = null;
+        let currentPlatform = 'Twitter';
+        let isLoading = false;
+        let loadingStates = { profile: false, text: false, bio: false, profilePic: false, header: false };
+        let editingStates = { profilePic: false, header: false };
+        let copyStates = { name: false, bio: false };
+        let editState = { part: null, prompt: '' };
+        let customInputs = { nationality: false, orientation: false, bioLength: false, imageType: false, headerImageType: false, gender: false, skinTone: false };
+        
+        let params = {
+            description: 'رائد أعمال تقني من الرياض مهتم بالذكاء الاصطناعي',
+            nationality: 'سعودي',
+            orientation: 'تقني',
+            bioLength: 'متوسط',
+            imageType: 'شخص',
+            headerImageType: 'تقنية',
+            gender: 'رجل',
+            skinTone: 'حنطي',
+            headerText: '',
+            bioStyle: 'فصحى',
+            useCustomPrompts: false,
+            customProfilePicPrompt: '',
+            customHeaderImagePrompt: ''
+        };
+
+        // Icons
+        const ICONS = {
+            back: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M7.828 11H20v2H7.828l5.364 5.364-1.414 1.414L4 12l7.778-7.778 1.414 1.414L7.828 11z"></path></svg>',
+            more: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>',
+            message: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M20 4H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V6c0-1.103-.897-2-2-2zm0 2v.511l-8 6.223-8-6.223V6h16zM4 18V9.044l7.386 5.762a.998.998 0 0 0 1.228 0L20 9.044 20.002 18H4z"></path></svg>',
+            notification: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M19 13.586V10c0-3.217-2.185-5.927-5-6.758V3a2 2 0 0 0-4 0v.242C7.185 4.073 5 6.783 5 10v3.586l-1.707 1.707A.996.996 0 0 0 3 16v2a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2a.996.996 0 0 0-.293-.707L19 13.586zM19 17H5v-1l1.146-1.146A.993.993 0 0 0 7 14.17V10c0-2.657 1.989-4.815 4.5-4.989A4.49 4.49 0 0 1 17 10v4.172c0 .265.105.52.293.707L19 16v1z"></path><path d="M12 22a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22z"></path></svg>',
+            verified: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-blue-400"><path d="M19.965 8.521C19.988 8.347 20 8.173 20 8c0-2.379-2.143-4.288-4.521-3.965C14.773 1.988 12.827 1 10.5 1S6.227 1.988 5.521 4.035C3.143 4.288 1 6.379 1 8c0 .173.012.347.035.521C1.988 9.227 1 11.173 1 13.5c0 2.773 1.988 4.727 4.035 5.479C4.288 21.857 6.379 23 8 23c.173 0 .347-.012.521-.035C9.227 22.012 11.173 21 13.5 21s4.273 1.012 4.979 2.035C18.653 22.988 18.827 23 19 23c2.773 0 4.727-1.988 5.479-4.035C22.012 18.273 23 16.327 23 14c0-.173-.012-.347-.035-.521C22.012 12.773 23 10.827 23 8.5c0-2.327-1.012-4.273-2.035-4.979zm-9.053 7.567-3.535-3.536 1.414-1.414 2.121 2.121 4.242-4.242 1.414 1.414-5.656 5.657z"></path></svg>',
+            briefcase: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M20 6h-3V4c0-1.103-.897-2-2-2H9C7.897 2 7 2.897 7 4v2H4c-1.103 0-2 .897-2 2v11c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V8c0-1.103-.897-2-2-2zM9 4h6v2H9V4zm11 15H4V8h16v11z"></path></svg>',
+            location: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M12 2C7.589 2 4 5.589 4 10c0 6 8 12 8 12s8-6 8-12c0-4.411-3.589-8-8-8zm0 12c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4z"></path></svg>',
+            link: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="m13.293 10.293-1.414 1.414 4.439 4.439-2.828 2.828-4.439-4.439-1.414 1.414 4.439 4.439a2 2 0 0 0 2.828 0l2.828-2.828a2 2 0 0 0 0-2.828l-4.439-4.439zm-2.586-8.586-2.828 2.828a2 2 0 0 0 0 2.828l4.439 4.439 1.414-1.414-4.439-4.439 2.828-2.828 4.439 4.439 1.414-1.414-4.439-4.439a2 2 0 0 0-2.828 0z"></path></svg>',
+            birthday: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13 11h-2v2h2v-2zm6-5V4c0-1.103-.897-2-2-2H7c-1.103 0-2 .897-2 2v2H4v2h1v10c0 1.103.897 2 2 2h10c1.103 0 2-.897 2-2V8h1V6h-1zm-3 12H8V8h8v10z"></path></svg>',
+            calendar: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M19 4h-2V2h-2v2H9V2H7v2H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V6c0-1.103-.897-2-2-2zM5 20V7h14V6l.002 14H5z"></path></svg>',
+            regenerate: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"></path></svg>',
+            edit: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M19.045 7.401c.378-.378.586-.88.586-1.414s-.208-1.036-.586-1.414l-1.586-1.586c-.378-.378-.88-.586-1.414-.586s-1.036.208-1.414.586L3.21 12.81 2 19l6.19-1.21L19.045 7.401zm-3.887-1.586 1.586 1.586-1.594 1.594-1.586-1.586 1.594-1.594zM6 14.81l5.787-5.787 1.586 1.586L7.586 16.4l-1.954.383.383-1.974z"></path></svg>',
+            copy: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M20 2H10c-1.103 0-2 .897-2 2v4H4c-1.103 0-2 .897-2 2v10c0 1.103.897 2 2 2h10c1.103 0 2-.897 2-2v-4h4c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zM4 20V10h10l.002 10H4zm16-6h-4v-4c0-1.103-.897-2-2-2H10V4h10v10z"></path></svg>',
+            check: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-green-400"><path d="m10 15.586-3.293-3.293-1.414 1.414L10 18.414l9.707-9.707-1.414-1.414z"></path></svg>',
+            download: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path></svg>',
+            spinner: '<svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>',
+            instagram: {
+                grid: '<svg fill="currentColor" height="24" viewBox="0 0 24 24" width="24"><rect fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="18" x="3" y="3"></rect><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="9.015" x2="9.015" y1="3" y2="21"></line><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="14.985" x2="14.985" y1="3" y2="21"></line><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="21" x2="3" y1="9.015" y2="9.015"></line><line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="21" x2="3" y1="14.985" y2="14.985"></line></svg>',
+                addUser: '<svg fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><path d="M19 10h-4V6a1 1 0 0 0-2 0v4H9a1 1 0 0 0 0 2h4v4a1 1 0 0 0 2 0v-4h4a1 1 0 0 0 0-2z"></path><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path></svg>',
+                chevronDown: '<svg fill="currentColor" height="12" viewBox="0 0 24 24" width="12"><path d="M21 17.502a.997.997 0 0 1-.707-.293L12 8.913l-8.293 8.296a1 1 0 1 1-1.414-1.414l9-9a.999.999 0 0 1 1.414 0l9 9a.999.999 0 0 1-.707 1.707z" transform="rotate(180 12 12)"></path></svg>'
+            },
+            tiktok: {
+                heart: '<svg fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>',
+                lock: '<svg fill="currentColor" height="12" viewBox="0 0 24 24" width="12"><path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-8a3 3 0 0 0-3-3zM9 6a3 3 0 0 1 6 0v2H9V6zm9 14H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1z"></path></svg>',
+                videoGrid: '<svg fill="currentColor" height="20" viewBox="0 0 24 24" width="20"><path d="M3 3h7v7H3zm0 11h7v7H3zm11-11h7v7h-7zm0 11h7v7h-7z"></path></svg>'
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateNationalities();
+            togglePersonOptions();
+            checkWelcome();
+            updatePlatformButtons();
+        });
+
+        function checkWelcome() {
+            if (!localStorage.getItem('welcomeMessageSeen')) {
+                document.getElementById('welcome-modal').classList.remove('hidden');
+            }
+        }
+
+        function closeWelcome() {
+            localStorage.setItem('welcomeMessageSeen', 'true');
+            document.getElementById('welcome-modal').classList.add('hidden');
+            if (!localStorage.getItem('tutorialSeen')) {
+                startTutorial();
+            }
+        }
+
+        // Tutorial
+        let currentTutorialStep = 0;
+        function startTutorial() {
+            currentTutorialStep = 0;
+            showTutorialStep();
+        }
+
+        function showTutorialStep() {
+            if (currentTutorialStep >= tutorialSteps.length) {
+                finishTutorial();
+                return;
+            }
+            const step = tutorialSteps[currentTutorialStep];
+            const element = document.querySelector(step.elementSelector);
+            if (!element) {
+                currentTutorialStep++;
+                showTutorialStep();
+                return;
+            }
+            const rect = element.getBoundingClientRect();
+            let tooltip = document.getElementById('tutorial-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'tutorial-tooltip';
+                document.body.appendChild(tooltip);
+            }
+            tooltip.className = 'tutorial-tooltip animate-fade-in';
+            tooltip.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+            tooltip.style.left = Math.max(10, rect.left + window.scrollX) + 'px';
+            tooltip.innerHTML = '<h3 class="font-bold text-lg mb-2">' + step.title + '</h3><p class="text-gray-300 text-sm mb-4">' + step.content + '</p><div class="flex justify-between items-center"><span class="text-gray-500 text-xs">' + (currentTutorialStep + 1) + ' / ' + tutorialSteps.length + '</span><div class="flex gap-2"><button onclick="finishTutorial()" class="px-3 py-1 text-sm text-gray-400 hover:text-white">تخطي</button><button onclick="nextTutorialStep()" class="px-4 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600">' + (currentTutorialStep === tutorialSteps.length - 1 ? 'إنهاء' : 'التالي') + '</button></div></div>';
+            element.classList.add('tutorial-highlight');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function nextTutorialStep() {
+            const step = tutorialSteps[currentTutorialStep];
+            const element = document.querySelector(step.elementSelector);
+            if (element) element.classList.remove('tutorial-highlight');
+            currentTutorialStep++;
+            showTutorialStep();
+        }
+
+        function finishTutorial() {
+            localStorage.setItem('tutorialSeen', 'true');
+            const tooltip = document.getElementById('tutorial-tooltip');
+            if (tooltip) tooltip.remove();
+            document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function updateNationalities() {
+            const region = document.getElementById('region-select').value;
+            const select = document.getElementById('nationality-select');
+            select.innerHTML = '';
+            nationalitiesByRegion[region].forEach(n => {
+                const opt = document.createElement('option');
+                opt.value = n;
+                opt.textContent = n;
+                select.appendChild(opt);
+            });
+            const customOpt = document.createElement('option');
+            customOpt.value = '_CUSTOM_';
+            customOpt.textContent = 'أخرى...';
+            select.appendChild(customOpt);
+            params.nationality = nationalitiesByRegion[region][0];
+            customInputs.nationality = false;
+            document.getElementById('nationality-custom').classList.add('hidden');
+        }
+
+        function handleSelectChange(field, value) {
+            const fieldMap = { nationality: 'nationality', orientation: 'orientation', bioLength: 'bio-length', imageType: 'image-type', headerImageType: 'header-type', gender: 'gender', skinTone: 'skin-tone' };
+            const customInput = document.getElementById(fieldMap[field] + '-custom');
+            if (value === '_CUSTOM_') {
+                customInputs[field] = true;
+                if (customInput) customInput.classList.remove('hidden');
+                params[field] = '';
+            } else {
+                customInputs[field] = false;
+                if (customInput) customInput.classList.add('hidden');
+                params[field] = value;
+            }
+        }
+
+        function handleImageTypeChange(value) {
+            handleSelectChange('imageType', value);
+            if (value !== '_CUSTOM_') {
+                params.gender = 'رجل';
+                params.skinTone = 'حنطي';
+            }
+            togglePersonOptions();
+        }
+
+        function toggleCustomPrompts() {
+            const useCustom = document.getElementById('use-custom-prompts').checked;
+            params.useCustomPrompts = useCustom;
+            document.getElementById('custom-prompts-section').classList.toggle('hidden', !useCustom);
+            document.getElementById('image-options-section').classList.toggle('hidden', useCustom);
+        }
+
+        function togglePersonOptions() {
+            const imageType = document.getElementById('image-type-select').value;
+            const show = imageType === 'شخص' && !customInputs.imageType;
+            document.getElementById('gender-field').classList.toggle('hidden', !show);
+            document.getElementById('skin-tone-field').classList.toggle('hidden', !show);
+        }
+
+        function getParams() {
+            return {
+                description: document.getElementById('description-input').value,
+                nationality: customInputs.nationality ? params.nationality : document.getElementById('nationality-select').value,
+                orientation: customInputs.orientation ? params.orientation : document.getElementById('orientation-select').value,
+                bioLength: customInputs.bioLength ? params.bioLength : document.getElementById('bio-length-select').value,
+                imageType: customInputs.imageType ? params.imageType : document.getElementById('image-type-select').value,
+                headerImageType: customInputs.headerImageType ? params.headerImageType : document.getElementById('header-type-select').value,
+                gender: customInputs.gender ? params.gender : document.getElementById('gender-select').value,
+                skinTone: customInputs.skinTone ? params.skinTone : document.getElementById('skin-tone-select').value,
+                headerText: document.getElementById('header-text-input').value,
+                bioStyle: document.getElementById('bio-style-select').value,
+                useCustomPrompts: document.getElementById('use-custom-prompts').checked,
+                customProfilePicPrompt: document.getElementById('custom-profile-prompt').value,
+                customHeaderImagePrompt: document.getElementById('custom-header-prompt').value
+            };
+        }
+
+        async function generateProfile(random = false) {
+            if (isLoading) return;
+            isLoading = true;
+            
+            document.getElementById('preview-section').classList.remove('hidden');
+            document.getElementById('loading-state').classList.remove('hidden');
+            hideAllPreviews();
+            
+            try {
+                const endpoint = random ? '/api/profile/random' : '/api/profile/generate';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(random ? {} : getParams())
+                });
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error);
+                
+                currentProfile = result.data;
+                renderCurrentPlatform();
+                
+                // Generate images in background
+                generateImages();
+                
+            } catch (error) {
+                alert('حدث خطأ: ' + error.message);
+                document.getElementById('preview-section').classList.add('hidden');
+            } finally {
+                document.getElementById('loading-state').classList.add('hidden');
+                isLoading = false;
+            }
+        }
+
+        async function generateImages() {
+            if (!currentProfile) return;
+            
+            // Set loading states
+            loadingStates.profilePic = true;
+            loadingStates.header = true;
+            renderCurrentPlatform();
+            
+            try {
+                console.log('Starting image generation...');
+                const response = await fetch('/api/image/generate-both', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        profilePicPrompt: currentProfile.profilePicPrompt,
+                        headerImagePrompt: currentProfile.headerImagePrompt
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('Image generation result:', result);
+                
+                if (result.success) {
+                    currentProfile.profilePictureUrl = result.data.profilePictureUrl;
+                    currentProfile.headerImageUrl = result.data.headerImageUrl;
+                    console.log('Images loaded successfully');
+                } else {
+                    console.error('Image generation failed:', result.error);
+                }
+            } catch (error) {
+                console.error('Image generation failed:', error);
+            } finally {
+                loadingStates.profilePic = false;
+                loadingStates.header = false;
+                renderCurrentPlatform();
+            }
+        }
+
+        async function regenerateImage(type) {
+            if (!currentProfile) return;
+            
+            const prompt = type === 'profile' ? currentProfile.profilePicPrompt : currentProfile.headerImagePrompt;
+            const imageType = type === 'profile' ? 'profile' : 'header';
+            
+            try {
+                const response = await fetch('/api/image/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt, type: imageType })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    if (type === 'profile') {
+                        currentProfile.profilePictureUrl = result.data.imageUrl;
+                    } else {
+                        currentProfile.headerImageUrl = result.data.imageUrl;
+                    }
+                    renderCurrentPlatform();
+                }
+            } catch (error) {
+                alert('فشل في إعادة إنشاء الصورة');
+            }
+        }
+
+        async function regenerateBio() {
+            if (!currentProfile) return;
+            
+            try {
+                const response = await fetch('/api/bio/regenerate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(getParams())
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    currentProfile.bio = result.data.bio;
+                    renderCurrentPlatform();
+                }
+            } catch (error) {
+                alert('فشل في إعادة إنشاء البايو');
+            }
+        }
+
+        async function regenerateText() {
+            if (!currentProfile) return;
+            
+            try {
+                const response = await fetch('/api/text/regenerate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(getParams())
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    Object.assign(currentProfile, result.data);
+                    renderCurrentPlatform();
+                }
+            } catch (error) {
+                alert('فشل في إعادة إنشاء النص');
+            }
+        }
+
+        function switchPlatform(platform) {
+            currentPlatform = platform;
+            updatePlatformButtons();
+            renderCurrentPlatform();
+        }
+
+        function updatePlatformButtons() {
+            document.querySelectorAll('.platform-btn').forEach(btn => {
+                const isActive = btn.dataset.platform === currentPlatform;
+                btn.className = `platform-btn px-4 py-2 text-sm font-semibold rounded-md transition-colors duration-200 ${isActive ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`;
+            });
+        }
+
+        function hideAllPreviews() {
+            document.querySelectorAll('.preview-content').forEach(el => el.classList.add('hidden'));
+        }
+
+        function renderCurrentPlatform() {
+            if (!currentProfile) return;
+            hideAllPreviews();
+            
+            const previewId = `${currentPlatform.toLowerCase()}-preview`;
+            const container = document.getElementById(previewId);
+            container.classList.remove('hidden');
+            
+            switch(currentPlatform) {
+                case 'Twitter': renderTwitterPreview(container); break;
+                case 'Instagram': renderInstagramPreview(container); break;
+                case 'TikTok': renderTikTokPreview(container); break;
+            }
+        }
+
+        const btnClass = "p-2 rounded-full bg-black bg-opacity-60 hover:bg-opacity-80 transition disabled:opacity-50";
+
+        function renderSpinner() {
+            return '<div class="animate-spin rounded-full w-6 h-6 border-2 border-solid border-white border-t-transparent"></div>';
+        }
+
+        function renderEditForm(part, isHeader = false) {
+            if (editState.part !== part) return '';
+            return '<div class="absolute inset-0 p-2 flex flex-col justify-end bg-black bg-opacity-70 z-20 ' + (isHeader ? '' : 'rounded-full') + '" onclick="closeEditForm()"><form onsubmit="submitEditForm(event, \'' + part + '\')" onclick="event.stopPropagation()" class="flex gap-2 p-1 bg-gray-900 bg-opacity-80 rounded-lg"><input type="text" id="edit-prompt-' + part + '" placeholder="مثال: أضف فلتر قديم" class="w-full bg-transparent text-white text-sm px-2 outline-none" autofocus><button type="submit" class="text-sm bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition disabled:bg-gray-500" ' + (editingStates[part] ? 'disabled' : '') + '>' + (editingStates[part] ? ICONS.spinner : 'نفذ') + '</button></form></div>';
+        }
+
+        function openEditForm(part) {
+            editState = { part, prompt: '' };
+            renderCurrentPlatform();
+            setTimeout(() => { const input = document.getElementById('edit-prompt-' + part); if (input) input.focus(); }, 100);
+        }
+
+        function closeEditForm() {
+            editState = { part: null, prompt: '' };
+            renderCurrentPlatform();
+        }
+
+        function submitEditForm(e, part) {
+            e.preventDefault();
+            const input = document.getElementById('edit-prompt-' + part);
+            if (input && input.value.trim()) {
+                editImage(part, input.value.trim());
+            }
+        }
+
+        async function editImage(part, prompt) {
+            if (!currentProfile || !prompt.trim()) return;
+            editingStates[part] = true;
+            renderCurrentPlatform();
+            const imageData = part === 'profilePic' ? currentProfile.profilePictureUrl : currentProfile.headerImageUrl;
+            try {
+                const response = await fetch('/api/image/edit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imageData, prompt })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    if (part === 'profilePic') currentProfile.profilePictureUrl = result.data.imageUrl;
+                    else currentProfile.headerImageUrl = result.data.imageUrl;
+                }
+            } catch (error) {
+                alert('فشل في تعديل الصورة');
+            } finally {
+                editingStates[part] = false;
+                editState = { part: null, prompt: '' };
+                renderCurrentPlatform();
+            }
+        }
+
+        function renderTwitterPreview(container) {
+            const p = currentProfile;
+            const followersK = (p.followers/1000).toFixed(p.followers > 1000 ? 1 : 0);
+            const headerLoading = loadingStates.header;
+            const profileLoading = loadingStates.profilePic;
+            const textLoading = loadingStates.text;
+            const bioLoading = loadingStates.bio;
+            
+            container.innerHTML = `
+                <div class="w-full max-w-lg mx-auto bg-black border border-gray-800 rounded-lg animate-fade-in">
+                    <div class="relative rounded-t-lg">
+                        <div class="p-3 flex justify-between items-center bg-transparent absolute top-1 left-0 right-0 max-w-lg mx-auto z-20">
+                           <div class="bg-black bg-opacity-50 p-2 rounded-full cursor-pointer hover:bg-opacity-75 transition">${ICONS.back}</div>
+                           <div class="flex gap-2">
+                               <div class="bg-black bg-opacity-50 p-2 rounded-full cursor-pointer hover:bg-opacity-75 transition">${ICONS.more}</div>
+                           </div>
+                        </div>
+                        <div class="relative h-48 sm:h-52 bg-gray-800 rounded-t-lg overflow-hidden">
+                            ${headerLoading ? '<div class="w-full h-full flex items-center justify-center">' + renderSpinner() + '</div>' : (p.headerImageUrl ? '<img src="' + p.headerImageUrl + '" alt="Header" class="w-full h-full object-cover cursor-pointer" onclick="openImageModal(\'header\')">' : '<div class="w-full h-full bg-gray-800"></div>')}
+                            <div class="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+                                <button onclick="regenerateImage('header')" class="${btnClass}" title="إعادة إنشاء" ${headerLoading ? 'disabled' : ''}>${headerLoading ? renderSpinner() : ICONS.regenerate}</button>
+                                <button onclick="openEditForm('header')" class="${btnClass}" title="تعديل" ${headerLoading || !p.headerImageUrl ? 'disabled' : ''}>${ICONS.edit}</button>
+                                <button onclick="downloadImageByType('header')" class="${btnClass}" title="حفظ" ${!p.headerImageUrl ? 'disabled' : ''}>${ICONS.download}</button>
+                            </div>
+                            ${renderEditForm('header', true)}
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4 bg-black">
+                        <div class="flex justify-between items-end -mt-16 md:-mt-20 relative z-10">
+                            <div class="flex items-end gap-2">
+                                <div class="relative w-24 h-24 rounded-full border-4 border-black shrink-0 overflow-hidden">
+                                    ${profileLoading ? '<div class="w-full h-full flex items-center justify-center bg-gray-800 rounded-full">' + renderSpinner() + '</div>' : (p.profilePictureUrl ? '<img src="' + p.profilePictureUrl + '" alt="Profile" class="w-full h-full object-cover rounded-full cursor-pointer" onclick="openImageModal(\'profile\')">' : '<div class="w-full h-full bg-gray-800 rounded-full"></div>')}
+                                    ${renderEditForm('profilePic')}
+                                </div>
+                                <div class="pb-2 flex gap-2">
+                                    <button onclick="regenerateImage('profile')" class="${btnClass}" title="إعادة إنشاء" ${profileLoading ? 'disabled' : ''}>${profileLoading ? renderSpinner() : ICONS.regenerate}</button>
+                                    <button onclick="openEditForm('profilePic')" class="${btnClass}" title="تعديل" ${profileLoading || !p.profilePictureUrl ? 'disabled' : ''}>${ICONS.edit}</button>
+                                    <button onclick="downloadImageByType('profile')" class="${btnClass}" title="حفظ" ${!p.profilePictureUrl ? 'disabled' : ''}>${ICONS.download}</button>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="p-2 border-2 border-gray-600 rounded-full hover:bg-gray-800 transition">${ICONS.message}</button>
+                                <button class="p-2 border-2 border-gray-600 rounded-full hover:bg-gray-800 transition">${ICONS.notification}</button>
+                                <button class="px-4 py-2 border-2 border-gray-600 rounded-full font-semibold hover:bg-gray-800 transition">أتابع</button>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-xl font-bold">${escapeHtml(p.name)}</h2>
+                                ${ICONS.verified}
+                                <button onclick="handleCopy('${escapeHtml(p.name).replace(/'/g, "\\'")}', 'name')" class="text-gray-500 hover:text-white" title="نسخ الاسم">${copyStates.name ? ICONS.check : ICONS.copy}</button>
+                                <button onclick="regenerateText()" class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600 hover:border-gray-500 transition-all" title="إعادة إنشاء المعلومات النصية">${textLoading ? ICONS.spinner : ICONS.regenerate}</button>
+                            </div>
+                            <p class="text-gray-500">${escapeHtml(p.username)}</p>
+                        </div>
+                        <div class="my-3 whitespace-pre-wrap relative group">
+                            <p>${escapeHtml(p.bio)}</p>
+                            <div class="absolute -top-2 -left-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="handleCopy('${escapeHtml(p.bio).replace(/'/g, "\\'")}', 'bio')" class="p-1.5 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white" title="نسخ البايو">${copyStates.bio ? ICONS.check : ICONS.copy}</button>
+                                <button onclick="regenerateBio()" class="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600 hover:border-gray-500 transition-all" title="إعادة إنشاء البايو">${bioLoading ? ICONS.spinner : ICONS.regenerate}</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm mb-3 text-gray-400">
+                            <div class="flex items-center gap-2">${ICONS.briefcase}<span>علوم وتكنولوجيا</span></div>
+                            <div class="flex items-center gap-2">${ICONS.location}<span>${escapeHtml(p.location)}</span></div>
+                            <div class="flex items-center gap-2">${ICONS.link}<a href="${encodeURI(p.website)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${escapeHtml(p.website.replace(/(^\w+:|^)\/\//, ''))}</a></div>
+                            <div class="flex items-center gap-2">${ICONS.birthday}<span>تاريخ الميلاد ${escapeHtml(p.bornDate)}</span></div>
+                            <div class="flex items-center gap-2">${ICONS.calendar}<span>انضم في ${escapeHtml(p.joinDate)}</span></div>
+                        </div>
+                        <div class="flex gap-4 text-sm mb-4">
+                            <p><span class="font-bold">${p.following}</span> <span class="text-gray-400">يتابع</span></p>
+                            <p><span class="font-bold">${followersK}K</span> <span class="text-gray-400">متابع</span></p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderInstagramPreview(container) {
+            const p = currentProfile;
+            const posts = Math.floor(Math.random() * 500);
+            const profileLoading = loadingStates.profilePic;
+            const bioLoading = loadingStates.bio;
+            
+            container.innerHTML = `
+                <div class="w-full max-w-sm mx-auto bg-black text-white border border-gray-800 rounded-lg animate-fade-in font-sans">
+                    <div class="p-4 border-b border-gray-800 flex justify-between items-center">
+                        <h1 class="text-lg font-semibold">${escapeHtml(p.username.substring(1))}</h1>
+                        <div class="flex items-center gap-4">${ICONS.instagram.addUser}${ICONS.more}</div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-2">
+                                <div class="relative w-24 h-24 rounded-full border-4 border-black shrink-0">
+                                    ${profileLoading ? '<div class="w-full h-full flex items-center justify-center bg-gray-800 rounded-full">' + renderSpinner() + '</div>' : (p.profilePictureUrl ? '<img src="' + p.profilePictureUrl + '" alt="Profile" class="w-full h-full object-cover rounded-full cursor-pointer" onclick="openImageModal(\'' + p.profilePictureUrl + '\')">' : '<div class="w-full h-full bg-gray-800 rounded-full"></div>')}
+                                    ${renderEditForm('profilePic')}
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="regenerateImage('profile')" class="${btnClass}" title="إعادة إنشاء" ${profileLoading ? 'disabled' : ''}>${profileLoading ? renderSpinner() : ICONS.regenerate}</button>
+                                    <button onclick="openEditForm('profilePic')" class="${btnClass}" title="تعديل" ${profileLoading || !p.profilePictureUrl ? 'disabled' : ''}>${ICONS.edit}</button>
+                                    <button onclick="downloadImage('${p.profilePictureUrl}', 'profile.jpeg')" class="${btnClass}" title="حفظ" ${!p.profilePictureUrl ? 'disabled' : ''}>${ICONS.download}</button>
+                                </div>
+                            </div>
+                            <div class="flex-grow flex justify-around">
+                                <div class="text-center"><span class="font-bold block text-sm">${posts}</span><span class="text-gray-400 text-xs">Posts</span></div>
+                                <div class="text-center"><span class="font-bold block text-sm">${(p.followers/1000).toFixed(1)}k</span><span class="text-gray-400 text-xs">Followers</span></div>
+                                <div class="text-center"><span class="font-bold block text-sm">${p.following}</span><span class="text-gray-400 text-xs">Following</span></div>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-sm relative group">
+                            <p class="font-bold">${escapeHtml(p.name)}</p>
+                            <p class="text-gray-300 whitespace-pre-wrap">${escapeHtml(p.bio)}</p>
+                            <a href="${encodeURI(p.website)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">${escapeHtml(p.website)}</a>
+                            <div class="absolute -top-2 -left-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="handleCopy('${escapeHtml(p.bio).replace(/'/g, "\\'")}', 'bio')" class="p-1.5 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white" title="نسخ البايو">${copyStates.bio ? ICONS.check : ICONS.copy}</button>
+                                <button onclick="regenerateBio()" class="p-1.5 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white" title="إعادة إنشاء البايو">${bioLoading ? ICONS.spinner : ICONS.regenerate}</button>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4">
+                            <button class="flex-grow bg-gray-700 text-white font-semibold py-1.5 px-4 rounded-lg text-sm">Follow</button>
+                            <button class="flex-grow bg-gray-700 text-white font-semibold py-1.5 px-4 rounded-lg text-sm">Message</button>
+                            <button class="bg-gray-700 text-white font-semibold py-1.5 px-2 rounded-lg text-sm">${ICONS.instagram.chevronDown}</button>
+                        </div>
+                    </div>
+                    <div class="flex justify-around border-t border-gray-800 text-gray-400">
+                        <button class="p-3 w-full flex justify-center text-white border-t-2 border-white">${ICONS.instagram.grid}</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTikTokPreview(container) {
+            const p = currentProfile;
+            const likes = (Math.random() * 20).toFixed(1) + 'M';
+            const profileLoading = loadingStates.profilePic;
+            
+            container.innerHTML = `
+                <div class="w-full max-w-sm mx-auto bg-[#121212] text-white border border-gray-800 rounded-lg animate-fade-in overflow-hidden">
+                    <div class="p-4 flex justify-between items-center">
+                        <div class="w-6"></div>
+                        <h1 class="text-base font-semibold">${escapeHtml(p.name)}</h1>
+                        <div class="w-6">${ICONS.more}</div>
+                    </div>
+                    <div class="px-4 pb-4 flex flex-col items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="relative w-24 h-24 rounded-full border-4 border-black shrink-0">
+                                ${profileLoading ? '<div class="w-full h-full flex items-center justify-center bg-gray-800 rounded-full">' + renderSpinner() + '</div>' : (p.profilePictureUrl ? '<img src="' + p.profilePictureUrl + '" alt="Profile" class="w-full h-full object-cover rounded-full cursor-pointer" onclick="openImageModal(\'' + p.profilePictureUrl + '\')">' : '<div class="w-full h-full bg-gray-800 rounded-full"></div>')}
+                                ${renderEditForm('profilePic')}
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <button onclick="regenerateImage('profile')" class="${btnClass}" title="إعادة إنشاء" ${profileLoading ? 'disabled' : ''}>${profileLoading ? renderSpinner() : ICONS.regenerate}</button>
+                                <button onclick="openEditForm('profilePic')" class="${btnClass}" title="تعديل" ${profileLoading || !p.profilePictureUrl ? 'disabled' : ''}>${ICONS.edit}</button>
+                                <button onclick="downloadImage('${p.profilePictureUrl}', 'profile.jpeg')" class="${btnClass}" title="حفظ" ${!p.profilePictureUrl ? 'disabled' : ''}>${ICONS.download}</button>
+                            </div>
+                        </div>
+                        <p class="font-semibold mt-2">${escapeHtml(p.username)}</p>
+                        <div class="flex justify-center gap-6 my-4 pt-2">
+                            <div class="text-center"><span class="font-bold block text-base">${p.following}</span><span class="text-gray-400 text-xs">Following</span></div>
+                            <div class="text-center"><span class="font-bold block text-base">${(p.followers/1000).toFixed(1)}K</span><span class="text-gray-400 text-xs">Followers</span></div>
+                            <div class="text-center"><span class="font-bold block text-base">${likes}</span><span class="text-gray-400 text-xs">Likes</span></div>
+                        </div>
+                        <div class="flex gap-2 w-full">
+                            <button class="flex-grow bg-red-500 text-white font-semibold py-2.5 px-4 rounded-md text-sm">Follow</button>
+                            <button class="flex-grow bg-gray-800 border border-gray-700 text-white font-semibold py-2.5 px-4 rounded-md text-sm">Message</button>
+                        </div>
+                        <p class="text-center text-sm text-gray-300 my-4 whitespace-pre-wrap">${escapeHtml(p.bio)}</p>
+                    </div>
+                    <div class="flex justify-around border-t border-gray-800 text-gray-400">
+                        <button class="p-3 w-full flex justify-center text-white border-t-2 border-white">${ICONS.tiktok.videoGrid}</button>
+                        <button class="p-3 w-full flex justify-center">${ICONS.tiktok.lock}${ICONS.tiktok.heart}</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function handleCopy(text, type) {
+            navigator.clipboard.writeText(text).then(() => {
+                copyStates[type] = true;
+                renderCurrentPlatform();
+                setTimeout(() => {
+                    copyStates[type] = false;
+                    renderCurrentPlatform();
+                }, 2000);
+            }).catch(err => console.error('Failed to copy:', err));
+        }
+
+        function downloadImage(url, filename) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function downloadImageByType(type) {
+            if (!currentProfile) return;
+            const url = type === 'profile' ? currentProfile.profilePictureUrl : currentProfile.headerImageUrl;
+            const filename = type === 'profile' ? 'profile.jpeg' : 'header.jpeg';
+            if (url) downloadImage(url, filename);
+        }
+
+        function openImageModal(type) {
+            if (!currentProfile) return;
+            let url;
+            if (type === 'profile') {
+                url = currentProfile.profilePictureUrl;
+            } else if (type === 'header') {
+                url = currentProfile.headerImageUrl;
+            } else {
+                url = type; // Direct URL passed
+            }
+            if (!url) return;
+            document.getElementById('modal-image').src = url;
+            document.getElementById('image-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageModal() {
+            document.getElementById('image-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+</html>
