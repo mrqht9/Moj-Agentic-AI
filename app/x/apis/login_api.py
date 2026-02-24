@@ -4,9 +4,9 @@ url = "http://localhost:5789/api/login"
 headers = {"Authorization": "Bearer your-secure-token-here"}
 
 data = {
-    "label": "Ga6rsah",          # اسم الكوكيز اللي بيتحفظ (cookies/mualqahtani1.json)
-    "username": "Ga6rsah",
-    "password": "Mm8221809--",
+    "label": "nxjrjrjdj",          # اسم الكوكيز اللي بيتحفظ (cookies/mualqahtani1.json)
+    "username": "nxjrjrjdj",
+    "password": "sHmGD4Ls2b",
     "headless": False                # خله False أول مرة (أفضل)
 }
 

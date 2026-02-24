@@ -1,11 +1,16 @@
+"""
+تسجيل الدخول في X — عبر API مباشر (بدون متصفح)
+يستخدم مكتبة x_auth (curl_cffi + CastleToken + ClientTransaction)
+أسرع وأخف بكثير من Playwright
+"""
 import os
-import random
 import re
-import time
+import sys
+import json
+import asyncio
+import subprocess
 from pathlib import Path
 from typing import Optional
-
-from playwright.sync_api import sync_playwright
 
 
 class TwitterLoginAdvanced:
@@ -18,120 +23,140 @@ class TwitterLoginAdvanced:
             s += '.json'
         return s[:120]
 
-    def inject_firefox_stealth(self, page):
-        stealth_js = r"""
-        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-        """
-        page.add_init_script(stealth_js)
+    def _run_login_subprocess(self, username: str, password: str, cookies_dir: str) -> dict:
+        """تشغيل تسجيل الدخول كـ subprocess منفصل عبر x_auth"""
+        x_auth_dir = Path(__file__).parent
+        result = subprocess.run(
+            [sys.executable, "-m", "x_auth.login_sync", username, password, cookies_dir],
+            capture_output=True, text=True, encoding="utf-8", timeout=120,
+            cwd=str(x_auth_dir)
+        )
+        output = result.stdout + result.stderr
+        # البحث عن النتيجة
+        for line in output.split("\n"):
+            if line.startswith("__RESULT__"):
+                return json.loads(line[10:])
+        raise RuntimeError(f"فشل تسجيل الدخول عبر API: {output[-500:]}")
 
-    def create_stealth_firefox_context(self, browser, proxy_config=None):
-        args = {
-            "viewport": {"width": 1280, "height": 820},
-            "locale": "ar-SA",
-            "timezone_id": "Asia/Riyadh",
-        }
-        if proxy_config:
-            args["proxy"] = proxy_config
-        return browser.new_context(**args)
+    def _run_login_async(self, username: str, password: str, email: Optional[str], cookies_dir: str) -> dict:
+        """تشغيل تسجيل الدخول async مباشرة"""
+        from .x_auth.login import x_login
 
-    def human_actions(self, page):
-        for _ in range(random.randint(2, 5)):
-            x = random.randint(100, 1100)
-            y = random.randint(100, 700)
-            page.mouse.move(x, y, steps=random.randint(8, 20))
-            time.sleep(random.uniform(0.15, 0.4))
-        page.evaluate("window.scrollTo({top: Math.random() * 200, behavior: 'smooth'});")
-        time.sleep(random.uniform(0.8, 1.6))
+        loop = None
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            pass
 
-    def type_like_human(self, element, text: str):
-        element.click()
-        time.sleep(random.uniform(0.4, 1.0))
-        for ch in text:
-            element.type(ch, delay=random.randint(60, 170))
-            if random.random() < 0.08:
-                time.sleep(random.uniform(0.15, 0.5))
-
-    def check_login_success(self, page) -> bool:
-        time.sleep(4)
-        current_url = page.url
-        checks = []
-        if "home" in current_url or current_url.startswith("https://x.com/home"):
-            checks.append(True)
-        elif "login" not in current_url and "flow" not in current_url:
-            checks.append(True)
+        if loop and loop.is_running():
+            # نحن داخل event loop — نستخدم subprocess
+            return self._run_login_subprocess(username, password, cookies_dir)
         else:
-            checks.append(False)
+            # لا يوجد event loop — نشغل مباشرة
+            cookies_dict = asyncio.run(x_login(username, password, email, cookies_dir))
+            return {
+                "success": True,
+                "username": username,
+                "auth_token": cookies_dict.get("auth_token", ""),
+                "ct0": cookies_dict.get("ct0", ""),
+                "cookies": cookies_dict,
+            }
 
-        try:
-            tweet_button = page.locator('[data-testid="SideNav_NewTweet_Button"]')
-            checks.append(bool(tweet_button.is_visible(timeout=3000)))
-        except Exception:
-            checks.append(False)
+    def login_twitter(self, username: str, password: str, cookies_dir: str = "cookies",
+                      headless: bool = False, proxy_config=None, email: Optional[str] = None) -> Path:
+        """
+        تسجيل دخول X عبر API مباشر (بدون متصفح).
 
-        try:
-            cookies = page.context.cookies()
-            checks.append(any(c.get('name') == 'auth_token' for c in cookies))
-        except Exception:
-            checks.append(False)
+        Args:
+            username: اسم المستخدم
+            password: كلمة المرور
+            cookies_dir: مجلد حفظ الكوكيز
+            headless: (مُتجاهل — موجود للتوافق مع الواجهة القديمة)
+            proxy_config: (مُتجاهل حالياً)
+            email: الإيميل (اختياري — يُستخدم إذا طلب X تحقق بديل)
 
-        return sum(checks) >= 2
-
-    def login_twitter(self, username: str, password: str, cookies_dir: str = "cookies", headless: bool = False, proxy_config=None) -> Path:
+        Returns:
+            Path: مسار ملف الكوكيز المحفوظ (بصيغة Playwright storage_state)
+        """
         cookies_dir_p = Path(cookies_dir)
         cookies_dir_p.mkdir(parents=True, exist_ok=True)
         cookie_path = cookies_dir_p / self._safe_cookie_filename(username)
 
-        with sync_playwright() as p:
-            browser = p.firefox.launch(headless=headless)
-            context = self.create_stealth_firefox_context(browser, proxy_config)
-            page = context.new_page()
-            self.inject_firefox_stealth(page)
-
-            page.goto("https://x.com/i/flow/login", wait_until="domcontentloaded")
-            time.sleep(random.uniform(2.5, 4.5))
-            self.human_actions(page)
-
-            username_input = page.locator('input[autocomplete="username"]')
-            username_input.wait_for(state="visible", timeout=20000)
-            self.type_like_human(username_input, username)
-
-            time.sleep(random.uniform(1.0, 2.5))
+        try:
+            result = self._run_login_async(username, password, email, str(cookies_dir_p))
+        except Exception:
+            # fallback: subprocess
             try:
-                page.get_by_role("button", name="Next").click()
-            except Exception:
-                btn = page.locator('button:has-text("Next")')
-                if not btn.is_visible():
-                    btn = page.locator('button:has-text("التالي")')
-                btn.first.click()
+                result = self._run_login_subprocess(username, password, str(cookies_dir_p))
+            except Exception as e:
+                raise RuntimeError(f"فشل تسجيل الدخول: {e}")
 
-            time.sleep(random.uniform(2.5, 4.5))
+        if not result.get("success"):
+            raise RuntimeError(result.get("error", "فشل تسجيل الدخول (سبب غير معروف)"))
 
-            # password
-            password_input = page.locator('input[type="password"]')
-            password_input.wait_for(state="visible", timeout=20000)
-            self.type_like_human(password_input, password)
-
-            time.sleep(random.uniform(1.5, 3.0))
+        # x_auth يحفظ الكوكيز باسم username.json داخل cookies_dir
+        # نعيد تسمية الملف إذا كان الاسم مختلفاً
+        expected_file = cookies_dir_p / f"{username}.json"
+        if expected_file.exists() and expected_file != cookie_path:
             try:
-                page.locator('button[data-testid="LoginForm_Login_Button"]').click()
+                expected_file.replace(cookie_path)
             except Exception:
-                try:
-                    page.get_by_role("button", name="Log in").click()
-                except Exception:
-                    page.get_by_role("button", name="تسجيل الدخول").click()
+                # إذا فشلت إعادة التسمية، نستخدم الملف الأصلي
+                cookie_path = expected_file
+        elif expected_file.exists():
+            cookie_path = expected_file
 
-            time.sleep(8)
+        if not cookie_path.exists():
+            raise RuntimeError(f"تم تسجيل الدخول لكن ملف الكوكيز غير موجود: {cookie_path}")
 
-            if not self.check_login_success(page):
-                # Save screenshot for debugging
-                try:
-                    page.screenshot(path=str(cookie_path).replace('.json','_failed.png'), full_page=True)
-                except Exception:
-                    pass
-                browser.close()
-                raise RuntimeError("فشل تسجيل الدخول (أو يحتاج تحقق إضافي).")
+        return cookie_path
 
-            # Save storage state
-            context.storage_state(path=str(cookie_path))
-            browser.close()
-            return cookie_path
+    def login_twitter_multi(self, accounts: list, cookies_dir: str = "cookies") -> list:
+        """
+        تسجيل دخول عدة حسابات دفعة واحدة.
+
+        Args:
+            accounts: قائمة من dict، كل واحد فيه:
+                {"username": "...", "password": "...", "label": "..." (اختياري)}
+            cookies_dir: مجلد حفظ الكوكيز
+
+        Returns:
+            list: نتائج كل حساب [{"username": ..., "success": bool, "error": ...}, ...]
+        """
+        import time as _time
+
+        results = []
+        for i, acc in enumerate(accounts):
+            username = (acc.get("username") or "").strip()
+            password = (acc.get("password") or "").strip()
+            label = (acc.get("label") or "").strip() or username
+            email = (acc.get("email") or "").strip() or None
+
+            if not username or not password:
+                results.append({"username": username or f"row_{i+1}", "label": label, "success": False, "error": "اسم المستخدم أو كلمة المرور فارغ"})
+                continue
+
+            try:
+                cookie_path = self.login_twitter(
+                    username=username, password=password,
+                    cookies_dir=cookies_dir, email=email
+                )
+                # إعادة تسمية للـ label
+                from modules.utils import safe_label as _safe_label
+                safe_lbl = _safe_label(label)
+                dst = Path(cookies_dir) / f"{safe_lbl}.json"
+                if cookie_path != dst:
+                    try:
+                        Path(cookie_path).replace(dst)
+                        cookie_path = dst
+                    except Exception:
+                        pass
+                results.append({"username": username, "label": safe_lbl, "success": True, "file": str(cookie_path)})
+            except Exception as e:
+                results.append({"username": username, "label": label, "success": False, "error": str(e)})
+
+            # تأخير بين الحسابات
+            if i < len(accounts) - 1:
+                _time.sleep(3)
+
+        return results

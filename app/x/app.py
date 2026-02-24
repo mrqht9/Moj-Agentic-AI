@@ -1,6 +1,10 @@
+import csv
+import io
 import json
 import os
 import tempfile
+import threading
+import time as _time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -66,6 +70,10 @@ def cookie_label_to_path(cookie_label: str):
 ADMIN_USER = os.getenv('XSUITE_ADMIN_USER', 'admin')
 ADMIN_PASS = os.getenv('XSUITE_ADMIN_PASS', 'Mm112233@@')
 DEFAULT_HEADLESS = os.getenv('XSUITE_DEFAULT_HEADLESS', '0') == '1'
+
+# حالة المهام الجماعية لتسجيل الدخول
+bulk_login_tasks = {}
+bulk_task_counter = 0
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'change-me')
@@ -241,6 +249,98 @@ def login_page():
         log_operation('login', label, 'error', f'فشل تسجيل الدخول: {e}')
         flash(f'فشل تسجيل الدخول: {e}', 'error')
         return redirect(url_for('login_page'))
+
+
+@app.route('/x-login-bulk', methods=['POST'])
+@login_required
+def login_bulk_page():
+    """تسجيل دخول عدة حسابات عبر ملف CSV"""
+    global bulk_task_counter
+
+    f = request.files.get('csv_file')
+    if not f or not f.filename:
+        flash('ارفع ملف CSV', 'error')
+        return redirect(url_for('login_page'))
+
+    try:
+        content = f.read().decode('utf-8')
+        reader = csv.reader(io.StringIO(content))
+        accounts = []
+        for row in reader:
+            row = [c.strip() for c in row]
+            if not row or row[0].lower() == 'username':
+                continue
+            if len(row) >= 2:
+                acc = {"username": row[0], "password": row[1]}
+                if len(row) >= 3 and row[2]:
+                    acc["label"] = row[2]
+                else:
+                    acc["label"] = row[0]
+                accounts.append(acc)
+
+        if not accounts:
+            flash('الملف فارغ أو لا يحتوي حسابات صالحة', 'error')
+            return redirect(url_for('login_page'))
+
+        bulk_task_counter += 1
+        task_id = str(bulk_task_counter)
+        bulk_login_tasks[task_id] = {
+            "total": len(accounts),
+            "done": 0,
+            "success": 0,
+            "failed": 0,
+            "finished": False,
+            "results": []
+        }
+
+        def worker():
+            engine = TwitterLoginAdvanced()
+            for i, acc in enumerate(accounts):
+                username = acc["username"]
+                password = acc["password"]
+                label = safe_label(acc.get("label") or username)
+                try:
+                    cookie_path = engine.login_twitter(
+                        username=username, password=password,
+                        cookies_dir=str(COOKIES_DIR)
+                    )
+                    dst = COOKIES_DIR / f"{label}.json"
+                    if cookie_path != dst:
+                        try:
+                            Path(cookie_path).replace(dst)
+                        except Exception:
+                            pass
+                    upsert_cookie(label, dst.name)
+                    log_operation('login', label, 'success', f'تم حفظ الكوكيز: {dst.name}')
+                    bulk_login_tasks[task_id]["success"] += 1
+                    bulk_login_tasks[task_id]["results"].append({"username": username, "label": label, "success": True})
+                except Exception as e:
+                    log_operation('login', label, 'error', f'فشل تسجيل الدخول: {e}')
+                    bulk_login_tasks[task_id]["failed"] += 1
+                    bulk_login_tasks[task_id]["results"].append({"username": username, "label": label, "success": False, "error": str(e)})
+                bulk_login_tasks[task_id]["done"] += 1
+                if i < len(accounts) - 1:
+                    _time.sleep(5)
+            bulk_login_tasks[task_id]["finished"] = True
+
+        thread = threading.Thread(target=worker, daemon=True)
+        thread.start()
+
+        return jsonify({"success": True, "task_id": task_id, "total": len(accounts)})
+
+    except Exception as e:
+        flash(f'خطأ في معالجة الملف: {e}', 'error')
+        return redirect(url_for('login_page'))
+
+
+@app.route('/x-login-bulk-status/<task_id>')
+@login_required
+def login_bulk_status(task_id):
+    """حالة مهمة تسجيل الدخول الجماعي"""
+    task = bulk_login_tasks.get(task_id)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+    return jsonify(task)
 
 
 @app.route('/post', methods=['GET', 'POST'])
