@@ -30,8 +30,10 @@ from app.api.conversation_routes import router as conversation_router
 from app.api.x_routes import router as x_router
 from app.api.admin_accounts_routes import router as admin_accounts_router
 from app.api.user_accounts_routes import router as user_accounts_router
+from app.api.schedule_routes import router as schedule_router
 from app.agents.agent_manager import agent_manager
 from app.services.memory_service import memory_service
+from app.scheduler.tick import scheduler_tick
 
 app = FastAPI(title="كنق الاتمته - Chatbot API", version="1.0.0")
 
@@ -60,6 +62,9 @@ async def startup_event():
         print(f"Warning: AI Agents initialization failed: {str(e)}")
         print("Check .env.agents file for LLM configuration")
 
+    asyncio.create_task(scheduler_tick())
+    print("Scheduler tick started (every 30s)")
+
 # Include auth routes
 app.include_router(auth_router)
 
@@ -81,6 +86,9 @@ app.include_router(x_router)
 # Include accounts management routes
 app.include_router(admin_accounts_router)
 app.include_router(user_accounts_router)
+
+# Include schedule event routes
+app.include_router(schedule_router)
 
 # CORS Configuration - تقييد النطاقات المسموحة
 import os

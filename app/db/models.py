@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Bool
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.database import Base
+import json
 
 
 class User(Base):
@@ -101,3 +102,40 @@ class Message(Base):
     
     def __repr__(self):
         return f"<Message(id={self.id}, role={self.role}, content={self.content[:50]}...)>"
+
+
+class ScheduleEvent(Base):
+    """حدث مجدول للنشر على وسائل التواصل الاجتماعي"""
+    __tablename__ = "schedule_events"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    schedule_event_id = Column(String(64), unique=True, index=True, nullable=False)
+    platform = Column(String(50), nullable=False)
+    username = Column(String(255), nullable=False)
+    category = Column(String(100), nullable=False)
+    content = Column(Text, nullable=False)
+    run_at = Column(DateTime, nullable=False)
+    intent_time = Column(String(50), nullable=False)
+    mood = Column(String(50), nullable=False)
+    status = Column(String(50), default="SCHEDULED", nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        from zoneinfo import ZoneInfo
+        ksa = ZoneInfo("Asia/Riyadh")
+        run_at_ksa = self.run_at.replace(tzinfo=ZoneInfo("UTC")).astimezone(ksa) if self.run_at else None
+        return {
+            "schedule_event_id": self.schedule_event_id,
+            "platform": self.platform,
+            "username": self.username,
+            "category": self.category,
+            "content": self.content,
+            "run_at": run_at_ksa.isoformat() if run_at_ksa else None,
+            "intent_time": self.intent_time,
+            "mood": self.mood,
+            "status": self.status,
+        }
+
+    def __repr__(self):
+        return f"<ScheduleEvent(id={self.schedule_event_id}, status={self.status}, run_at={self.run_at})>"

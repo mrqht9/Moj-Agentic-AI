@@ -30,6 +30,6 @@ def get_db():
 
 def init_db():
     """Initialize database tables"""
-    from app.db.models import User, XAccount
+    from app.db.models import User, XAccount, SocialAccount, Conversation, Message, ScheduleEvent
     Base.metadata.create_all(bind=engine)
     print("Database tables created successfully")
