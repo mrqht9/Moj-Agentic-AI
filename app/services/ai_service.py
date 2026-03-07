@@ -45,7 +45,11 @@ class AIService:
             return assistant_message
             
         except Exception as e:
-            return f"عذراً، حدث خطأ في الاتصال بخدمة الذكاء الاصطناعي: {str(e)}"
+            error_str = str(e)
+            print(f"[AIService] Error: {error_str[:200]}")
+            if "401" in error_str or "api_key" in error_str.lower() or "invalid_api_key" in error_str:
+                return "عذراً، مفتاح الذكاء الاصطناعي يحتاج تحديث. تقدر تسألني عن الترندات مباشرة مثل: \"وش الترندات؟\" أو \"ترند السعودية\""
+            return "عذراً، حدث خطأ مؤقت. جرب مرة ثانية أو اسألني عن الترندات مباشرة."
     
     def clear_history(self):
         self.conversation_history = []

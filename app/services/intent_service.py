@@ -42,6 +42,13 @@ class IntentType(str, Enum):
     CREATE_AUTOMATION = "create_automation"
     MANAGE_AUTOMATION = "manage_automation"
     
+    # الترندات
+    GET_TRENDS = "get_trends"
+    GET_HOT_TRENDS = "get_hot_trends"
+    SEARCH_TRENDS = "search_trends"
+    RUN_TRENDS = "run_trends"
+    TREND_DETAIL = "trend_detail"
+    
     # عام
     HELP = "help"
     GREETING = "greeting"
@@ -278,6 +285,74 @@ class IntentService:
                 r"automate",
                 r"جدول تلقائي",
                 r"نشر تلقائي"
+            ],
+            
+            # الترندات
+            IntentType.GET_TRENDS: [
+                r"ترندات",
+                r"الترندات",
+                r"وش الترند",
+                r"ايش الترند",
+                r"شو الترند",
+                r"ترند اليوم",
+                r"وش يتصدر",
+                r"المتداول",
+                r"الاكثر تداول",
+                r"الأكثر تداول",
+                r"اخر الترندات",
+                r"آخر الترندات",
+                r"trends",
+                r"what.*trending",
+                r"show.*trends",
+                r"حالة الترندات",
+                r"احصائيات الترند",
+                r"trend.*stats",
+                r"trend.*status",
+            ],
+            IntentType.GET_HOT_TRENDS: [
+                r"ترندات حارة",
+                r"ترند حار",
+                r"hot trends",
+                r"الاكثر رواج",
+                r"الأكثر رواج",
+                r"اعلى ترند",
+                r"أعلى ترند",
+                r"top trends",
+            ],
+            IntentType.SEARCH_TRENDS: [
+                r"ابحث.*ترند",
+                r"بحث.*ترند",
+                r"search.*trend",
+                r"هل.*ترند",
+                r"هل يتصدر",
+                r"ترند\s+\S+",
+                r"ترندات\s+\S+",
+            ],
+            IntentType.TREND_DETAIL: [
+                r"تفاصيل.*ترند",
+                r"تفاصيل.*خبر",
+                r"كمل.*لي",
+                r"تكمله.*لي",
+                r"اكمل.*لي",
+                r"فصل.*لي",
+                r"هذا الخبر",
+                r"هذا الترند",
+                r"هذي التغريده",
+                r"هذي التغريدة",
+                r"عن هذا",
+                r"شرح.*ترند",
+                r"تحليل.*ترند",
+                r"#\S+.*\|",
+                r"^\d+\.\s*[🔥⏳📌🔄❓]",
+            ],
+            IntentType.RUN_TRENDS: [
+                r"شغل.*ترند",
+                r"حدث.*ترند",
+                r"جمع.*ترند",
+                r"run.*trend",
+                r"collect.*trend",
+                r"update.*trend",
+                r"اجمع ترندات",
             ],
             
             # عام
