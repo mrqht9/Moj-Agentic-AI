@@ -6,7 +6,7 @@ import axios from 'axios'
 import logoLight from '../assets/logos/logo-light.png'
 import logoDark from '../assets/logos/logo-dark.png'
 
-const API_URL = 'http://localhost:8000'
+const API_URL = ''
 
 const Register = ({ onRegister }) => {
   const navigate = useNavigate()
