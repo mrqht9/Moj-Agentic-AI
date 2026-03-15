@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,13 +10,6 @@ from datetime import datetime
 from typing import List
 import asyncio
 from pathlib import Path
-import uuid
-from io import BytesIO
-
-try:
-    from PIL import Image
-except Exception:
-    Image = None
 
 from app.services.ai_service import AIService
 from app.services.webhook_service import WebhookService
@@ -30,9 +23,10 @@ from app.api.conversation_routes import router as conversation_router
 from app.api.x_routes import router as x_router
 from app.api.admin_accounts_routes import router as admin_accounts_router
 from app.api.user_accounts_routes import router as user_accounts_router
-from app.api.schedule_routes import router as schedule_router
 from app.agents.agent_manager import agent_manager
-from app.services.memory_service import memory_service
+from app.api.trend_routes import router as trend_router
+from app.api.schedule_routes import router as schedule_router
+from app.trend_detector.scheduler.scheduler import trend_scheduler
 from app.scheduler.tick import scheduler_tick
 
 app = FastAPI(title="كنق الاتمته - Chatbot API", version="1.0.0")
@@ -61,9 +55,20 @@ async def startup_event():
     except Exception as e:
         print(f"Warning: AI Agents initialization failed: {str(e)}")
         print("Check .env.agents file for LLM configuration")
-
-    asyncio.create_task(scheduler_tick())
-    print("Scheduler tick started (every 30s)")
+    
+    # Start Trend Detector scheduler
+    try:
+        trend_scheduler.start()
+        print("Trend Detector scheduler started")
+    except Exception as e:
+        print(f"Warning: Trend Detector scheduler failed: {str(e)}")
+    
+    # Start scheduler tick
+    try:
+        asyncio.create_task(scheduler_tick())
+        print("Scheduler tick started (every 30s)")
+    except Exception as e:
+        print(f"Warning: Scheduler tick failed: {str(e)}")
 
 # Include auth routes
 app.include_router(auth_router)
@@ -87,6 +92,9 @@ app.include_router(x_router)
 app.include_router(admin_accounts_router)
 app.include_router(user_accounts_router)
 
+# Include trend detector routes
+app.include_router(trend_router)
+
 # Include schedule event routes
 app.include_router(schedule_router)
 
@@ -106,9 +114,6 @@ app.add_middleware(
 static_path = Path(__file__).parent.parent / "static"
 static_path.mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
-
-uploads_path = static_path / "uploads"
-uploads_path.mkdir(parents=True, exist_ok=True)
 
 ai_service = AIService()
 webhook_service = WebhookService()
@@ -155,12 +160,10 @@ async def websocket_endpoint(websocket: WebSocket):
             session_id = message_data.get("session_id", None)
             user_id = message_data.get("user_id", None)
             user_email = message_data.get("user_email", None)
-            attachment = message_data.get("attachment", None)
-
+            
             await manager.send_message({
                 "type": "user_message",
                 "message": user_message,
-                "attachment": attachment,
                 "timestamp": datetime.now().isoformat()
             }, websocket)
             
@@ -170,35 +173,6 @@ async def websocket_endpoint(websocket: WebSocket):
             }, websocket)
             
             try:
-                if (not user_message or not str(user_message).strip()) and attachment:
-                    try:
-                        db = next(get_db())
-                        conversation = memory_service.get_or_create_conversation(
-                            db=db,
-                            user_id=user_id,
-                            session_id=session_id
-                        )
-                        memory_service.add_message(
-                            db=db,
-                            conversation_id=conversation.id,
-                            role="user",
-                            content="",
-                            metadata={"attachment": attachment}
-                        )
-                    except Exception as e:
-                        print(f"Warning: Failed to persist attachment-only message: {str(e)}")
-
-                    await manager.send_message({
-                        "type": "typing",
-                        "status": False
-                    }, websocket)
-                    await manager.send_message({
-                        "type": "assistant_message",
-                        "message": "تم استلام المرفق. أرسل نصًا مع المرفق إذا كنت تريد مني معالجته.",
-                        "timestamp": datetime.now().isoformat()
-                    }, websocket)
-                    continue
-
                 # الحصول على جلسة قاعدة البيانات
                 db = next(get_db())
                 
@@ -207,7 +181,6 @@ async def websocket_endpoint(websocket: WebSocket):
                     message=user_message,
                     user_id=user_id,
                     session_id=session_id,
-                    metadata={"attachment": attachment} if attachment else None,
                     db=db
                 )
                 
@@ -217,7 +190,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 }, websocket)
                 
                 # إرسال رد الوكيل
-                if agent_result.get("success"):
+                if agent_result and agent_result.get("success"):
                     response_message = agent_result.get("message", "")
                     
                     # إضافة معلومات إضافية إذا كانت متاحة
@@ -232,15 +205,38 @@ async def websocket_endpoint(websocket: WebSocket):
                         "type": "assistant_message",
                         "message": response_message,
                         "metadata": metadata,
-                        "attachment": attachment,
+                        "timestamp": datetime.now().isoformat()
+                    }, websocket)
+                elif agent_result and agent_result.get("message"):
+                    await manager.send_message({
+                        "type": "assistant_message",
+                        "message": agent_result.get("message"),
                         "timestamp": datetime.now().isoformat()
                     }, websocket)
                 else:
-                    # في حالة الفشل
+                    # Fallback — try AI service, or give helpful static response
+                    fallback = None
+                    try:
+                        fallback = await ai_service.get_response(user_message)
+                    except Exception:
+                        pass
+                    
+                    if not fallback or "مفتاح الذكاء الاصطناعي" in fallback:
+                        fallback = (
+                            "هلا! 👋 حالياً أقدر أساعدك في:\n\n"
+                            "📊 **تحليل الترندات:**\n"
+                            "• \"وش الترندات؟\" — نظرة عامة\n"
+                            "• \"ترندات حارة\" — الأكثر رواجاً\n"
+                            "• \"ترند السعودية\" — بحث محدد\n\n"
+                            "📱 **إدارة الحسابات:**\n"
+                            "• \"أضف حساب تويتر\"\n"
+                            "• \"عرض حساباتي\"\n\n"
+                            "💡 جرب تسألني عن الترندات!"
+                        )
+                    
                     await manager.send_message({
                         "type": "assistant_message",
-                        "message": agent_result.get("message", "عذراً، لم أتمكن من معالجة طلبك."),
-                        "attachment": attachment,
+                        "message": fallback,
                         "timestamp": datetime.now().isoformat()
                     }, websocket)
                     
@@ -257,55 +253,6 @@ async def websocket_endpoint(websocket: WebSocket):
     
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-
-
-@app.post("/api/uploads")
-async def upload_file(file: UploadFile = File(...)):
-    max_size_bytes = 10 * 1024 * 1024
-    filename = file.filename or ""
-    ext = Path(filename).suffix.lower()
-
-    allowed_images = {".png", ".jpg", ".jpeg", ".webp"}
-    allowed_docs = {".pdf", ".doc", ".docx", ".xls", ".xlsx"}
-    allowed = allowed_images | allowed_docs
-    if ext not in allowed:
-        raise HTTPException(status_code=400, detail="نوع الملف غير مسموح")
-
-    data = await file.read()
-    if len(data) > max_size_bytes:
-        raise HTTPException(status_code=400, detail="حجم الملف كبير جدًا")
-
-    kind = "image" if ext in allowed_images else "document"
-
-    if kind == "image":
-        if Image is not None:
-            try:
-                Image.open(BytesIO(data)).verify()
-            except Exception:
-                raise HTTPException(status_code=400, detail="ملف الصورة غير صالح")
-        else:
-            is_png = data.startswith(b"\x89PNG\r\n\x1a\n")
-            is_jpg = data.startswith(b"\xff\xd8\xff")
-            is_webp = len(data) >= 12 and data[0:4] == b"RIFF" and data[8:12] == b"WEBP"
-            if not (is_png or is_jpg or is_webp):
-                raise HTTPException(status_code=400, detail="ملف الصورة غير صالح")
-    else:
-        if ext == ".pdf" and not data.startswith(b"%PDF"):
-            raise HTTPException(status_code=400, detail="ملف PDF غير صالح")
-        if ext in {".docx", ".xlsx"} and not data.startswith(b"PK"):
-            raise HTTPException(status_code=400, detail="ملف غير صالح")
-
-    safe_name = f"{uuid.uuid4().hex}{ext}"
-    out_path = uploads_path / safe_name
-    out_path.write_bytes(data)
-
-    return {
-        "url": f"/static/uploads/{safe_name}",
-        "original_name": filename,
-        "content_type": file.content_type,
-        "size": len(data),
-        "kind": kind
-    }
 
 @app.post("/api/send-message")
 async def send_message_to_n8n(request: MessageRequest):
