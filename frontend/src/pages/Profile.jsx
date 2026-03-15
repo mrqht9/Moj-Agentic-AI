@@ -63,7 +63,7 @@ const Profile = ({ user, setUser, darkMode }) => {
     try {
       const token = localStorage.getItem('token')
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/auth/profile-picture`,
+        `/api/auth/profile-picture`,
         { profile_picture: previewImage },
         {
           headers: {
@@ -96,7 +96,7 @@ const Profile = ({ user, setUser, darkMode }) => {
     try {
       const token = localStorage.getItem('token')
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/auth/profile`,
+        `/api/auth/profile`,
         profileData,
         {
           headers: {
@@ -150,7 +150,7 @@ const Profile = ({ user, setUser, darkMode }) => {
       }
       
       await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/auth/change-password`,
+        `/api/auth/change-password`,
         requestData,
         {
           headers: {

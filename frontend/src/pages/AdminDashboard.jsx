@@ -36,7 +36,7 @@ const AdminDashboard = ({ user, darkMode }) => {
         'Content-Type': 'application/json'
       }
 
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const API_URL = ''
       const [statsRes, usersRes] = await Promise.all([
         axios.get(`${API_URL}/api/admin/stats`, { headers }),
         axios.get(`${API_URL}/api/admin/users`, { headers })
@@ -54,7 +54,7 @@ const AdminDashboard = ({ user, darkMode }) => {
   const handleToggleActive = async (userId, currentStatus) => {
     try {
       const token = localStorage.getItem('token')
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const API_URL = ''
       await axios.put(
         `${API_URL}/api/admin/users/${userId}`,
         { is_active: !currentStatus },
@@ -75,7 +75,7 @@ const AdminDashboard = ({ user, darkMode }) => {
   const handleToggleAdmin = async (userId, currentStatus) => {
     try {
       const token = localStorage.getItem('token')
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const API_URL = ''
       await axios.put(
         `${API_URL}/api/admin/users/${userId}`,
         { is_admin: !currentStatus },
@@ -100,7 +100,7 @@ const AdminDashboard = ({ user, darkMode }) => {
 
     try {
       const token = localStorage.getItem('token')
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const API_URL = ''
       await axios.delete(
         `${API_URL}/api/admin/users/${userId}`,
         {
@@ -120,7 +120,7 @@ const AdminDashboard = ({ user, darkMode }) => {
     setDetailsLoading(true)
     try {
       const token = localStorage.getItem('token')
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const API_URL = ''
       const response = await axios.get(
         `${API_URL}/api/admin/users/${userId}`,
         {

@@ -8,15 +8,19 @@ from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
 from .tools import detect_user_intent
 from .x_agent_simple import XAgent
+from .trend_agent import TrendAgent
 from app.services.memory_service import memory_service
 
 
 class MainAgent:
     """الوكيل الرئيسي المبسط"""
     
+    TREND_INTENTS = {"get_trends", "get_hot_trends", "search_trends", "run_trends", "trend_detail"}
+    
     def __init__(self, llm_config: Dict[str, Any]):
         self.llm_config = llm_config
         self.x_agent = XAgent(llm_config)
+        self.trend_agent = TrendAgent(llm_config)
     
     def process_message(
         self, 
@@ -43,8 +47,7 @@ class MainAgent:
                     db=db,
                     conversation_id=conversation_id,
                     role="user",
-                    content=message,
-                    metadata=metadata
+                    content=message
                 )
             except Exception as e:
                 print(f"Warning: Memory service error: {str(e)}")
@@ -59,15 +62,36 @@ class MainAgent:
             
             if confidence < 0.5:
                 # لا ترجع رد تلقائي - دع الوكيل يتعامل مع الطلب
-                return {
-                    "success": False,
-                    "message": None,
-                    "intent_result": intent_result,
-                    "conversation_id": conversation_id
-                }
+                return None
             
             # توجيه للوكيل المناسب
-            if platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post"]:
+            if intent in self.TREND_INTENTS:
+                trend_context = {
+                    "intent": intent,
+                    "entities": entities,
+                    "raw_text": message,
+                }
+                trend_response = self.trend_agent.process_request(message, trend_context, db)
+                
+                if trend_response:
+                    if db and conversation_id:
+                        try:
+                            memory_service.add_message(
+                                db=db, conversation_id=conversation_id,
+                                role="assistant", content=trend_response,
+                                intent=intent, confidence=confidence, agent="Trend_Agent"
+                            )
+                        except: pass
+                    
+                    return {
+                        "success": True,
+                        "message": trend_response,
+                        "intent_result": intent_result,
+                        "agent": "Trend_Agent",
+                        "conversation_id": conversation_id
+                    }
+            
+            elif platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post"]:
                 context = {
                     "intent": intent,
                     "entities": entities,
@@ -113,18 +137,24 @@ class MainAgent:
             elif intent == "help":
                 help_message = """مرحباً! يمكنني مساعدتك في:
 
-📱 إدارة الحسابات:
+📱 **إدارة الحسابات:**
 - إضافة حساب جديد على X
 - عرض قائمة الحسابات
 
-📝 إدارة المحتوى:
+📝 **إدارة المحتوى:**
 - نشر تغريدات
 - جدولة منشورات
-- تحديث الملف الشخصي
+
+📊 **تحليل الترندات:**
+- "وش الترندات؟" — نظرة عامة على الترندات
+- "ترندات حارة" — عرض الترندات HOT فقط
+- "ابحث ترند [كلمة]" — بحث في الترندات
+- "حالة الترندات" — حالة النظام
 
 أمثلة:
 - "أضف حساب تويتر"
-- "انشر تغريدة 'مرحباً بالجميع!'"
+- "وش يتصدر اليوم؟"
+- "ابحث ترند الذكاء الاصطناعي"
 
 كيف يمكنني مساعدتك؟"""
                 
