@@ -18,7 +18,7 @@ logger = get_secure_logger(__name__)
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from app.services.intent_service import intent_service
-from app.x.modules.x_login import TwitterLoginAdvanced
+from app.x.modules.x_login_new import TwitterLoginAdvanced
 from app.x.modules.x_post import post_to_x
 from app.x.modules.x_profile import update_profile_on_x
 from app.x.modules.utils import safe_label, download_to_temp, is_url
