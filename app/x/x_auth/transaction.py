@@ -71,10 +71,10 @@ def convert_rotation_to_matrix(rotation):
 
 
 # ============ Handle X Migration ============
-ON_DEMAND_FILE_REGEX = re.compile(r",(\d+):[\"']ondemand\.s[\"']")
+ON_DEMAND_FILE_REGEX = re.compile(
+    r"""['|\"]{1}ondemand\.s['|\"]{1}:\s*['|\"]{1}([\w]*)['|\"]{1}""", flags=(re.VERBOSE | re.MULTILINE))
 INDICES_REGEX = re.compile(
     r"""(\(\w{1}\[(\d{1,2})\],\s*16\))+""", flags=(re.VERBOSE | re.MULTILINE))
-ON_DEMAND_HASH_PATTERN = "ondemand\\.s{0}:\"([^\"]+)\""
 
 
 async def handle_x_migration(session, headers):
@@ -114,36 +114,22 @@ class ClientTransaction:
     async def init(self, session, headers):
         home_page_response = await handle_x_migration(session, headers)
         self.home_page_response = self._validate(home_page_response)
-
-        # جلب ملف ondemand.s بالطريقة الجديدة (two-step lookup)
-        ondemand_url = self._get_ondemand_file_url(self.home_page_response)
-        ondemand_response = await session.request(method="GET", url=ondemand_url, headers=headers)
-        ondemand_text = ondemand_response.text if hasattr(ondemand_response, 'text') else str(ondemand_response)
-
-        self.DEFAULT_ROW_INDEX, self.DEFAULT_KEY_BYTES_INDICES = self._get_indices(ondemand_text)
+        self.DEFAULT_ROW_INDEX, self.DEFAULT_KEY_BYTES_INDICES = await self._get_indices(
+            self.home_page_response, session, headers)
         self.key = self._get_key(self.home_page_response)
         self.key_bytes = self._get_key_bytes(self.key)
         self.animation_key = self._get_animation_key(self.key_bytes, self.home_page_response)
 
-    def _get_ondemand_file_url(self, home_page_response):
-        """استخراج رابط ملف ondemand.s بالطريقة الجديدة"""
-        page_str = str(home_page_response)
-        on_demand_file_index = ON_DEMAND_FILE_REGEX.search(page_str)
-        if not on_demand_file_index:
-            raise Exception("Couldn't find ondemand.s index in page source")
-        idx = on_demand_file_index.group(1)
-        hash_regex = re.compile(ON_DEMAND_HASH_PATTERN.format(idx))
-        hash_match = hash_regex.search(page_str)
-        if not hash_match:
-            raise Exception(f"Couldn't find ondemand.s hash for index {idx}")
-        filename = hash_match.group(1)
-        return f"https://abs.twimg.com/responsive-web/client-web/{filename}"
-
-    async def _get_indices(self, ondemand_file_text):
+    async def _get_indices(self, home_page_response, session, headers):
         key_byte_indices = []
-        key_byte_indices_match = INDICES_REGEX.finditer(str(ondemand_file_text))
-        for item in key_byte_indices_match:
-            key_byte_indices.append(item.group(2))
+        response = self._validate(home_page_response)
+        on_demand_file = ON_DEMAND_FILE_REGEX.search(str(response))
+        if on_demand_file:
+            on_demand_file_url = f"https://abs.twimg.com/responsive-web/client-web/ondemand.s.{on_demand_file.group(1)}a.js"
+            on_demand_file_response = await session.request(method="GET", url=on_demand_file_url, headers=headers)
+            key_byte_indices_match = INDICES_REGEX.finditer(str(on_demand_file_response.text))
+            for item in key_byte_indices_match:
+                key_byte_indices.append(item.group(2))
         if not key_byte_indices:
             raise Exception("Couldn't get KEY_BYTE indices")
         key_byte_indices = list(map(int, key_byte_indices))
