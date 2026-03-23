@@ -62,9 +62,32 @@ def _get_textbox(page):
         tb2.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
         return tb2.first
 
-    tb3 = page.get_by_role("textbox")
-    tb3.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
-    return tb3
+    # حاول على الصفحة كاملة إذا الـ scope لم يجد شيء
+    tb3 = page.locator('div[data-testid="tweetTextarea_0"][role="textbox"]')
+    if tb3.count():
+        tb3.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+        return tb3.first
+
+    tb4 = page.locator('div[data-testid="tweetTextarea_0"]')
+    if tb4.count():
+        tb4.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+        return tb4.first
+
+    # فولباك أخير: حدد textbox بالاسم لتجنب strict mode violation
+    tb5 = page.get_by_role("textbox", name="نص المنشور")
+    if tb5.count():
+        tb5.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+        return tb5.first
+
+    tb6 = page.get_by_role("textbox", name="Post text")
+    if tb6.count():
+        tb6.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+        return tb6.first
+
+    # آخر محاولة
+    tb7 = page.locator('div[role="textbox"][contenteditable="true"]').first
+    tb7.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+    return tb7
 
 
 def _media_preview_visible(page) -> bool:
