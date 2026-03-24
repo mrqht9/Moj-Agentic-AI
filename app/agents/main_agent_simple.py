@@ -60,7 +60,10 @@ class MainAgent:
             entities = intent_result.get("entities", {})
             confidence = intent_result.get("confidence", 0)
             
+            print(f"[DEBUG MainAgent] message='{message[:80]}' intent={intent} platform={platform} confidence={confidence} entities={entities}")
+            
             if confidence < 0.5:
+                print(f"[DEBUG MainAgent] LOW confidence ({confidence}) — falling back to AI")
                 # لا ترجع رد تلقائي - دع الوكيل يتعامل مع الطلب
                 return None
             
@@ -91,7 +94,7 @@ class MainAgent:
                         "conversation_id": conversation_id
                     }
             
-            elif platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post"]:
+            elif platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post", "delete_post"]:
                 context = {
                     "intent": intent,
                     "entities": entities,
@@ -196,60 +199,76 @@ class MainAgent:
                 }
             
             elif intent == "list_accounts":
-                # عرض حسابات المستخدم النشطة من قاعدة البيانات
+                # عرض حسابات المستخدم النشطة من قاعدة البيانات + مجلد الكوكيز
                 accounts_msg = ""
+                db_accounts = []
                 
                 if db and user_id:
                     try:
                         from app.services.account_service import account_service
                         
                         # الحصول على الحسابات النشطة فقط
-                        accounts = account_service.get_user_accounts(
+                        db_accounts = account_service.get_user_accounts(
                             db=db,
                             user_id=user_id,
                             status="active"
-                        )
-                        
-                        if accounts:
-                            accounts_msg = f"📋 **حساباتك النشطة:**\n\n"
-                            
-                            # تجميع الحسابات حسب المنصة
-                            platforms = {}
-                            for account in accounts:
-                                platform_name = account.platform
-                                if platform_name == "x":
-                                    platform_name = "X (Twitter)"
-                                elif platform_name == "instagram":
-                                    platform_name = "Instagram"
-                                elif platform_name == "facebook":
-                                    platform_name = "Facebook"
-                                elif platform_name == "linkedin":
-                                    platform_name = "LinkedIn"
-                                elif platform_name == "tiktok":
-                                    platform_name = "TikTok"
-                                
-                                if platform_name not in platforms:
-                                    platforms[platform_name] = []
-                                platforms[platform_name].append(account)
-                            
-                            # عرض الحسابات مجمعة حسب المنصة
-                            for platform_name, platform_accounts in platforms.items():
-                                accounts_msg += f"\n🌐 **{platform_name}:**\n"
-                                for account in platform_accounts:
-                                    accounts_msg += f"  • 👤 {account.username}"
-                                    if account.last_used:
-                                        from datetime import datetime
-                                        last_used = account.last_used.strftime("%Y-%m-%d")
-                                        accounts_msg += f" (آخر استخدام: {last_used})"
-                                    accounts_msg += "\n"
-                            
-                            accounts_msg += f"\n✅ لديك {len(accounts)} حساب نشط"
-                        else:
-                            accounts_msg = "⚠️ لا توجد حسابات نشطة حالياً.\n\nيمكنك إضافة حساب بقول: سجل دخول اليوزر [username] الباسورد [password]"
-                    
+                        ) or []
                     except Exception as e:
-                        print(f"Error fetching accounts: {e}")
-                        accounts_msg = "⚠️ حدث خطأ في جلب الحسابات. يرجى المحاولة مرة أخرى."
+                        print(f"Error fetching accounts from DB: {e}")
+                
+                # فحص مجلد الكوكيز كفولباك
+                from pathlib import Path
+                cookies_dir = Path(__file__).parent.parent / "x" / "cookies"
+                cookie_usernames = set()
+                if cookies_dir.exists():
+                    for f in sorted(cookies_dir.glob("*.json")):
+                        cookie_usernames.add(f.stem)
+                
+                # دمج: حسابات قاعدة البيانات + حسابات الكوكيز غير الموجودة بالقاعدة
+                db_usernames = {a.username for a in db_accounts} if db_accounts else set()
+                extra_cookie_accounts = cookie_usernames - db_usernames
+                
+                if db_accounts or extra_cookie_accounts:
+                    accounts_msg = f"📋 **حساباتك النشطة:**\n\n"
+                    
+                    if db_accounts:
+                        # تجميع الحسابات حسب المنصة
+                        platforms = {}
+                        for account in db_accounts:
+                            platform_name = account.platform
+                            if platform_name == "x":
+                                platform_name = "X (Twitter)"
+                            elif platform_name == "instagram":
+                                platform_name = "Instagram"
+                            elif platform_name == "facebook":
+                                platform_name = "Facebook"
+                            elif platform_name == "linkedin":
+                                platform_name = "LinkedIn"
+                            elif platform_name == "tiktok":
+                                platform_name = "TikTok"
+                            
+                            if platform_name not in platforms:
+                                platforms[platform_name] = []
+                            platforms[platform_name].append(account)
+                        
+                        # عرض الحسابات مجمعة حسب المنصة
+                        for platform_name, platform_accounts in platforms.items():
+                            accounts_msg += f"\n🌐 **{platform_name}:**\n"
+                            for account in platform_accounts:
+                                accounts_msg += f"  • 👤 {account.username}"
+                                if account.last_used:
+                                    from datetime import datetime
+                                    last_used = account.last_used.strftime("%Y-%m-%d")
+                                    accounts_msg += f" (آخر استخدام: {last_used})"
+                                accounts_msg += "\n"
+                    
+                    if extra_cookie_accounts:
+                        accounts_msg += f"\n🌐 **X (Twitter) — من الكوكيز:**\n"
+                        for uname in sorted(extra_cookie_accounts):
+                            accounts_msg += f"  • 👤 {uname}\n"
+                    
+                    total = len(db_accounts) + len(extra_cookie_accounts)
+                    accounts_msg += f"\n✅ لديك {total} حساب نشط"
                 else:
                     accounts_msg = "⚠️ لا توجد حسابات محفوظة حالياً.\n\nيمكنك إضافة حساب بقول: سجل دخول اليوزر [username] الباسورد [password]"
                 

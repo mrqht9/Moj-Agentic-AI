@@ -8,7 +8,6 @@ Tools for AI Agents
 import sys
 from pathlib import Path
 from typing import Dict, Any, Optional
-import tempfile
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from app.utils.secure_logger import get_secure_logger
@@ -18,10 +17,8 @@ logger = get_secure_logger(__name__)
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from app.services.intent_service import intent_service
-from app.x.modules.x_login_new import TwitterLoginAdvanced
-from app.x.modules.x_post import post_to_x
-from app.x.modules.x_profile import update_profile_on_x
-from app.x.modules.utils import safe_label, download_to_temp, is_url
+from app.services import x_bridge
+from app.x.modules.utils import safe_label
 
 # مسار حفظ الكوكيز
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,83 +44,53 @@ def detect_user_intent(text: str) -> Dict[str, Any]:
 
 
 def _x_login_sync(username: str, password: str, label: str, headless: bool = True, user_id: Optional[int] = None) -> Dict[str, Any]:
-    """تسجيل الدخول المتزامن (يعمل في thread منفصل)"""
+    """تسجيل الدخول عبر API سيرفر app/x"""
     try:
-        # استخدام username كاسم للملف بدلاً من label
         safe_username = safe_label(username)
-        
-        # تسجيل الدخول مباشرة
-        engine = TwitterLoginAdvanced()
-        cookie_path = engine.login_twitter(
+        print(f"[Tools] تسجيل دخول عبر API: label={safe_username}, username={username}")
+
+        result = x_bridge.login(
+            label=safe_username,
             username=username,
             password=password,
-            cookies_dir=str(COOKIES_DIR),
-            headless=headless
+            headless=headless,
         )
-        
-        # إعادة تسمية الملف باسم username
-        dst = COOKIES_DIR / f"{safe_username}.json"
-        cookie_filename = dst.name
-        
-        try:
-            if Path(cookie_path).name != dst.name:
-                Path(cookie_path).replace(dst)
-        except Exception:
-            pass
-        
+
+        if not result.get("success"):
+            error = result.get("message") or result.get("error", "خطأ غير معروف")
+            return {"success": False, "message": f"فشل تسجيل الدخول: {error}"}
+
+        cookie_filename = result.get("filename", f"{safe_username}.json")
+
         # حفظ في قاعدة البيانات إذا كان user_id متوفراً
         if user_id:
             try:
                 from app.db.database import SessionLocal
                 from app.services.account_service import account_service
                 from datetime import datetime
-                
-                print(f"[DEBUG] Attempting to save account to database: user_id={user_id}, username={username}")
-                
+
                 db = SessionLocal()
                 try:
-                    # تحقق إذا كان الحساب موجود
                     existing = account_service.get_account_by_username(
-                        db=db,
-                        user_id=user_id,
-                        platform="x",
-                        username=username
+                        db=db, user_id=user_id, platform="x", username=username
                     )
-                    
                     if existing:
-                        print(f"[DEBUG] Updating existing account: {existing.id}")
-                        # تحديث الحساب الموجود
                         account_service.update_account(
-                            db=db,
-                            account_id=existing.id,
-                            status="active",
-                            last_login=datetime.utcnow(),
-                            cookie_filename=cookie_filename,
-                            error_message=None
+                            db=db, account_id=existing.id,
+                            status="active", last_login=datetime.utcnow(),
+                            cookie_filename=cookie_filename, error_message=None
                         )
-                        print(f"[DEBUG] Account updated successfully")
                     else:
-                        print(f"[DEBUG] Creating new account")
-                        # إنشاء حساب جديد
-                        new_account = account_service.create_account(
-                            db=db,
-                            user_id=user_id,
-                            platform="x",
-                            username=username,
-                            display_name=username,
-                            account_label=username,  # استخدام username بدلاً من label
-                            cookie_filename=cookie_filename
+                        account_service.create_account(
+                            db=db, user_id=user_id, platform="x",
+                            username=username, display_name=username,
+                            account_label=username, cookie_filename=cookie_filename
                         )
-                        print(f"[DEBUG] Account created successfully: {new_account.id}")
                 finally:
                     db.close()
             except Exception as e:
-                import traceback
                 print(f"[ERROR] Failed to save account to database: {e}")
-                print(f"[ERROR] Traceback: {traceback.format_exc()}")
-        else:
-            print(f"[WARNING] user_id is None, skipping database save")
-        
+
         return {
             "success": True,
             "message": f"تم تسجيل الدخول بنجاح وحفظ الحساب باسم '{username}'",
@@ -131,10 +98,7 @@ def _x_login_sync(username: str, password: str, label: str, headless: bool = Tru
             "filename": cookie_filename
         }
     except Exception as e:
-        return {
-            "success": False,
-            "message": f"فشل تسجيل الدخول: {str(e)}"
-        }
+        return {"success": False, "message": f"فشل تسجيل الدخول: {str(e)}"}
 
 
 def x_delete_account(account_name: str, user_id: Optional[int] = None) -> Dict[str, Any]:
@@ -268,84 +232,37 @@ def x_login(username: str, password: str, label: str, headless: bool = True, use
 
 
 def _x_post_sync(label: str, text: str, media_url: Optional[str] = None, headless: bool = True) -> Dict[str, Any]:
-    """نشر تغريدة متزامن (يعمل في thread منفصل)"""
+    """نشر تغريدة عبر API سيرفر app/x"""
     try:
         label = safe_label(label)
-        cookie_file = COOKIES_DIR / f"{label}.json"
-        
-        if not cookie_file.exists():
-            # عرض الحسابات المتاحة
-            available_accounts = []
-            if COOKIES_DIR.exists():
-                for f in COOKIES_DIR.glob("*.json"):
-                    available_accounts.append(f.stem)
-            
-            error_msg = f"❌ الحساب '{label}' غير موجود.\n\n"
-            
-            if available_accounts:
-                error_msg += f"📋 **الحسابات المتاحة:**\n"
-                for acc in available_accounts:
-                    error_msg += f"  • {acc}\n"
-                error_msg += f"\n💡 **اقتراح:** استخدم أحد الحسابات المتاحة أو سجل دخول للحساب '{label}'"
-            else:
-                error_msg += f"⚠️ لا توجد حسابات محفوظة.\n\n"
-                error_msg += f"💡 **الحل:** سجل دخول أولاً:\n"
-                error_msg += f"```سجل دخول اليوزر {label} الباسورد [كلمة_المرور]```"
-            
+        print(f"[Tools] نشر تغريدة عبر API: label={label}, text='{text[:50]}...'")
+
+        result = x_bridge.post_tweet(
+            cookie_label=label,
+            text=text,
+            media_url=media_url or "",
+            headless=headless,
+        )
+
+        print(f"[Tools] نتيجة API: {result}")
+
+        if result.get("success"):
+            msg = result.get("message", "تم النشر")
+            tweet_url = result.get("tweet_url")
+            print(f"[Tools] tweet_url extracted: {tweet_url}")
+            full_msg = f"✅ {msg} على حساب '{label}'"
+            if tweet_url:
+                full_msg += f"\n🔗 {tweet_url}"
+            return {"success": True, "message": full_msg}
+        else:
+            error = result.get("message") or result.get("error", "خطأ غير معروف")
             return {
                 "success": False,
-                "message": error_msg
+                "message": f"❌ فشل النشر من حساب '{label}'\n\n📋 **تفاصيل:** {error}"
             }
-        
-        storage_state_path = str(cookie_file)
-        
-        # تحميل الميديا إذا كان هناك رابط
-        with tempfile.TemporaryDirectory() as tmp:
-            media_path = None
-            if media_url and is_url(media_url):
-                try:
-                    media_path = download_to_temp(media_url, tmp)
-                except Exception as e:
-                    return {
-                        "success": False,
-                        "message": f"فشل تنزيل الميديا: {str(e)}"
-                    }
-            
-            # النشر مباشرة
-            try:
-                post_to_x(
-                    storage_state_path=storage_state_path,
-                    text=text,
-                    media_path=media_path,
-                    headless=headless
-                )
-                # إذا وصلنا هنا، النشر نجح
-                return {
-                    "success": True,
-                    "message": f"تم نشر التغريدة بنجاح على حساب '{label}'"
-                }
-            except Exception as post_error:
-                # النشر فشل
-                error_msg = str(post_error)
-                print(f"[ERROR] Post failed: {error_msg}")
-                
-                # رسالة خطأ واضحة
-                if "الجلسة منتهية" in error_msg or "session expired" in error_msg.lower():
-                    return {
-                        "success": False,
-                        "message": f"❌ فشل النشر من حساب '{label}'\n\n💡 **السبب:** الجلسة منتهية\n\n🔄 **الحل:**\n1. أعد تسجيل الدخول:\n   ```سجل دخول اليوزر {label} الباسورد [كلمة_المرور]```\n2. ثم حاول النشر مرة أخرى"
-                    }
-                else:
-                    return {
-                        "success": False,
-                        "message": f"❌ فشل النشر من حساب '{label}'\n\n📋 **تفاصيل الخطأ:**\n{error_msg}"
-                    }
-        
+
     except Exception as e:
-        return {
-            "success": False,
-            "message": f"فشل النشر: {str(e)}"
-        }
+        return {"success": False, "message": f"فشل النشر: {str(e)}"}
 
 
 def x_post(label: str, text: str, media_url: Optional[str] = None, headless: bool = True) -> Dict[str, Any]:
@@ -386,6 +303,44 @@ def x_post(label: str, text: str, media_url: Optional[str] = None, headless: boo
         }
 
 
+def x_delete_tweet(label: str, tweet_id: str, headless: bool = True) -> Dict[str, Any]:
+    """
+    حذف تغريدة من منصة X
+    
+    Args:
+        label: اسم الحساب المحفوظ
+        tweet_id: معرف التغريدة
+        headless: تشغيل المتصفح في الخلفية
+        
+    Returns:
+        نتيجة عملية الحذف
+    """
+    try:
+        label = safe_label(label)
+        print(f"[Tools] حذف تغريدة عبر API: label={label}, tweet_id={tweet_id}")
+
+        result = x_bridge.delete_tweet(
+            cookie_label=label,
+            tweet_id=tweet_id,
+            headless=headless,
+        )
+
+        print(f"[Tools] نتيجة حذف API: {result}")
+
+        if result.get("success"):
+            msg = result.get("message", "تم الحذف")
+            return {"success": True, "message": f"✅ {msg} من حساب '{label}'"}
+        else:
+            error = result.get("message") or result.get("error", "خطأ غير معروف")
+            return {
+                "success": False,
+                "message": f"❌ فشل حذف التغريدة من حساب '{label}'\n\n📋 **تفاصيل:** {error}"
+            }
+
+    except Exception as e:
+        return {"success": False, "message": f"فشل الحذف: {str(e)}"}
+
+
 def _x_update_profile_sync(
     label: str,
     name: Optional[str] = None,
@@ -396,63 +351,30 @@ def _x_update_profile_sync(
     banner_url: Optional[str] = None,
     headless: bool = True
 ) -> Dict[str, Any]:
-    """تحديث الملف الشخصي متزامن (يعمل في thread منفصل)"""
+    """تحديث الملف الشخصي عبر API سيرفر app/x"""
     try:
         label = safe_label(label)
-        cookie_file = COOKIES_DIR / f"{label}.json"
-        
-        if not cookie_file.exists():
-            return {
-                "success": False,
-                "message": f"الحساب '{label}' غير موجود. يجب تسجيل الدخول أولاً."
-            }
-        
-        storage_state_path = str(cookie_file)
-        
-        # تحميل الصور إذا كانت روابط
-        with tempfile.TemporaryDirectory() as tmp:
-            avatar_path = None
-            banner_path = None
-            
-            if avatar_url and is_url(avatar_url):
-                try:
-                    avatar_path = download_to_temp(avatar_url, tmp)
-                except Exception as e:
-                    return {
-                        "success": False,
-                        "message": f"فشل تنزيل الصورة الشخصية: {str(e)}"
-                    }
-            
-            if banner_url and is_url(banner_url):
-                try:
-                    banner_path = download_to_temp(banner_url, tmp)
-                except Exception as e:
-                    return {
-                        "success": False,
-                        "message": f"فشل تنزيل صورة الغلاف: {str(e)}"
-                    }
-            
-            # تحديث الملف الشخصي مباشرة
-            update_profile_on_x(
-                storage_state_path=storage_state_path,
-                name=name,
-                bio=bio,
-                location=location,
-                website=website,
-                avatar_path=avatar_path,
-                banner_path=banner_path,
-                headless=headless
-            )
-        
-        return {
-            "success": True,
-            "message": f"تم تحديث الملف الشخصي بنجاح لحساب '{label}'"
-        }
+        print(f"[Tools] تحديث ملف شخصي عبر API: label={label}")
+
+        result = x_bridge.update_profile(
+            cookie_label=label,
+            name=name or "",
+            bio=bio or "",
+            location=location or "",
+            website=website or "",
+            avatar_url=avatar_url or "",
+            banner_url=banner_url or "",
+            headless=headless,
+        )
+
+        if result.get("success"):
+            msg = result.get("message", "تم التحديث")
+            return {"success": True, "message": f"✅ {msg} لحساب '{label}'"}
+        else:
+            error = result.get("message") or result.get("error", "خطأ غير معروف")
+            return {"success": False, "message": f"فشل التحديث: {error}"}
     except Exception as e:
-        return {
-            "success": False,
-            "message": f"فشل التحديث: {str(e)}"
-        }
+        return {"success": False, "message": f"فشل التحديث: {str(e)}"}
 
 
 def x_update_profile(
