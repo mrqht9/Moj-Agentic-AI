@@ -24,6 +24,7 @@ from app.api.x_routes import router as x_router
 from app.api.admin_accounts_routes import router as admin_accounts_router
 from app.api.user_accounts_routes import router as user_accounts_router
 from app.agents.agent_manager import agent_manager
+from app.services import x_bridge
 from app.api.trend_routes import router as trend_router
 from app.api.schedule_routes import router as schedule_router
 from app.trend_detector.scheduler.scheduler import trend_scheduler
@@ -63,6 +64,12 @@ async def startup_event():
     except Exception as e:
         print(f"Warning: Trend Detector scheduler failed: {str(e)}")
     
+    # Start app/x (X Suite) server in background
+    try:
+        x_bridge.start_xsuite_server()
+    except Exception as e:
+        print(f"Warning: X Suite server failed to start: {str(e)}")
+
     # Start scheduler tick
     try:
         asyncio.create_task(scheduler_tick())
@@ -160,6 +167,7 @@ async def websocket_endpoint(websocket: WebSocket):
             session_id = message_data.get("session_id", None)
             user_id = message_data.get("user_id", None)
             user_email = message_data.get("user_email", None)
+            print(f"[WS] رسالة واردة: '{user_message[:80]}'", flush=True)
             
             await manager.send_message({
                 "type": "user_message",
@@ -176,13 +184,14 @@ async def websocket_endpoint(websocket: WebSocket):
                 # الحصول على جلسة قاعدة البيانات
                 db = next(get_db())
                 
-                # استخدام نظام الوكلاء الذكية مع الذاكرة
+                print(f"[WS] Processing message: '{user_message[:80]}' user_id={user_id}", flush=True)
                 agent_result = agent_manager.process_user_message(
                     message=user_message,
                     user_id=user_id,
                     session_id=session_id,
                     db=db
                 )
+                print(f"[WS] agent_result: success={agent_result.get('success') if agent_result else 'None'}, agent={agent_result.get('agent') if agent_result else 'None'}", flush=True)
                 
                 await manager.send_message({
                     "type": "typing",
@@ -216,6 +225,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 else:
                     # Fallback — try AI service, or give helpful static response
                     fallback = None
+                    print(f"[WS] FALLBACK to AI service (agent returned None or no success)", flush=True)
                     try:
                         fallback = await ai_service.get_response(user_message)
                     except Exception:

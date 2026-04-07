@@ -222,8 +222,22 @@ class IntentService:
             IntentType.DELETE_POST: [
                 r"احذف منشور",
                 r"امسح منشور",
+                r"احذف تغريدة",
+                r"امسح تغريدة",
+                r"حذف تغريدة",
+                r"حذف منشور",
+                r"احذف البوست",
+                r"امسح البوست",
+                r"احذف بوست",
                 r"delete post",
-                r"remove post"
+                r"remove post",
+                r"delete tweet",
+                r"remove tweet",
+                r"احذف\s+\d+",  # احذف + رقم
+                r"امسح\s+\d+",  # امسح + رقم
+                r"حذف\s+\d+",  # حذف + رقم
+                r"delete\s+\d+",  # delete + رقم
+                r"remove\s+\d+"  # remove + رقم
             ],
             IntentType.EDIT_POST: [
                 r"عدل منشور",
@@ -494,6 +508,13 @@ class IntentService:
                 entities["account_name"] = match.group(1)
                 break
         
+        # استخراج معرف التغريدة للحذف
+        if intent == IntentType.DELETE_POST:
+            # ابحث عن رقم التغريدة (status ID)
+            tweet_id_match = re.search(r'(\d{15,})', text)
+            if tweet_id_match:
+                entities["tweet_id"] = tweet_id_match.group(1)
+        
         # استخراج محتوى المنشور
         if intent in [IntentType.CREATE_POST, IntentType.SCHEDULE_POST]:
             # البحث عن محتوى بين علامات اقتباس
@@ -517,6 +538,23 @@ class IntentService:
                                 entities["content"] = content
                                 break
         
+        # استخراج رابط ميديا (صورة أو فيديو)
+        if intent in [IntentType.CREATE_POST, IntentType.SCHEDULE_POST]:
+            # البحث عن روابط الميديا مع التعامل مع علامات الاقتباس
+            url_match = re.search(r'(https?://[^\s"\'<>]+\.(?:jpg|jpeg|png|gif|mp4|mov|avi|webm|webp|bmp|svg|mkv|mp3|wav))', text, re.IGNORECASE)
+            if not url_match:
+                url_match = re.search(r'(https?://[^\s"\'<>]+)', text, re.IGNORECASE)
+                if url_match:
+                    url_val = url_match.group(1).rstrip('.,،؛)')
+                    # فقط إذا المستخدم ذكر صورة أو فيديو
+                    if re.search(r'صور|فيديو|فديو|مقطع|image|video|photo|media|ميديا', text, re.IGNORECASE):
+                        entities["media_url"] = url_val
+                    # أو إذا الرابط يبدو كملف ميديا
+                    elif re.search(r'\.(jpg|jpeg|png|gif|mp4|mov|avi|webm|webp|mkv)', url_val, re.IGNORECASE):
+                        entities["media_url"] = url_val
+            else:
+                entities["media_url"] = url_match.group(1).rstrip('.,،؛)')
+
         # استخراج الأرقام
         numbers = re.findall(r'\d+', text)
         if numbers:
