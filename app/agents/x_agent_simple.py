@@ -6,7 +6,7 @@
 
 from typing import Dict, Any, Optional
 import re
-from .tools import x_login, x_post, x_update_profile, x_delete_account
+from .tools import x_login, x_post, x_update_profile, x_delete_account, x_delete_tweet
 from app.utils.validators import sanitize_text, sanitize_username, sanitize_account_name
 
 
@@ -64,29 +64,29 @@ class XAgent:
             if match:
                 return match.group(1)
         
-        # ثالثاً: إذا قال "حسابي" أو "احذف حسابي"، استخدم قاعدة البيانات
-        if "حسابي" in message or "حساباتي" in message:
-            user_id = context.get("user_id") if context else None
-            if user_id:
+        # ثالثاً: استخدم قاعدة البيانات للحسابات النشطة (دائماً)
+        user_id = context.get("user_id") if context else None
+        if user_id:
+            try:
+                from app.db.database import SessionLocal
+                from app.services.account_service import account_service
+                
+                db = SessionLocal()
                 try:
-                    from app.db.database import SessionLocal
-                    from app.services.account_service import account_service
-                    
-                    db = SessionLocal()
-                    try:
-                        accounts = account_service.get_user_accounts(
-                            db=db,
-                            user_id=user_id,
-                            platform="x",
-                            status="active"
-                        )
-                        if accounts and len(accounts) > 0:
-                            # إرجاع أول حساب نشط
-                            return accounts[0].username
-                    finally:
-                        db.close()
-                except Exception as e:
-                    print(f"[ERROR] Failed to get user accounts: {e}")
+                    accounts = account_service.get_user_accounts(
+                        db=db,
+                        user_id=user_id,
+                        platform="x",
+                        status="active"
+                    )
+                    if accounts and len(accounts) > 0:
+                        # إرجاع أول حساب نشط
+                        print(f"[DEBUG] Using active account from DB: {accounts[0].username}")
+                        return accounts[0].username
+                finally:
+                    db.close()
+            except Exception as e:
+                print(f"[ERROR] Failed to get user accounts: {e}")
         
         # افتراضي: استخدم أول حساب متاح من ملفات الكوكيز
         from pathlib import Path
@@ -94,8 +94,10 @@ class XAgent:
         if cookies_dir.exists():
             cookie_files = list(cookies_dir.glob("*.json"))
             if cookie_files:
+                print(f"[DEBUG] Using first cookie file: {cookie_files[0].stem}")
                 return cookie_files[0].stem
         
+        print("[DEBUG] No accounts found")
         return None
     
     def process_request(self, message: str, context: Dict[str, Any] = None) -> str:
@@ -139,19 +141,39 @@ class XAgent:
         
         elif intent == "create_post":
             content = entities.get("content")
+            media_url = entities.get("media_url")
             account = self._extract_account_name(message, entities, context)
             
             # تنظيف المحتوى
             if content:
+                # إزالة رابط الميديا من نص التغريدة إذا كان موجوداً
+                if media_url and media_url in content:
+                    content = content.replace(media_url, "").strip()
                 content = sanitize_text(content, max_length=280, allow_arabic=True)
             if account:
                 account = sanitize_account_name(account)
             
             if content:
-                result = x_post(account, content)
+                result = x_post(account, content, media_url=media_url)
+                print(f"[DEBUG X_Agent] x_post result: {result}")
                 
                 if result.get("success"):
-                    return f"✅ تم نشر التغريدة بنجاح على حساب '{account}'\n\n📝 المحتوى: {content}"
+                    response = f"✅ تم نشر التغريدة بنجاح على حساب '{account}'\n\n📝 المحتوى: {content}"
+                    
+                    # أضف رابط التغريدة إذا موجود
+                    tweet_url = result.get("tweet_url")
+                    if not tweet_url:
+                        # استخرج الرابط من الـ message إذا لم يكن في حقل منفصل
+                        message = result.get("message", "")
+                        import re
+                        url_match = re.search(r'https://x\.com/\w+/status/\d+', message)
+                        if url_match:
+                            tweet_url = url_match.group(0)
+                    
+                    if tweet_url:
+                        response += f"\n\n🔗 رابط التغريدة: {tweet_url}"
+                    
+                    return response
                 else:
                     error_msg = result.get('message', 'حدث خطأ غير متوقع')
                     
@@ -173,6 +195,34 @@ class XAgent:
                     return response
             else:
                 return "⚠️ يرجى تقديم محتوى التغريدة\n\nمثال: انشر \"سبحان الله\""
+        
+        elif intent == "delete_post":
+            tweet_id = entities.get("tweet_id")
+            account = self._extract_account_name(message, entities, context)
+            print(f"[DEBUG X_Agent] Extracted account: {account}, tweet_id: {tweet_id}")
+            
+            if account:
+                account = sanitize_account_name(account)
+                print(f"[DEBUG X_Agent] Sanitized account: {account}")
+            
+            if tweet_id:
+                if not account:
+                    return "⚠️ لم يتم العثور على حساب افتراضي\n\nيرجى تحديد الحساب:\nمثال: احذف من حساب djdkdkdysy 123456789012345678"
+                
+                print(f"[DEBUG X_Agent] Deleting tweet {tweet_id} from account {account}")
+                result = x_delete_tweet(account, tweet_id)
+                print(f"[DEBUG X_Agent] x_delete_tweet result: {result}")
+                
+                if result.get("success"):
+                    return f"✅ تم حذف التغريدة بنجاح من حساب '{account}'\n\n📝 معرف التغريدة: {tweet_id}"
+                else:
+                    error_msg = result.get('message', 'حدث خطأ غير متوقع')
+                    response = f"❌ فشل حذف التغريدة من حساب '{account}'\n\n"
+                    response += f"📋 **تفاصيل الخطأ:**\n{error_msg}\n\n"
+                    response += f"💡 **اقتراح:** تأكد من أن الحساب '{account}' مسجل دخول وأن التغريدة موجودة"
+                    return response
+            else:
+                return "⚠️ يرجى تقديم معرف التغريدة\n\nمثال: احذف 123456789012345678"
         
         elif intent == "remove_account":
             # استخراج اسم الحساب
