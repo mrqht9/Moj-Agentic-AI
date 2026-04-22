@@ -62,9 +62,32 @@ def _get_textbox(page):
         tb2.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
         return tb2.first
 
-    tb3 = page.get_by_role("textbox")
-    tb3.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
-    return tb3
+    # حاول على الصفحة كاملة إذا الـ scope لم يجد شيء
+    tb3 = page.locator('div[data-testid="tweetTextarea_0"][role="textbox"]')
+    if tb3.count():
+        tb3.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+        return tb3.first
+
+    tb4 = page.locator('div[data-testid="tweetTextarea_0"]')
+    if tb4.count():
+        tb4.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+        return tb4.first
+
+    # فولباك أخير: حدد textbox بالاسم لتجنب strict mode violation
+    tb5 = page.get_by_role("textbox", name="نص المنشور")
+    if tb5.count():
+        tb5.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+        return tb5.first
+
+    tb6 = page.get_by_role("textbox", name="Post text")
+    if tb6.count():
+        tb6.first.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+        return tb6.first
+
+    # آخر محاولة
+    tb7 = page.locator('div[role="textbox"][contenteditable="true"]').first
+    tb7.wait_for(state="visible", timeout=DEFAULT_TIMEOUT)
+    return tb7
 
 
 def _media_preview_visible(page) -> bool:
@@ -276,42 +299,115 @@ def _copy_tweet_link(page, timeout_ms: int = 30_000) -> Optional[str]:
     """
     import re
     try:
-        # انتظر ظهور الـ toast ثم اضغط على رابط التغريدة
+        print("[DEBUG] محاولة نسخ رابط التغريدة...")
         page.wait_for_timeout(2000)
         
-        # اضغط على رابط التغريدة في الـ toast
-        toast_link = page.get_by_test_id("toast").locator("a")
-        toast_link.wait_for(state="visible", timeout=timeout_ms)
-        toast_link.click()
-        page.wait_for_timeout(2500)
+        # الطريقة 1: ابحث عن أي رابط في الـ toast
+        try:
+            toast_link = page.get_by_test_id("toast").locator("a")
+            if toast_link.is_visible(timeout=5000):
+                print("[DEBUG] وجدت رابط في الـ toast")
+                toast_link.click()
+                page.wait_for_timeout(2500)
+        except Exception as e:
+            print(f"[DEBUG] لم أجد رابط في الـ toast: {e}")
         
-        # اضغط على زر المشاركة
-        share_btn = page.get_by_role("button", name="Share post")
-        share_btn.wait_for(state="visible", timeout=15_000)
-        share_btn.click()
-        page.wait_for_timeout(1000)
+        # الطريقة 2: ابحث عن أي تغريدة ظاهرة تحتوي على النص المنشور
+        if "/status/" not in page.url:
+            print("[DEBUG] لم أصل لصفحة التغريدة، أحاول البحث عن تغريدة...")
+            # ابحث عن أي تغريدة في الصفحة
+            tweets = page.locator('[data-testid="tweet"]')
+            if tweets.count() > 0:
+                print(f"[DEBUG] وجدت {tweets.count()} تغريدة")
+                # اضغط على أول تغريدة
+                tweets.first.click()
+                page.wait_for_timeout(2000)
         
-        # اضغط على نسخ الرابط
-        copy_link = page.locator("div").filter(has_text=re.compile(r"^Copy link$")).nth(2)
-        copy_link.wait_for(state="visible", timeout=10_000)
-        copy_link.click()
-        page.wait_for_timeout(500)
+        # الآن نحاول نسخ الرابط
+        if "/status/" in page.url:
+            print(f"[DEBUG] وصلت لصفحة التغريدة: {page.url}")
+            # الطريقة A: زر المشاركة القديم
+            try:
+                share_btn = page.get_by_role("button", name="Share post")
+                if share_btn.is_visible(timeout=5000):
+                    print("[DEBUG] وجدت زر Share post")
+                    share_btn.click()
+                    page.wait_for_timeout(1000)
+                    
+                    # ابحث عن Copy link
+                    copy_link = page.locator("div").filter(has_text=re.compile(r"Copy link", re.IGNORECASE)).first
+                    if copy_link.is_visible(timeout=5000):
+                        print("[DEBUG] وجدت Copy link")
+                        copy_link.click()
+                        page.wait_for_timeout(500)
+                        return page.url
+            except Exception as e:
+                print(f"[DEBUG] طريقة Share post فشلت: {e}")
+            
+            # الطريقة B: زر المشاركة الجديد (ثلاث نقاط)
+            try:
+                more_btn = page.locator('[data-testid="caret"]').first
+                if more_btn.is_visible(timeout=5000):
+                    print("[DEBUG] وجدت زر المزيد (ثلاث نقاط)")
+                    more_btn.click()
+                    page.wait_for_timeout(1000)
+                    
+                    # ابحث عن Copy link في القائمة
+                    copy_link = page.locator("div").filter(has_text=re.compile(r"Copy link", re.IGNORECASE)).first
+                    if copy_link.is_visible(timeout=5000):
+                        print("[DEBUG] وجدت Copy link في القائمة")
+                        copy_link.click()
+                        page.wait_for_timeout(500)
+                        return page.url
+            except Exception as e:
+                print(f"[DEBUG] طريقة المزيد فشلت: {e}")
+            
+            # إذا فشل كل شيء، أرجع الرابط الحالي
+            print("[DEBUG] أرجع الرابط الحالي كحل أخير")
+            return page.url
         
-        # الحصول على الرابط من URL الحالي
+        # الحل الأخير: تحقق إذا الرابط الحالي هو رابط تغريدة
         current_url = page.url
         if "/status/" in current_url:
+            print(f"[DEBUG] الرابط الحالي هو رابط تغريدة: {current_url}")
             return current_url
         
+        print("[DEBUG] لم أصل لصفحة التغريدة")
         return None
     except Exception as e:
-        print(f"فشل نسخ رابط التغريدة: {e}")
+        print(f"[DEBUG] خطأ عام في نسخ الرابط: {e}")
         return None
 
 
 def post_to_x(storage_state_path: str, text: str, media_path: Optional[str], headless: bool) -> Optional[str]:
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel="chrome", headless=headless)
-        context = browser.new_context(storage_state=storage_state_path)
+        # إعدادات أفضل للـ headless
+        launch_args = {
+            "channel": "chrome",
+            "headless": headless,
+        }
+        
+        # في وضع headless، أضف إعدادات إضافية لتجنب المشاكل
+        if headless:
+            launch_args.update({
+                "args": [
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                    "--disable-web-security",
+                    "--disable-features=VizDisplayCompositor",
+                    "--window-size=1920,1080"
+                ]
+            })
+        
+        browser = p.chromium.launch(**launch_args)
+        
+        # إعدادات السياق مع viewport مناسب
+        context = browser.new_context(
+            storage_state=storage_state_path,
+            viewport={"width": 1920, "height": 1080},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
         page = context.new_page()
         page.set_default_timeout(DEFAULT_TIMEOUT)
 
