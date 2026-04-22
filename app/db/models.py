@@ -122,9 +122,9 @@ class ScheduleEvent(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def to_dict(self):
-        from zoneinfo import ZoneInfo
-        ksa = ZoneInfo("Asia/Riyadh")
-        run_at_ksa = self.run_at.replace(tzinfo=ZoneInfo("UTC")).astimezone(ksa) if self.run_at else None
+        from datetime import timezone, timedelta
+        ksa = timezone(timedelta(hours=3))
+        run_at_ksa = self.run_at.replace(tzinfo=timezone.utc).astimezone(ksa) if self.run_at else None
         return {
             "schedule_event_id": self.schedule_event_id,
             "platform": self.platform,
@@ -139,3 +139,40 @@ class ScheduleEvent(Base):
 
     def __repr__(self):
         return f"<ScheduleEvent(id={self.schedule_event_id}, status={self.status}, run_at={self.run_at})>"
+
+
+class TelegramIntegration(Base):
+    __tablename__ = "telegram_integrations"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    encrypted_bot_token = Column(Text, nullable=False)
+    chat_id = Column(String(255), nullable=False)
+    bot_username = Column(String(255), nullable=True)
+    bot_display_name = Column(String(255), nullable=True)
+    webhook_token = Column(String(128), unique=True, index=True, nullable=False)
+    webhook_url = Column(String(1000), nullable=True)
+    is_enabled = Column(Boolean, default=False, nullable=False)
+    last_error = Column(Text, nullable=True)
+    last_connected_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "chat_id": self.chat_id,
+            "bot_username": self.bot_username,
+            "bot_display_name": self.bot_display_name,
+            "webhook_url": self.webhook_url,
+            "is_enabled": self.is_enabled,
+            "last_error": self.last_error,
+            "last_connected_at": self.last_connected_at.isoformat() if self.last_connected_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "has_bot_token": bool(self.encrypted_bot_token),
+        }
+
+    def __repr__(self):
+        return f"<TelegramIntegration(user_id={self.user_id}, chat_id={self.chat_id}, enabled={self.is_enabled})>"
