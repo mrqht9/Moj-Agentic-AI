@@ -24,8 +24,6 @@ const ChatInterface = ({ darkMode, setDarkMode, user }) => {
   const messagesEndRef = useRef(null)
   const inputFocusRef = useRef(null)
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-
   const refreshSidebarConversations = () => {
     window.dispatchEvent(new CustomEvent('mwj:conversation_updated'))
   }
@@ -77,7 +75,7 @@ const ChatInterface = ({ darkMode, setDarkMode, user }) => {
 
   const connectWebSocket = () => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const wsUrl = `${protocol}//${window.location.hostname}:8000/ws/chat`
+    const wsUrl = `${protocol}//${window.location.host}/ws/chat`
     
     const websocket = new WebSocket(wsUrl)
     
@@ -168,12 +166,12 @@ const ChatInterface = ({ darkMode, setDarkMode, user }) => {
   const uploadAttachment = async (file) => {
     const form = new FormData()
     form.append('file', file)
-    const response = await axios.post(`${API_URL}/api/uploads`, form, {
+    const response = await axios.post('/api/uploads', form, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
 
     const data = response.data
-    const fullUrl = data.url?.startsWith('http') ? data.url : `${API_URL}${data.url}`
+    const fullUrl = data.url?.startsWith('http') ? data.url : new URL(data.url, window.location.origin).toString()
 
     return {
       kind: data.kind,
@@ -243,7 +241,7 @@ const ChatInterface = ({ darkMode, setDarkMode, user }) => {
     try {
       const token = localStorage.getItem('token')
       const response = await axios.get(
-        `${API_URL}/api/conversations/${conversationId}`,
+        `/api/conversations/${conversationId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`

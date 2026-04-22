@@ -6,8 +6,6 @@ import axios from 'axios'
 import logoLight from '../assets/logos/logo-light.png'
 import logoDark from '../assets/logos/logo-dark.png'
 
-const API_URL = 'http://localhost:8000'
-
 const Register = ({ onRegister }) => {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
@@ -56,7 +54,7 @@ const Register = ({ onRegister }) => {
     setIsLoading(true)
     
     try {
-      const response = await axios.post(`${API_URL}/api/auth/register`, {
+      const response = await axios.post('/api/auth/register', {
         email: formData.email,
         password: formData.password
       })
@@ -65,7 +63,7 @@ const Register = ({ onRegister }) => {
       localStorage.setItem('token', access_token)
       
       // جلب بيانات المستخدم الكاملة
-      const userResponse = await axios.get(`${API_URL}/api/auth/me`, {
+      const userResponse = await axios.get('/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${access_token}`
         }
