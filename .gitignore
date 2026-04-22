@@ -63,3 +63,7 @@ frontend/build/
 # Cache
 .cache/
 *.cache
+
+# Debug artifacts
+debug_post.png
+check_status.py

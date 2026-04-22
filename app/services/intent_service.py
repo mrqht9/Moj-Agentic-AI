@@ -42,6 +42,13 @@ class IntentType(str, Enum):
     CREATE_AUTOMATION = "create_automation"
     MANAGE_AUTOMATION = "manage_automation"
     
+    # الترندات
+    GET_TRENDS = "get_trends"
+    GET_HOT_TRENDS = "get_hot_trends"
+    SEARCH_TRENDS = "search_trends"
+    RUN_TRENDS = "run_trends"
+    TREND_DETAIL = "trend_detail"
+    
     # عام
     HELP = "help"
     GREETING = "greeting"
@@ -215,8 +222,22 @@ class IntentService:
             IntentType.DELETE_POST: [
                 r"احذف منشور",
                 r"امسح منشور",
+                r"احذف تغريدة",
+                r"امسح تغريدة",
+                r"حذف تغريدة",
+                r"حذف منشور",
+                r"احذف البوست",
+                r"امسح البوست",
+                r"احذف بوست",
                 r"delete post",
-                r"remove post"
+                r"remove post",
+                r"delete tweet",
+                r"remove tweet",
+                r"احذف\s+\d+",  # احذف + رقم
+                r"امسح\s+\d+",  # امسح + رقم
+                r"حذف\s+\d+",  # حذف + رقم
+                r"delete\s+\d+",  # delete + رقم
+                r"remove\s+\d+"  # remove + رقم
             ],
             IntentType.EDIT_POST: [
                 r"عدل منشور",
@@ -278,6 +299,74 @@ class IntentService:
                 r"automate",
                 r"جدول تلقائي",
                 r"نشر تلقائي"
+            ],
+            
+            # الترندات
+            IntentType.GET_TRENDS: [
+                r"ترندات",
+                r"الترندات",
+                r"وش الترند",
+                r"ايش الترند",
+                r"شو الترند",
+                r"ترند اليوم",
+                r"وش يتصدر",
+                r"المتداول",
+                r"الاكثر تداول",
+                r"الأكثر تداول",
+                r"اخر الترندات",
+                r"آخر الترندات",
+                r"trends",
+                r"what.*trending",
+                r"show.*trends",
+                r"حالة الترندات",
+                r"احصائيات الترند",
+                r"trend.*stats",
+                r"trend.*status",
+            ],
+            IntentType.GET_HOT_TRENDS: [
+                r"ترندات حارة",
+                r"ترند حار",
+                r"hot trends",
+                r"الاكثر رواج",
+                r"الأكثر رواج",
+                r"اعلى ترند",
+                r"أعلى ترند",
+                r"top trends",
+            ],
+            IntentType.SEARCH_TRENDS: [
+                r"ابحث.*ترند",
+                r"بحث.*ترند",
+                r"search.*trend",
+                r"هل.*ترند",
+                r"هل يتصدر",
+                r"ترند\s+\S+",
+                r"ترندات\s+\S+",
+            ],
+            IntentType.TREND_DETAIL: [
+                r"تفاصيل.*ترند",
+                r"تفاصيل.*خبر",
+                r"كمل.*لي",
+                r"تكمله.*لي",
+                r"اكمل.*لي",
+                r"فصل.*لي",
+                r"هذا الخبر",
+                r"هذا الترند",
+                r"هذي التغريده",
+                r"هذي التغريدة",
+                r"عن هذا",
+                r"شرح.*ترند",
+                r"تحليل.*ترند",
+                r"#\S+.*\|",
+                r"^\d+\.\s*[🔥⏳📌🔄❓]",
+            ],
+            IntentType.RUN_TRENDS: [
+                r"شغل.*ترند",
+                r"حدث.*ترند",
+                r"جمع.*ترند",
+                r"run.*trend",
+                r"collect.*trend",
+                r"update.*trend",
+                r"اجمع ترندات",
             ],
             
             # عام
@@ -419,6 +508,13 @@ class IntentService:
                 entities["account_name"] = match.group(1)
                 break
         
+        # استخراج معرف التغريدة للحذف
+        if intent == IntentType.DELETE_POST:
+            # ابحث عن رقم التغريدة (status ID)
+            tweet_id_match = re.search(r'(\d{15,})', text)
+            if tweet_id_match:
+                entities["tweet_id"] = tweet_id_match.group(1)
+        
         # استخراج محتوى المنشور
         if intent in [IntentType.CREATE_POST, IntentType.SCHEDULE_POST]:
             # البحث عن محتوى بين علامات اقتباس
@@ -442,6 +538,23 @@ class IntentService:
                                 entities["content"] = content
                                 break
         
+        # استخراج رابط ميديا (صورة أو فيديو)
+        if intent in [IntentType.CREATE_POST, IntentType.SCHEDULE_POST]:
+            # البحث عن روابط الميديا مع التعامل مع علامات الاقتباس
+            url_match = re.search(r'(https?://[^\s"\'<>]+\.(?:jpg|jpeg|png|gif|mp4|mov|avi|webm|webp|bmp|svg|mkv|mp3|wav))', text, re.IGNORECASE)
+            if not url_match:
+                url_match = re.search(r'(https?://[^\s"\'<>]+)', text, re.IGNORECASE)
+                if url_match:
+                    url_val = url_match.group(1).rstrip('.,،؛)')
+                    # فقط إذا المستخدم ذكر صورة أو فيديو
+                    if re.search(r'صور|فيديو|فديو|مقطع|image|video|photo|media|ميديا', text, re.IGNORECASE):
+                        entities["media_url"] = url_val
+                    # أو إذا الرابط يبدو كملف ميديا
+                    elif re.search(r'\.(jpg|jpeg|png|gif|mp4|mov|avi|webm|webp|mkv)', url_val, re.IGNORECASE):
+                        entities["media_url"] = url_val
+            else:
+                entities["media_url"] = url_match.group(1).rstrip('.,،؛)')
+
         # استخراج الأرقام
         numbers = re.findall(r'\d+', text)
         if numbers:
