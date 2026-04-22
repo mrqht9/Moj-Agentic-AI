@@ -30,6 +30,7 @@ env/
 *.db
 *.sqlite
 *.sqlite3
+data/
 data/app.db
 
 # IDE

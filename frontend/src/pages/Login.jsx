@@ -6,8 +6,6 @@ import axios from 'axios'
 import logoLight from '../assets/logos/logo-light.png'
 import logoDark from '../assets/logos/logo-dark.png'
 
-const API_URL = ''
-
 const Login = ({ onLogin }) => {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -34,7 +32,7 @@ const Login = ({ onLogin }) => {
     setIsLoading(true)
     
     try {
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
+      const response = await axios.post('/api/auth/login', {
         email,
         password
       })
