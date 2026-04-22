@@ -36,10 +36,9 @@ const AdminDashboard = ({ user, darkMode }) => {
         'Content-Type': 'application/json'
       }
 
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
       const [statsRes, usersRes] = await Promise.all([
-        axios.get(`${API_URL}/api/admin/stats`, { headers }),
-        axios.get(`${API_URL}/api/admin/users`, { headers })
+        axios.get('/api/admin/stats', { headers }),
+        axios.get('/api/admin/users', { headers })
       ])
 
       setStats(statsRes.data)
@@ -54,9 +53,8 @@ const AdminDashboard = ({ user, darkMode }) => {
   const handleToggleActive = async (userId, currentStatus) => {
     try {
       const token = localStorage.getItem('token')
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
       await axios.put(
-        `${API_URL}/api/admin/users/${userId}`,
+        `/api/admin/users/${userId}`,
         { is_active: !currentStatus },
         {
           headers: {
@@ -75,9 +73,8 @@ const AdminDashboard = ({ user, darkMode }) => {
   const handleToggleAdmin = async (userId, currentStatus) => {
     try {
       const token = localStorage.getItem('token')
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
       await axios.put(
-        `${API_URL}/api/admin/users/${userId}`,
+        `/api/admin/users/${userId}`,
         { is_admin: !currentStatus },
         {
           headers: {
@@ -100,9 +97,8 @@ const AdminDashboard = ({ user, darkMode }) => {
 
     try {
       const token = localStorage.getItem('token')
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
       await axios.delete(
-        `${API_URL}/api/admin/users/${userId}`,
+        `/api/admin/users/${userId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -120,9 +116,8 @@ const AdminDashboard = ({ user, darkMode }) => {
     setDetailsLoading(true)
     try {
       const token = localStorage.getItem('token')
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
       const response = await axios.get(
-        `${API_URL}/api/admin/users/${userId}`,
+        `/api/admin/users/${userId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`

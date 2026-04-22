@@ -31,6 +31,7 @@ from app.api.x_routes import router as x_router
 from app.api.admin_accounts_routes import router as admin_accounts_router
 from app.api.user_accounts_routes import router as user_accounts_router
 from app.api.schedule_routes import router as schedule_router
+from app.api.telegram_routes import router as telegram_router
 from app.agents.agent_manager import agent_manager
 from app.services.memory_service import memory_service
 from app.scheduler.tick import scheduler_tick
@@ -90,16 +91,30 @@ app.include_router(user_accounts_router)
 # Include schedule event routes
 app.include_router(schedule_router)
 
+# Include telegram integration routes
+app.include_router(telegram_router)
+
 # CORS Configuration - تقييد النطاقات المسموحة
 import os
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
+default_allowed_origins = ",".join([
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://stopping-idly-endearing.ngrok-free.dev",
+])
+ALLOWED_ORIGINS = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv("ALLOWED_ORIGINS", default_allowed_origins).split(",")
+    if origin.strip()
+]
+ALLOWED_ORIGIN_REGEX = os.getenv("ALLOWED_ORIGIN_REGEX", r"https://.*\.ngrok-free\.dev").strip() or None
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=ALLOWED_ORIGIN_REGEX,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept"],
+    allow_methods=["*"],
+    allow_headers=["*"],
     max_age=3600,
 )
 

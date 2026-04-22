@@ -1,7 +1,6 @@
 import random
 import logging
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from sqlalchemy.orm import Session
 
@@ -10,8 +9,8 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-KSA = ZoneInfo("Asia/Riyadh")
-UTC = ZoneInfo("UTC")
+KSA = timezone(timedelta(hours=3))
+UTC = timezone.utc
 
 TIME_WINDOWS = {
     "morning": (6, 11),
@@ -73,7 +72,8 @@ def _detect_mood(content: str, category: str) -> str:
 
 
 def _pick_run_at(intent_time: str) -> datetime:
-    now_ksa = datetime.now(KSA)
+    now_utc = datetime.now(UTC)
+    now_ksa = now_utc.astimezone(KSA)
 
     if intent_time in TIME_WINDOWS:
         start_h, end_h = TIME_WINDOWS[intent_time]

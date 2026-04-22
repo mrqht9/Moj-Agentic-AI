@@ -51,9 +51,8 @@ const Sidebar = ({ darkMode, setDarkMode, user, onLogout, onLoadConversation, on
         setConversations([])
         return
       }
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
       const response = await axios.get(
-        `${API_URL}/api/conversations/`,
+        '/api/conversations/',
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -97,8 +96,7 @@ const Sidebar = ({ darkMode, setDarkMode, user, onLogout, onLoadConversation, on
     if (!window.confirm('هل تريد حذف هذه المحادثة؟')) return
     try {
       const token = localStorage.getItem('token')
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-      await axios.delete(`${API_URL}/api/conversations/${conversationId}`, {
+      await axios.delete(`/api/conversations/${conversationId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
