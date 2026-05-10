@@ -1,0 +1,26 @@
+# Chameleon Login Requirements
+# Advanced fingerprint randomization system for Twitter login
+
+# Core HTTP client with browser impersonation
+curl-cffi>=0.6.0
+
+# Standard library modules (built-in)
+# asyncio - for async operations
+# json - for JSON handling  
+# time - for timestamps
+# random - for randomization
+# uuid - for unique IDs
+# sys - for system operations
+# os - for OS operations
+# hashlib - for hashing
+# pathlib - for file paths
+# urllib.parse - for URL parsing
+
+# Note: No additional dependencies required beyond curl-cffi
+# All other modules are part of Python standard library
+
+# Installation command:
+# pip install curl-cffi>=0.6.0
+
+# Optional: For better performance, install with:
+# pip install curl-cffi>=0.6.0 --upgrade

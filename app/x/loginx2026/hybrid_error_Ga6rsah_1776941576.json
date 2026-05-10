@@ -1,0 +1,7 @@
+{
+  "timestamp": 1776941576.1082823,
+  "username": "Ga6rsah",
+  "success": false,
+  "error": "فشل في الخطوة: ['LoginEnterUserIdentifierSSO']\nHTTP 400: {\"errors\":[{\"code\":399,\"message\":\"Could not log you in now. Please try again later. g;177694156852584949:-1776941573013:CxIlivBtqz7ZVwTJMzzEAUbw:1\"}]}\n\nحاول مرة أخرى بعد دقائق. إذا استمر الخطأ جرّب من IP مختلف أو استخدم login_with_cookies.",
+  "method": "hybrid_x_auth"
+}

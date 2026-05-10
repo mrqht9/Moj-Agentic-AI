@@ -221,116 +221,61 @@ def cookie_delete(cookie_id: int):
 @login_required
 def login_page():
     if request.method == 'GET':
-        return render_template('x_login.html', title='تسجيل دخول X', header='تسجيل دخول X', subtitle='حفظ storage_state باسم الحساب', active='login')
+        return render_template('x_login.html', title='رفع كوكيز X', header='رفع كوكيز X', subtitle='رفع ملف كوكيز وحفظه باسم الحساب', active='login')
 
-    label = safe_label(request.form.get('label', ''))
-    username = (request.form.get('username') or '').strip()
-    password = (request.form.get('password') or '').strip()
-    headless = (request.form.get('headless') == '1')
+    # رفع ملف كوكيز
+    f = request.files.get('cookie_file')
+    label = safe_label(request.form.get('label', '') or '')
 
-    op_id = log_operation('login', label, 'pending', 'بدأت عملية تسجيل الدخول', meta_json=json.dumps({'headless': headless}))
+    if not f or not f.filename:
+        flash('ارفق ملف كوكيز (JSON)', 'error')
+        return redirect(url_for('login_page'))
 
     try:
-        engine = TwitterLoginAdvanced()
-        cookie_path = engine.login_twitter(username=username, password=password, cookies_dir=str(COOKIES_DIR), headless=headless)
-        # rename file to label.json if needed
+        content = f.read().decode('utf-8')
+        cookies_data = json.loads(content)
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        flash(f'ملف الكوكيز غير صالح: {e}', 'error')
+        return redirect(url_for('login_page'))
+
+    # تحديد اسم الحساب
+    if not label:
+        label = safe_label(Path(f.filename).stem)
+    if not label:
+        flash('اسم الحساب فارغ', 'error')
+        return redirect(url_for('login_page'))
+
+    op_id = log_operation('upload_cookies', label, 'pending', 'بدأ رفع ملف كوكيز')
+
+    try:
+        playwright_data = normalize_cookies(cookies_data)
+
+        # التحقق من وجود auth_token
+        cookie_names = {c['name'] for c in playwright_data.get('cookies', [])}
+        if 'auth_token' not in cookie_names:
+            flash('ملف الكوكيز لا يحتوي على auth_token', 'error')
+            return redirect(url_for('login_page'))
+
         dst = COOKIES_DIR / f"{label}.json"
-        try:
-            if cookie_path.name != dst.name:
-                Path(cookie_path).replace(dst)
-        except Exception:
-            pass
+        with open(dst, 'w', encoding='utf-8') as fw:
+            json.dump(playwright_data, fw, ensure_ascii=False, indent=2)
 
         upsert_cookie(label, dst.name)
-        log_operation('login', label, 'success', f'تم حفظ الكوكيز: {dst.name}')
-        flash('تم تسجيل الدخول وحفظ الكوكيز ✅', 'success')
+        log_operation('upload_cookies', label, 'success', f'تم حفظ الكوكيز: {dst.name}')
+        flash(f'تم حفظ كوكيز الحساب {label} بنجاح ✅', 'success')
         return redirect(url_for('cookies_page'))
     except Exception as e:
-        log_operation('login', label, 'error', f'فشل تسجيل الدخول: {e}')
-        flash(f'فشل تسجيل الدخول: {e}', 'error')
+        log_operation('upload_cookies', label, 'error', f'فشل حفظ الكوكيز: {e}')
+        flash(f'فشل حفظ الكوكيز: {e}', 'error')
         return redirect(url_for('login_page'))
 
 
 @app.route('/x-login-bulk', methods=['POST'])
 @login_required
 def login_bulk_page():
-    """تسجيل دخول عدة حسابات عبر ملف CSV"""
-    global bulk_task_counter
-
-    f = request.files.get('csv_file')
-    if not f or not f.filename:
-        flash('ارفع ملف CSV', 'error')
-        return redirect(url_for('login_page'))
-
-    try:
-        content = f.read().decode('utf-8')
-        reader = csv.reader(io.StringIO(content))
-        accounts = []
-        for row in reader:
-            row = [c.strip() for c in row]
-            if not row or row[0].lower() == 'username':
-                continue
-            if len(row) >= 2:
-                acc = {"username": row[0], "password": row[1]}
-                if len(row) >= 3 and row[2]:
-                    acc["label"] = row[2]
-                else:
-                    acc["label"] = row[0]
-                accounts.append(acc)
-
-        if not accounts:
-            flash('الملف فارغ أو لا يحتوي حسابات صالحة', 'error')
-            return redirect(url_for('login_page'))
-
-        bulk_task_counter += 1
-        task_id = str(bulk_task_counter)
-        bulk_login_tasks[task_id] = {
-            "total": len(accounts),
-            "done": 0,
-            "success": 0,
-            "failed": 0,
-            "finished": False,
-            "results": []
-        }
-
-        def worker():
-            engine = TwitterLoginAdvanced()
-            for i, acc in enumerate(accounts):
-                username = acc["username"]
-                password = acc["password"]
-                label = safe_label(acc.get("label") or username)
-                try:
-                    cookie_path = engine.login_twitter(
-                        username=username, password=password,
-                        cookies_dir=str(COOKIES_DIR)
-                    )
-                    dst = COOKIES_DIR / f"{label}.json"
-                    if cookie_path != dst:
-                        try:
-                            Path(cookie_path).replace(dst)
-                        except Exception:
-                            pass
-                    upsert_cookie(label, dst.name)
-                    log_operation('login', label, 'success', f'تم حفظ الكوكيز: {dst.name}')
-                    bulk_login_tasks[task_id]["success"] += 1
-                    bulk_login_tasks[task_id]["results"].append({"username": username, "label": label, "success": True})
-                except Exception as e:
-                    log_operation('login', label, 'error', f'فشل تسجيل الدخول: {e}')
-                    bulk_login_tasks[task_id]["failed"] += 1
-                    bulk_login_tasks[task_id]["results"].append({"username": username, "label": label, "success": False, "error": str(e)})
-                bulk_login_tasks[task_id]["done"] += 1
-                if i < len(accounts) - 1:
-                    _time.sleep(5)
-            bulk_login_tasks[task_id]["finished"] = True
-
-        thread = threading.Thread(target=worker, daemon=True)
-        thread.start()
-
-        return jsonify({"success": True, "task_id": task_id, "total": len(accounts)})
-
-    except Exception as e:
-        flash(f'خطأ في معالجة الملف: {e}', 'error')
-        return redirect(url_for('login_page'))
+    """تسجيل الدخول الجماعي معطّل"""
+    flash('تسجيل الدخول الجماعي معطّل. يرجى رفع ملف كوكيز لكل حساب على حدة.', 'error')
+    return redirect(url_for('login_page'))
 
 
 @app.route('/x-login-bulk-status/<task_id>')
@@ -384,14 +329,14 @@ def post_page():
 
         try:
             tweet_url = post_to_x(storage_state_path=storage_state_path, text=text, media_path=media_path, headless=headless)
-            log_operation('post', cookie_label, 'success', 'تمت محاولة النشر ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+            log_operation('post', cookie_label, 'success', 'تمت محاولة النشر ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
             if tweet_url:
                 save_tweet(cookie_label, tweet_url, text)
                 flash(f'تم النشر بنجاح ✅ - الرابط: {tweet_url}', 'success')
             else:
                 flash('تمت محاولة النشر ✅ (لم يتم الحصول على الرابط)', 'success')
         except Exception as e:
-            log_operation('post', cookie_label, 'error', f'فشل النشر: {e}', meta_json=json.dumps({'headless': headless}))
+            log_operation('post', cookie_label, 'error', f'فشل النشر: {e}', meta_json=json.dumps({'headless': headless}, ensure_ascii=False))
             flash(f'فشل النشر: {e}', 'error')
 
     return redirect(url_for('post_page'))
@@ -449,10 +394,10 @@ def profile_page():
                 banner_path=banner_path,
                 headless=headless,
             )
-            log_operation('profile', cookie_label, 'success', 'تم تعديل البروفايل (أو تمت المحاولة) ✅', meta_json=json.dumps({'headless': headless}))
+            log_operation('profile', cookie_label, 'success', 'تم تعديل البروفايل (أو تمت المحاولة) ✅', meta_json=json.dumps({'headless': headless}, ensure_ascii=False))
             flash('تمت محاولة تعديل البروفايل ✅', 'success')
         except Exception as e:
-            log_operation('profile', cookie_label, 'error', f'فشل تعديل البروفايل: {e}', meta_json=json.dumps({'headless': headless}))
+            log_operation('profile', cookie_label, 'error', f'فشل تعديل البروفايل: {e}', meta_json=json.dumps({'headless': headless}, ensure_ascii=False))
             flash(f'فشل تعديل البروفايل: {e}', 'error')
 
     return redirect(url_for('profile_page'))
@@ -481,10 +426,10 @@ def repost_page():
     storage_state_path = str(COOKIES_DIR / c['filename'])
     try:
         repost_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=5000)
-        log_operation('repost', cookie_label, 'success', 'تمت محاولة إعادة النشر ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('repost', cookie_label, 'success', 'تمت محاولة إعادة النشر ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash('تمت محاولة إعادة النشر ✅', 'success')
     except Exception as e:
-        log_operation('repost', cookie_label, 'error', f'فشل إعادة النشر: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('repost', cookie_label, 'error', f'فشل إعادة النشر: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash(f'فشل إعادة النشر: {e}', 'error')
 
     return redirect(url_for('repost_page'))
@@ -513,10 +458,10 @@ def like_page():
     storage_state_path = str(COOKIES_DIR / c['filename'])
     try:
         like_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
-        log_operation('like', cookie_label, 'success', 'تمت محاولة الإعجاب ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('like', cookie_label, 'success', 'تمت محاولة الإعجاب ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash('تمت محاولة الإعجاب ✅', 'success')
     except Exception as e:
-        log_operation('like', cookie_label, 'error', f'فشل الإعجاب: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('like', cookie_label, 'error', f'فشل الإعجاب: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash(f'فشل الإعجاب: {e}', 'error')
 
     return redirect(url_for('like_page'))
@@ -546,10 +491,10 @@ def reply_page():
     storage_state_path = str(COOKIES_DIR / c['filename'])
     try:
         reply_to_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, reply_text=reply_text, headless=headless, wait_after_ms=5000)
-        log_operation('reply', cookie_label, 'success', 'تمت محاولة الرد ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('reply', cookie_label, 'success', 'تمت محاولة الرد ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash('تمت محاولة الرد ✅', 'success')
     except Exception as e:
-        log_operation('reply', cookie_label, 'error', f'فشل الرد: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('reply', cookie_label, 'error', f'فشل الرد: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash(f'فشل الرد: {e}', 'error')
 
     return redirect(url_for('reply_page'))
@@ -580,10 +525,10 @@ def bookmark_page():
     storage_state_path = str(COOKIES_DIR / c['filename'])
     try:
         bookmark_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
-        log_operation('bookmark', cookie_label, 'success', 'تمت محاولة البوك مارك ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('bookmark', cookie_label, 'success', 'تمت محاولة البوك مارك ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash('تمت محاولة البوك مارك ✅', 'success')
     except Exception as e:
-        log_operation('bookmark', cookie_label, 'error', f'فشل البوك مارك: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('bookmark', cookie_label, 'error', f'فشل البوك مارك: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash(f'فشل البوك مارك: {e}', 'error')
 
     return redirect(url_for('bookmark_page'))
@@ -612,10 +557,10 @@ def undo_repost_page():
     storage_state_path = str(COOKIES_DIR / c['filename'])
     try:
         undo_repost_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
-        log_operation('undo_repost', cookie_label, 'success', 'تم التراجع عن إعادة النشر ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('undo_repost', cookie_label, 'success', 'تم التراجع عن إعادة النشر ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash('تم التراجع عن إعادة النشر ✅', 'success')
     except Exception as e:
-        log_operation('undo_repost', cookie_label, 'error', f'فشل التراجع عن إعادة النشر: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('undo_repost', cookie_label, 'error', f'فشل التراجع عن إعادة النشر: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash(f'فشل التراجع عن إعادة النشر: {e}', 'error')
 
     return redirect(url_for('undo_repost_page'))
@@ -644,10 +589,10 @@ def undo_like_page():
     storage_state_path = str(COOKIES_DIR / c['filename'])
     try:
         undo_like_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
-        log_operation('undo_like', cookie_label, 'success', 'تم التراجع عن الإعجاب ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('undo_like', cookie_label, 'success', 'تم التراجع عن الإعجاب ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash('تم التراجع عن الإعجاب ✅', 'success')
     except Exception as e:
-        log_operation('undo_like', cookie_label, 'error', f'فشل التراجع عن الإعجاب: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('undo_like', cookie_label, 'error', f'فشل التراجع عن الإعجاب: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash(f'فشل التراجع عن الإعجاب: {e}', 'error')
 
     return redirect(url_for('undo_like_page'))
@@ -676,10 +621,10 @@ def undo_bookmark_page():
     storage_state_path = str(COOKIES_DIR / c['filename'])
     try:
         undo_bookmark_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
-        log_operation('undo_bookmark', cookie_label, 'success', 'تم التراجع عن البوك مارك ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('undo_bookmark', cookie_label, 'success', 'تم التراجع عن البوك مارك ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash('تم التراجع عن البوك مارك ✅', 'success')
     except Exception as e:
-        log_operation('undo_bookmark', cookie_label, 'error', f'فشل التراجع عن البوك مارك: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('undo_bookmark', cookie_label, 'error', f'فشل التراجع عن البوك مارك: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash(f'فشل التراجع عن البوك مارك: {e}', 'error')
 
     return redirect(url_for('undo_bookmark_page'))
@@ -724,10 +669,10 @@ def quote_page():
 
         try:
             quote_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, text=text, headless=headless, media_path=media_path, wait_after_ms=5000)
-            log_operation('quote', cookie_label, 'success', 'تمت محاولة الاقتباس ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+            log_operation('quote', cookie_label, 'success', 'تمت محاولة الاقتباس ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
             flash('تمت محاولة الاقتباس ✅', 'success')
         except Exception as e:
-            log_operation('quote', cookie_label, 'error', f'فشل الاقتباس: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+            log_operation('quote', cookie_label, 'error', f'فشل الاقتباس: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
             flash(f'فشل الاقتباس: {e}', 'error')
 
     return redirect(url_for('quote_page'))
@@ -756,10 +701,10 @@ def share_page():
     storage_state_path = str(COOKIES_DIR / c['filename'])
     try:
         share_copy_link(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
-        log_operation('share', cookie_label, 'success', 'تمت محاولة المشاركة (نسخ الرابط) ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('share', cookie_label, 'success', 'تمت محاولة المشاركة (نسخ الرابط) ✅', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash('تمت محاولة المشاركة (نسخ الرابط) ✅', 'success')
     except Exception as e:
-        log_operation('share', cookie_label, 'error', f'فشل المشاركة: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        log_operation('share', cookie_label, 'error', f'فشل المشاركة: {e}', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         flash(f'فشل المشاركة: {e}', 'error')
 
     return redirect(url_for('share_page'))
@@ -837,7 +782,7 @@ def api_login():
     if not label or not username or not password:
         return jsonify({'success': False, 'error': 'label/username/password required'}), 400
 
-    op_id = log_operation('login', label, 'pending', 'بدأت عملية تسجيل الدخول', meta_json=json.dumps({'headless': headless}))
+    op_id = log_operation('login', label, 'pending', 'بدأت عملية تسجيل الدخول', meta_json=json.dumps({'headless': headless}, ensure_ascii=False))
     try:
         engine = TwitterLoginAdvanced()
         cookie_path = engine.login_twitter(username=username, password=password, cookies_dir=str(COOKIES_DIR), headless=headless)
@@ -871,7 +816,7 @@ def api_post():
         if not c:
             return jsonify({'success': False, 'error': 'cookie not found'}), 404
         storage_state_path = str(COOKIES_DIR / c['filename'])
-        op_id = log_operation('post', cookie_label, 'pending', 'بدأت عملية النشر', meta_json=json.dumps({'headless': headless}))
+        op_id = log_operation('post', cookie_label, 'pending', 'بدأت عملية النشر', meta_json=json.dumps({'headless': headless}, ensure_ascii=False))
         with tempfile.TemporaryDirectory() as tmp:
             media_path = None
             if media_url and is_url(media_url):
@@ -882,7 +827,7 @@ def api_post():
                     return jsonify({'success': False, 'task_id': op_id, 'error': f'فشل تنزيل الميديا: {e}'}), 400
             try:
                 tweet_url = post_to_x(storage_state_path, text, media_path, headless=headless)
-                log_operation('post', cookie_label, 'success', 'تمت محاولة النشر ✅', meta_json=json.dumps({'tweet_url': tweet_url}))
+                log_operation('post', cookie_label, 'success', 'تمت محاولة النشر ✅', meta_json=json.dumps({'tweet_url': tweet_url}, ensure_ascii=False))
                 if tweet_url:
                     save_tweet(cookie_label, tweet_url, text)
                 return jsonify({'success': True, 'task_id': op_id, 'message': 'تمت محاولة النشر ✅', 'tweet_url': tweet_url}), 200
@@ -904,7 +849,7 @@ def api_post():
         return jsonify({'success': False, 'error': 'cookie not found'}), 404
     storage_state_path = str(COOKIES_DIR / c['filename'])
 
-    op_id = log_operation('post', cookie_label, 'pending', 'بدأت عملية النشر', meta_json=json.dumps({'headless': headless}))
+    op_id = log_operation('post', cookie_label, 'pending', 'بدأت عملية النشر', meta_json=json.dumps({'headless': headless}, ensure_ascii=False))
 
     with tempfile.TemporaryDirectory() as tmp:
         media_path = None
@@ -963,7 +908,7 @@ def api_profile_update():
     # (تم تعريف الحقول أعلاه حسب نوع الطلب)
 
     storage_state_path = str(COOKIES_DIR / c['filename'])
-    op_id = log_operation('profile', cookie_label, 'pending', 'بدأت عملية تعديل البروفايل', meta_json=json.dumps({'headless': headless}))
+    op_id = log_operation('profile', cookie_label, 'pending', 'بدأت عملية تعديل البروفايل', meta_json=json.dumps({'headless': headless}, ensure_ascii=False))
 
     with tempfile.TemporaryDirectory() as tmp:
         avatar_path = None
@@ -1015,7 +960,7 @@ def api_repost():
         return jsonify({'success': False, 'error': 'cookie not found'}), 404
 
     storage_state_path = str(COOKIES_DIR / c['filename'])
-    op_id = log_operation('repost', cookie_label, 'pending', 'بدأت عملية إعادة النشر', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    op_id = log_operation('repost', cookie_label, 'pending', 'بدأت عملية إعادة النشر', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
     try:
         repost_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=wait_after_ms)
         log_operation('repost', cookie_label, 'success', 'تمت محاولة إعادة النشر ✅')
@@ -1042,7 +987,7 @@ def api_like():
         return jsonify({'success': False, 'error': 'cookie not found'}), 404
 
     storage_state_path = str(COOKIES_DIR / c['filename'])
-    op_id = log_operation('like', cookie_label, 'pending', 'بدأت عملية الإعجاب', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    op_id = log_operation('like', cookie_label, 'pending', 'بدأت عملية الإعجاب', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
     try:
         like_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=wait_after_ms)
         log_operation('like', cookie_label, 'success', 'تمت محاولة الإعجاب ✅')
@@ -1068,7 +1013,7 @@ def api_undo_repost():
         return jsonify({'success': False, 'error': 'cookie not found'}), 404
 
     storage_state_path = str(COOKIES_DIR / c['filename'])
-    op_id = log_operation('undo_repost', cookie_label, 'pending', 'بدأت عملية التراجع عن إعادة النشر', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    op_id = log_operation('undo_repost', cookie_label, 'pending', 'بدأت عملية التراجع عن إعادة النشر', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
     try:
         undo_repost_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
         log_operation('undo_repost', cookie_label, 'success', 'تم التراجع عن إعادة النشر ✅')
@@ -1094,7 +1039,7 @@ def api_undo_like():
         return jsonify({'success': False, 'error': 'cookie not found'}), 404
 
     storage_state_path = str(COOKIES_DIR / c['filename'])
-    op_id = log_operation('undo_like', cookie_label, 'pending', 'بدأت عملية التراجع عن الإعجاب', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    op_id = log_operation('undo_like', cookie_label, 'pending', 'بدأت عملية التراجع عن الإعجاب', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
     try:
         undo_like_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
         log_operation('undo_like', cookie_label, 'success', 'تم التراجع عن الإعجاب ✅')
@@ -1120,7 +1065,7 @@ def api_undo_bookmark():
         return jsonify({'success': False, 'error': 'cookie not found'}), 404
 
     storage_state_path = str(COOKIES_DIR / c['filename'])
-    op_id = log_operation('undo_bookmark', cookie_label, 'pending', 'بدأت عملية التراجع عن البوك مارك', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    op_id = log_operation('undo_bookmark', cookie_label, 'pending', 'بدأت عملية التراجع عن البوك مارك', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
     try:
         undo_bookmark_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=2000)
         log_operation('undo_bookmark', cookie_label, 'success', 'تم التراجع عن البوك مارك ✅')
@@ -1150,7 +1095,7 @@ def api_reply():
             return jsonify({'success': False, 'error': 'cookie not found'}), 404
         storage_state_path = str(COOKIES_DIR / c['filename'])
 
-        op_id = log_operation('reply', cookie_label, 'pending', 'بدأت عملية الرد', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        op_id = log_operation('reply', cookie_label, 'pending', 'بدأت عملية الرد', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         with tempfile.TemporaryDirectory() as tmp:
             media_path = None
             if media_url and is_url(media_url):
@@ -1183,7 +1128,7 @@ def api_reply():
         return jsonify({'success': False, 'error': 'cookie not found'}), 404
     storage_state_path = str(COOKIES_DIR / c['filename'])
 
-    op_id = log_operation('reply', cookie_label, 'pending', 'بدأت عملية الرد', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    op_id = log_operation('reply', cookie_label, 'pending', 'بدأت عملية الرد', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
 
     with tempfile.TemporaryDirectory() as tmp:
         media_path = None
@@ -1221,7 +1166,7 @@ def api_bookmark():
         return jsonify({'success': False, 'error': 'cookie not found'}), 404
 
     storage_state_path = str(COOKIES_DIR / c['filename'])
-    op_id = log_operation('bookmark', cookie_label, 'pending', 'بدأت عملية البوك مارك', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    op_id = log_operation('bookmark', cookie_label, 'pending', 'بدأت عملية البوك مارك', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
     try:
         bookmark_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=wait_after_ms)
         log_operation('bookmark', cookie_label, 'success', 'تمت محاولة البوك مارك ✅')
@@ -1251,7 +1196,7 @@ def api_quote():
             return jsonify({'success': False, 'error': 'cookie not found'}), 404
         storage_state_path = str(COOKIES_DIR / c['filename'])
 
-        op_id = log_operation('quote', cookie_label, 'pending', 'بدأت عملية الاقتباس', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+        op_id = log_operation('quote', cookie_label, 'pending', 'بدأت عملية الاقتباس', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
         with tempfile.TemporaryDirectory() as tmp:
             media_path = None
             if media_url and is_url(media_url):
@@ -1284,7 +1229,7 @@ def api_quote():
         return jsonify({'success': False, 'error': 'cookie not found'}), 404
     storage_state_path = str(COOKIES_DIR / c['filename'])
 
-    op_id = log_operation('quote', cookie_label, 'pending', 'بدأت عملية الاقتباس', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    op_id = log_operation('quote', cookie_label, 'pending', 'بدأت عملية الاقتباس', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
     with tempfile.TemporaryDirectory() as tmp:
         media_path = None
         if media_file and media_file.filename:
@@ -1321,7 +1266,7 @@ def api_share():
         return jsonify({'success': False, 'error': 'cookie not found'}), 404
 
     storage_state_path = str(COOKIES_DIR / c['filename'])
-    op_id = log_operation('share', cookie_label, 'pending', 'بدأت عملية المشاركة', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    op_id = log_operation('share', cookie_label, 'pending', 'بدأت عملية المشاركة', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
     try:
         share_copy_link(storage_state_path=storage_state_path, tweet_url=tweet_url, headless=headless, wait_after_ms=wait_after_ms)
         log_operation('share', cookie_label, 'success', 'تمت محاولة المشاركة (نسخ الرابط) ✅')
@@ -1338,7 +1283,7 @@ def api_share():
         return jsonify({'success': False, 'error': 'cookie not found'}), 404
 
     storage_state_path = str(COOKIES_DIR / c['filename'])
-    op_id = log_operation('reply', cookie_label, 'pending', 'بدأت عملية الرد', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}))
+    op_id = log_operation('reply', cookie_label, 'pending', 'بدأت عملية الرد', meta_json=json.dumps({'headless': headless, 'tweet_url': tweet_url}, ensure_ascii=False))
     try:
         reply_to_tweet(storage_state_path=storage_state_path, tweet_url=tweet_url, reply_text=reply_text, headless=headless, wait_after_ms=wait_after_ms)
         log_operation('reply', cookie_label, 'success', 'تمت محاولة الرد ✅')

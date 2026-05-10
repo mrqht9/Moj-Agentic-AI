@@ -10,6 +10,8 @@ def connect() -> sqlite3.Connection:
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
+    # Fix encoding for Arabic text
+    con.execute("PRAGMA encoding = 'UTF-8'")
     return con
 
 
@@ -95,6 +97,10 @@ def delete_cookie(cookie_id: int) -> Optional[Dict[str, Any]]:
 
 
 def log_operation(action: str, cookie_label: Optional[str], status: str, message: str, meta_json: str = "") -> int:
+    import json
+    # Fix encoding issue for Arabic text
+    if meta_json and isinstance(meta_json, dict):
+        meta_json = json.dumps(meta_json, ensure_ascii=False)
     with connect() as con:
         con.execute(
             "INSERT INTO operations(action,cookie_label,status,message,meta_json,created_at) VALUES(?,?,?,?,?,?)",

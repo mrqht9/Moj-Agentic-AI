@@ -188,9 +188,10 @@
                     <span class="material-symbols-outlined text-[20px]">arrow_downward</span>
                 </button>
                 <div class="relative flex items-end w-full p-3 bg-white dark:bg-[#1a262b] border border-gray-300 dark:border-gray-600 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
-                    <button class="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 shrink-0 mb-0.5">
-                        <span class="material-symbols-outlined text-[24px]">add_circle</span>
+                    <button class="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 shrink-0 mb-0.5" onclick="document.getElementById('file-input').click()" title="رفع ملف">
+                        <span class="material-symbols-outlined text-[24px]">attach_file</span>
                     </button>
+                    <input type="file" id="file-input" class="hidden" accept=".json,.txt" onchange="handleFileUpload(event)">
                     <textarea id="message-input" class="w-full max-h-[200px] py-3 px-3 bg-transparent border-0 focus:ring-0 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none leading-relaxed" placeholder="اكتب رسالتك هنا..." rows="1" style="min-height: 48px;"></textarea>
                     <button id="send-btn" class="p-2 mb-0.5 bg-gray-200 text-gray-400 rounded-lg transition-colors shrink-0 shadow-sm" disabled>
                         <span class="material-symbols-outlined text-[20px] font-bold block">arrow_upward</span>
@@ -341,6 +342,38 @@
             if (indicator) {
                 indicator.remove();
             }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const fileName = file.name;
+                
+                // إرسال الملف مع رسالة
+                const message = `رفعت ملف: ${fileName}\n\nمحتوى الملف:\n${content}`;
+                
+                addMessage('user', message, new Date().toISOString());
+                
+                if (isConnected) {
+                    ws.send(JSON.stringify({
+                        message: message,
+                        file_upload: {
+                            name: fileName,
+                            content: content,
+                            type: file.type
+                        }
+                    }));
+                }
+                
+                // إعادة تعيين الـ input
+                event.target.value = '';
+            };
+            
+            reader.readAsText(file);
         }
 
         function sendMessage() {

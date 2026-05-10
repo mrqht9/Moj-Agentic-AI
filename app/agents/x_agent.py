@@ -7,7 +7,7 @@ X Platform Sub-Agent
 
 from typing import Dict, Any, Optional
 from autogen_agentchat.agents import AssistantAgent
-from .tools import x_login, x_post, x_update_profile
+from .tools import x_upload_cookies, x_post, x_update_profile
 
 
 class XAgent:
@@ -28,12 +28,12 @@ class XAgent:
             system_message="""أنت وكيل متخصص في إدارة منصة X (Twitter).
             
 مهامك:
-1. تسجيل الدخول لحسابات X
+1. حفظ كوكيز حسابات X (تسجيل الدخول بالباسورد معطل — اطلب من المستخدم رفع ملف كوكيز)
 2. نشر التغريدات
 3. تحديث معلومات الملف الشخصي
 4. إدارة المحتوى على X
 
-استخدم الأدوات المتاحة لتنفيذ هذه المهام بكفاءة.""",
+استخدم الأدوات المتاحة لتنفيذ هذه المهام بكفاءة.
 تحدث بالعربية مع المستخدم وكن مفيداً ودقيقاً.""",
             llm_config=llm_config,
             human_input_mode="NEVER",
@@ -67,15 +67,14 @@ class XAgent:
         entities = context.get("entities", {}) if context else {}
         
         if intent == "add_account":
-            username = entities.get("username")
-            password = entities.get("password")
+            cookies_data = context.get("cookies_data") if context else None
             label = entities.get("account_name", "default_account")
             
-            if username and password:
-                result = x_login(username, password, label)
-                return result.get("message", "تم محاولة تسجيل الدخول")
+            if cookies_data:
+                result = x_upload_cookies(cookies_data, label)
+                return result.get("message", "تم محاولة حفظ الكوكيز")
             else:
-                return "يرجى تقديم اسم المستخدم وكلمة المرور"
+                return "⛔ تسجيل الدخول بكلمة المرور معطّل. يرجى إرفاق ملف كوكيز الحساب (JSON) بدلاً من ذلك."
         
         elif intent == "create_post":
             content = entities.get("content")

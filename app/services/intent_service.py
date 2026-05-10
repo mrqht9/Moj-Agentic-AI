@@ -37,6 +37,10 @@ class IntentType(str, Enum):
     REPLY_TO_COMMENT = "reply_to_comment"
     LIKE_POST = "like_post"
     SHARE_POST = "share_post"
+    REPOST = "repost"
+    FOLLOW_USER = "follow_user"
+    UNFOLLOW_USER = "unfollow_user"
+    BOOKMARK_POST = "bookmark_post"
     
     # الأتمتة
     CREATE_AUTOMATION = "create_automation"
@@ -149,6 +153,9 @@ class IntentService:
                 r"ابغى امسح",
                 r"امسح لي",
                 r"شيل لي",
+                r"احذف\s+[A-Za-z_]\w*",
+                r"امسح\s+[A-Za-z_]\w*",
+                r"شيل\s+[A-Za-z_]\w*",
                 r"remove account",
                 r"delete account",
                 r"unlink account",
@@ -283,13 +290,45 @@ class IntentService:
             IntentType.LIKE_POST: [
                 r"أعجبني",
                 r"like",
-                r"إعجاب"
+                r"إعجاب",
+                r"لايك",
+                r"حط لايك",
+                r"اعجب.*تغريد",
+                r"اعجب.*بالتغريد",
             ],
             IntentType.SHARE_POST: [
                 r"شارك",
                 r"share",
+            ],
+            IntentType.REPOST: [
+                r"أعد نشر",
+                r"اعاد[ةه] نشر",
+                r"ريتويت",
                 r"retweet",
-                r"أعد نشر"
+                r"repost",
+                r"أعد تغريد",
+                r"ريبوست",
+            ],
+            IntentType.FOLLOW_USER: [
+                r"تابع",
+                r"follow",
+                r"متابعة",
+                r"تابع حساب",
+                r"تابع.*@",
+            ],
+            IntentType.UNFOLLOW_USER: [
+                r"الغ.*متابع",
+                r"unfollow",
+                r"فك.*متابع",
+                r"الغاء.*متابع",
+            ],
+            IntentType.BOOKMARK_POST: [
+                r"احفظ.*تغريد",
+                r"بوكمارك",
+                r"bookmark",
+                r"احفظ.*منشور",
+                r"حفظ.*تغريد",
+                r"فضل.*تغريد",
             ],
             
             # الأتمتة
@@ -394,6 +433,14 @@ class IntentService:
                 r"كيفك",
                 r"شلونك",
                 r"وش اخبارك",
+                r"من انت",
+                r"من أنت",
+                r"ايش انت",
+                r"وش انت",
+                r"عرفني عن نفسك",
+                r"عرف نفسك",
+                r"who are you",
+                r"what are you",
                 r"hello",
                 r"hi",
                 r"hey",
@@ -508,6 +555,18 @@ class IntentService:
                 entities["account_name"] = match.group(1)
                 break
         
+        # استخراج اسم الحساب من أوامر الحذف/الإدارة إذا لم يُلتقط بعد
+        if not entities.get("account_name") and intent in [IntentType.REMOVE_ACCOUNT]:
+            # "احذف Ga6rsah" أو "احذف حسابي Ga6rsah" أو "امسح Ga6rsah"
+            remove_patterns = [
+                r"(?:احذف|امسح|شيل|الغ[يى])\s+(?:حسابي?\s+)?([A-Za-z_]\w+)",
+            ]
+            for pattern in remove_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    entities["account_name"] = match.group(1)
+                    break
+        
         # استخراج معرف التغريدة للحذف
         if intent == IntentType.DELETE_POST:
             # ابحث عن رقم التغريدة (status ID)
@@ -554,6 +613,25 @@ class IntentService:
                         entities["media_url"] = url_val
             else:
                 entities["media_url"] = url_match.group(1).rstrip('.,،؛)')
+
+        # استخراج رابط تغريدة (للعمليات مثل لايك، ريبوست، رد، بوكمارك)
+        if intent in [IntentType.LIKE_POST, IntentType.REPOST, IntentType.SHARE_POST,
+                       IntentType.REPLY_TO_COMMENT, IntentType.BOOKMARK_POST]:
+            tweet_url_match = re.search(r'(https?://(?:x|twitter)\.com/\w+/status/\d+)', text)
+            if tweet_url_match:
+                entities["tweet_url"] = tweet_url_match.group(1)
+        
+        # استخراج نص الرد
+        if intent == IntentType.REPLY_TO_COMMENT:
+            reply_match = re.search(r'["\'](.+?)["\']|"(.+?)"|بالنص\s+(.+?)(?:\s+من|\s*$)', text)
+            if reply_match:
+                entities["reply_text"] = reply_match.group(1) or reply_match.group(2) or reply_match.group(3)
+        
+        # استخراج رابط بروفايل (للمتابعة وإلغاء المتابعة)
+        if intent in [IntentType.FOLLOW_USER, IntentType.UNFOLLOW_USER]:
+            profile_url_match = re.search(r'(https?://(?:x|twitter)\.com/\w+)', text)
+            if profile_url_match:
+                entities["profile_url"] = profile_url_match.group(1)
 
         # استخراج الأرقام
         numbers = re.findall(r'\d+', text)

@@ -1,0 +1,2676 @@
+{
+  "total_attempts": 30,
+  "success": false,
+  "failure_patterns": [],
+  "all_attempts_data": [
+    {
+      "attempt": 1,
+      "timestamp": "2026-04-23T15:49:25.090424",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Chrome Mobile",
+        "os_version": "Android 15",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          390,
+          844
+        ],
+        "language": "ar",
+        "country": "JP",
+        "carrier": "AT&T",
+        "device_id": "75f5550bf2c4c7b1",
+        "install_id": "661d8332d4954680",
+        "advertising_id": "9ea63147e958478c",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "mobile_web",
+          "device_name": "Chrome Mobile",
+          "os_version": "Android 15",
+          "app_version": "10.16.1",
+          "screen_resolution": [
+            390,
+            844
+          ],
+          "language": "ar",
+          "country": "JP",
+          "carrier": "AT&T",
+          "device_id": "75f5550bf2c4c7b1",
+          "install_id": "661d8332d4954680",
+          "advertising_id": "9ea63147e958478c",
+          "strategy": "mobile_web"
+        },
+        "impersonate": "chrome101",
+        "headers_count": 19
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 1,
+      "timestamp": "2026-04-23T15:49:27.047349",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Chrome Mobile",
+        "os_version": "Android 15",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          390,
+          844
+        ],
+        "language": "ar",
+        "country": "JP",
+        "carrier": "AT&T",
+        "device_id": "75f5550bf2c4c7b1",
+        "install_id": "661d8332d4954680",
+        "advertising_id": "9ea63147e958478c",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 1,
+      "timestamp": "2026-04-23T15:49:27.047349",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Chrome Mobile",
+        "os_version": "Android 15",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          390,
+          844
+        ],
+        "language": "ar",
+        "country": "JP",
+        "carrier": "AT&T",
+        "device_id": "75f5550bf2c4c7b1",
+        "install_id": "661d8332d4954680",
+        "advertising_id": "9ea63147e958478c",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 2,
+      "timestamp": "2026-04-23T15:49:41.524416",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Pixel 7 Pro",
+        "os_version": "14",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1200,
+          2640
+        ],
+        "language": "en",
+        "country": "JP",
+        "carrier": "AT&T",
+        "device_id": "c24fcc7e385008e8",
+        "install_id": "9d61804ef6de461a",
+        "advertising_id": "c8b37bda2a7e40c3",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_phone",
+          "device_name": "Pixel 7 Pro",
+          "os_version": "14",
+          "app_version": "10.18.2",
+          "screen_resolution": [
+            1200,
+            2640
+          ],
+          "language": "en",
+          "country": "JP",
+          "carrier": "AT&T",
+          "device_id": "c24fcc7e385008e8",
+          "install_id": "9d61804ef6de461a",
+          "advertising_id": "c8b37bda2a7e40c3",
+          "strategy": "mobile_android"
+        },
+        "impersonate": "chrome100",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 2,
+      "timestamp": "2026-04-23T15:49:43.781729",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Pixel 7 Pro",
+        "os_version": "14",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1200,
+          2640
+        ],
+        "language": "en",
+        "country": "JP",
+        "carrier": "AT&T",
+        "device_id": "c24fcc7e385008e8",
+        "install_id": "9d61804ef6de461a",
+        "advertising_id": "c8b37bda2a7e40c3",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 2,
+      "timestamp": "2026-04-23T15:49:43.783720",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Pixel 7 Pro",
+        "os_version": "14",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1200,
+          2640
+        ],
+        "language": "en",
+        "country": "JP",
+        "carrier": "AT&T",
+        "device_id": "c24fcc7e385008e8",
+        "install_id": "9d61804ef6de461a",
+        "advertising_id": "c8b37bda2a7e40c3",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 3,
+      "timestamp": "2026-04-23T15:49:57.169142",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Pixel 7 Pro",
+        "os_version": "14",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          1080,
+          2340
+        ],
+        "language": "ar",
+        "country": "US",
+        "carrier": "STC",
+        "device_id": "c146f14bd304ee11",
+        "install_id": "9fb3a00d9a494e19",
+        "advertising_id": "73a5e2bd3c594784",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_phone",
+          "device_name": "Pixel 7 Pro",
+          "os_version": "14",
+          "app_version": "10.16.1",
+          "screen_resolution": [
+            1080,
+            2340
+          ],
+          "language": "ar",
+          "country": "US",
+          "carrier": "STC",
+          "device_id": "c146f14bd304ee11",
+          "install_id": "9fb3a00d9a494e19",
+          "advertising_id": "73a5e2bd3c594784",
+          "strategy": "mobile_android"
+        },
+        "impersonate": "chrome107",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 3,
+      "timestamp": "2026-04-23T15:49:59.058924",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Pixel 7 Pro",
+        "os_version": "14",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          1080,
+          2340
+        ],
+        "language": "ar",
+        "country": "US",
+        "carrier": "STC",
+        "device_id": "c146f14bd304ee11",
+        "install_id": "9fb3a00d9a494e19",
+        "advertising_id": "73a5e2bd3c594784",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 3,
+      "timestamp": "2026-04-23T15:49:59.058924",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Pixel 7 Pro",
+        "os_version": "14",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          1080,
+          2340
+        ],
+        "language": "ar",
+        "country": "US",
+        "carrier": "STC",
+        "device_id": "c146f14bd304ee11",
+        "install_id": "9fb3a00d9a494e19",
+        "advertising_id": "73a5e2bd3c594784",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 4,
+      "timestamp": "2026-04-23T15:50:06.381996",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad13,18",
+        "os_version": "16.5",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          2732,
+          2048
+        ],
+        "language": "es",
+        "country": "JP",
+        "carrier": "T-Mobile",
+        "device_id": "c45c0b055ef64aac",
+        "install_id": "02d69a8df1734761",
+        "advertising_id": "7f125ba2bf6e420a",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "ipad",
+          "device_name": "iPad13,18",
+          "os_version": "16.5",
+          "app_version": "10.15.0",
+          "screen_resolution": [
+            2732,
+            2048
+          ],
+          "language": "es",
+          "country": "JP",
+          "carrier": "T-Mobile",
+          "device_id": "c45c0b055ef64aac",
+          "install_id": "02d69a8df1734761",
+          "advertising_id": "7f125ba2bf6e420a",
+          "strategy": "mobile_ipad"
+        },
+        "impersonate": "safari15",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 4,
+      "timestamp": "2026-04-23T15:50:08.746679",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad13,18",
+        "os_version": "16.5",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          2732,
+          2048
+        ],
+        "language": "es",
+        "country": "JP",
+        "carrier": "T-Mobile",
+        "device_id": "c45c0b055ef64aac",
+        "install_id": "02d69a8df1734761",
+        "advertising_id": "7f125ba2bf6e420a",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "error": "Impersonating safari15 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari15 is not supported"
+    },
+    {
+      "attempt": 5,
+      "timestamp": "2026-04-23T15:50:22.436657",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad14,1",
+        "os_version": "17.1",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1640,
+          2360
+        ],
+        "language": "fr",
+        "country": "US",
+        "carrier": "T-Mobile",
+        "device_id": "72db0afe8a3b9d23",
+        "install_id": "f36fdc8f521b4d35",
+        "advertising_id": "8c02f28e169c4e0d",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "ipad",
+          "device_name": "iPad14,1",
+          "os_version": "17.1",
+          "app_version": "10.17.0",
+          "screen_resolution": [
+            1640,
+            2360
+          ],
+          "language": "fr",
+          "country": "US",
+          "carrier": "T-Mobile",
+          "device_id": "72db0afe8a3b9d23",
+          "install_id": "f36fdc8f521b4d35",
+          "advertising_id": "8c02f28e169c4e0d",
+          "strategy": "mobile_ipad"
+        },
+        "impersonate": "safari15",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 5,
+      "timestamp": "2026-04-23T15:50:25.287751",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad14,1",
+        "os_version": "17.1",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1640,
+          2360
+        ],
+        "language": "fr",
+        "country": "US",
+        "carrier": "T-Mobile",
+        "device_id": "72db0afe8a3b9d23",
+        "install_id": "f36fdc8f521b4d35",
+        "advertising_id": "8c02f28e169c4e0d",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "error": "Impersonating safari15 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari15 is not supported"
+    },
+    {
+      "attempt": 6,
+      "timestamp": "2026-04-23T15:50:37.350067",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "iphone",
+        "device_name": "iPhone16,1",
+        "os_version": "16.5",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1440,
+          3200
+        ],
+        "language": "es",
+        "country": "US",
+        "carrier": "Verizon",
+        "device_id": "3f7caf37fdf78ead",
+        "install_id": "eb47de19ee344a20",
+        "advertising_id": "f5e517e031da48ce",
+        "strategy": "mobile_ios"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "iphone",
+          "device_name": "iPhone16,1",
+          "os_version": "16.5",
+          "app_version": "10.17.0",
+          "screen_resolution": [
+            1440,
+            3200
+          ],
+          "language": "es",
+          "country": "US",
+          "carrier": "Verizon",
+          "device_id": "3f7caf37fdf78ead",
+          "install_id": "eb47de19ee344a20",
+          "advertising_id": "f5e517e031da48ce",
+          "strategy": "mobile_ios"
+        },
+        "impersonate": "safari16",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 6,
+      "timestamp": "2026-04-23T15:50:39.511977",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "iphone",
+        "device_name": "iPhone16,1",
+        "os_version": "16.5",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1440,
+          3200
+        ],
+        "language": "es",
+        "country": "US",
+        "carrier": "Verizon",
+        "device_id": "3f7caf37fdf78ead",
+        "install_id": "eb47de19ee344a20",
+        "advertising_id": "f5e517e031da48ce",
+        "strategy": "mobile_ios"
+      },
+      "data": {
+        "error": "Impersonating safari16 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari16 is not supported"
+    },
+    {
+      "attempt": 7,
+      "timestamp": "2026-04-23T15:50:50.957114",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "iphone",
+        "device_name": "iPhone14,3",
+        "os_version": "17.0",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1179,
+          2556
+        ],
+        "language": "ja",
+        "country": "SA",
+        "carrier": "STC",
+        "device_id": "1f6c3d5c606ba6c8",
+        "install_id": "a535aa93c5c545e9",
+        "advertising_id": "75c0023a50a749ba",
+        "strategy": "mobile_ios"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "iphone",
+          "device_name": "iPhone14,3",
+          "os_version": "17.0",
+          "app_version": "10.18.2",
+          "screen_resolution": [
+            1179,
+            2556
+          ],
+          "language": "ja",
+          "country": "SA",
+          "carrier": "STC",
+          "device_id": "1f6c3d5c606ba6c8",
+          "install_id": "a535aa93c5c545e9",
+          "advertising_id": "75c0023a50a749ba",
+          "strategy": "mobile_ios"
+        },
+        "impersonate": "safari16",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 7,
+      "timestamp": "2026-04-23T15:50:52.107990",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "iphone",
+        "device_name": "iPhone14,3",
+        "os_version": "17.0",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1179,
+          2556
+        ],
+        "language": "ja",
+        "country": "SA",
+        "carrier": "STC",
+        "device_id": "1f6c3d5c606ba6c8",
+        "install_id": "a535aa93c5c545e9",
+        "advertising_id": "75c0023a50a749ba",
+        "strategy": "mobile_ios"
+      },
+      "data": {
+        "error": "Impersonating safari16 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari16 is not supported"
+    },
+    {
+      "attempt": 8,
+      "timestamp": "2026-04-23T15:51:06.356038",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Pixel 7 Pro",
+        "os_version": "15",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1440,
+          3120
+        ],
+        "language": "zh",
+        "country": "SA",
+        "carrier": "AT&T",
+        "device_id": "63f46e4018288639",
+        "install_id": "83cbdfb3acf84631",
+        "advertising_id": "b7e14b4c3a6d4a0c",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_phone",
+          "device_name": "Pixel 7 Pro",
+          "os_version": "15",
+          "app_version": "10.18.2",
+          "screen_resolution": [
+            1440,
+            3120
+          ],
+          "language": "zh",
+          "country": "SA",
+          "carrier": "AT&T",
+          "device_id": "63f46e4018288639",
+          "install_id": "83cbdfb3acf84631",
+          "advertising_id": "b7e14b4c3a6d4a0c",
+          "strategy": "mobile_android"
+        },
+        "impersonate": "chrome104",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 8,
+      "timestamp": "2026-04-23T15:51:07.956979",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Pixel 7 Pro",
+        "os_version": "15",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1440,
+          3120
+        ],
+        "language": "zh",
+        "country": "SA",
+        "carrier": "AT&T",
+        "device_id": "63f46e4018288639",
+        "install_id": "83cbdfb3acf84631",
+        "advertising_id": "b7e14b4c3a6d4a0c",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 8,
+      "timestamp": "2026-04-23T15:51:07.957994",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Pixel 7 Pro",
+        "os_version": "15",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1440,
+          3120
+        ],
+        "language": "zh",
+        "country": "SA",
+        "carrier": "AT&T",
+        "device_id": "63f46e4018288639",
+        "install_id": "83cbdfb3acf84631",
+        "advertising_id": "b7e14b4c3a6d4a0c",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 9,
+      "timestamp": "2026-04-23T15:51:16.930539",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-S918B",
+        "os_version": "15",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1080,
+          2400
+        ],
+        "language": "fr",
+        "country": "CN",
+        "carrier": "Etisalat",
+        "device_id": "654d062e5e112f5c",
+        "install_id": "b9b245f519234067",
+        "advertising_id": "67b17e31f8ab4fa3",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_phone",
+          "device_name": "SM-S918B",
+          "os_version": "15",
+          "app_version": "10.18.2",
+          "screen_resolution": [
+            1080,
+            2400
+          ],
+          "language": "fr",
+          "country": "CN",
+          "carrier": "Etisalat",
+          "device_id": "654d062e5e112f5c",
+          "install_id": "b9b245f519234067",
+          "advertising_id": "67b17e31f8ab4fa3",
+          "strategy": "mobile_android"
+        },
+        "impersonate": "chrome100",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 9,
+      "timestamp": "2026-04-23T15:51:19.380121",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-S918B",
+        "os_version": "15",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1080,
+          2400
+        ],
+        "language": "fr",
+        "country": "CN",
+        "carrier": "Etisalat",
+        "device_id": "654d062e5e112f5c",
+        "install_id": "b9b245f519234067",
+        "advertising_id": "67b17e31f8ab4fa3",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 9,
+      "timestamp": "2026-04-23T15:51:19.381616",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-S918B",
+        "os_version": "15",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1080,
+          2400
+        ],
+        "language": "fr",
+        "country": "CN",
+        "carrier": "Etisalat",
+        "device_id": "654d062e5e112f5c",
+        "install_id": "b9b245f519234067",
+        "advertising_id": "67b17e31f8ab4fa3",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 10,
+      "timestamp": "2026-04-23T15:51:32.854946",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad13,19",
+        "os_version": "16.5",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          2732,
+          2048
+        ],
+        "language": "ar",
+        "country": "FR",
+        "carrier": "T-Mobile",
+        "device_id": "caf9b69876edfcfc",
+        "install_id": "d73f00d0cded46f8",
+        "advertising_id": "827c596682824797",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "ipad",
+          "device_name": "iPad13,19",
+          "os_version": "16.5",
+          "app_version": "10.17.0",
+          "screen_resolution": [
+            2732,
+            2048
+          ],
+          "language": "ar",
+          "country": "FR",
+          "carrier": "T-Mobile",
+          "device_id": "caf9b69876edfcfc",
+          "install_id": "d73f00d0cded46f8",
+          "advertising_id": "827c596682824797",
+          "strategy": "mobile_ipad"
+        },
+        "impersonate": "safari16",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 10,
+      "timestamp": "2026-04-23T15:51:35.264319",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad13,19",
+        "os_version": "16.5",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          2732,
+          2048
+        ],
+        "language": "ar",
+        "country": "FR",
+        "carrier": "T-Mobile",
+        "device_id": "caf9b69876edfcfc",
+        "install_id": "d73f00d0cded46f8",
+        "advertising_id": "827c596682824797",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "error": "Impersonating safari16 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari16 is not supported"
+    },
+    {
+      "attempt": 11,
+      "timestamp": "2026-04-23T15:51:46.543042",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Chrome Mobile",
+        "os_version": "iOS 17.1",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          414,
+          896
+        ],
+        "language": "ar",
+        "country": "FR",
+        "carrier": "AT&T",
+        "device_id": "6e42affd7b2c15d4",
+        "install_id": "b182af6e6b024aa7",
+        "advertising_id": "2ec63855c7604da5",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "mobile_web",
+          "device_name": "Chrome Mobile",
+          "os_version": "iOS 17.1",
+          "app_version": "10.15.0",
+          "screen_resolution": [
+            414,
+            896
+          ],
+          "language": "ar",
+          "country": "FR",
+          "carrier": "AT&T",
+          "device_id": "6e42affd7b2c15d4",
+          "install_id": "b182af6e6b024aa7",
+          "advertising_id": "2ec63855c7604da5",
+          "strategy": "mobile_web"
+        },
+        "impersonate": "chrome99",
+        "headers_count": 19
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 11,
+      "timestamp": "2026-04-23T15:51:49.537713",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Chrome Mobile",
+        "os_version": "iOS 17.1",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          414,
+          896
+        ],
+        "language": "ar",
+        "country": "FR",
+        "carrier": "AT&T",
+        "device_id": "6e42affd7b2c15d4",
+        "install_id": "b182af6e6b024aa7",
+        "advertising_id": "2ec63855c7604da5",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 11,
+      "timestamp": "2026-04-23T15:51:49.538716",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Chrome Mobile",
+        "os_version": "iOS 17.1",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          414,
+          896
+        ],
+        "language": "ar",
+        "country": "FR",
+        "carrier": "AT&T",
+        "device_id": "6e42affd7b2c15d4",
+        "install_id": "b182af6e6b024aa7",
+        "advertising_id": "2ec63855c7604da5",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 12,
+      "timestamp": "2026-04-23T15:51:57.922559",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Samsung Galaxy S23",
+        "os_version": "15",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1080,
+          2400
+        ],
+        "language": "zh",
+        "country": "US",
+        "carrier": "T-Mobile",
+        "device_id": "7acf175e9f391dbd",
+        "install_id": "0f7e0b064d9142f5",
+        "advertising_id": "5b46da8bb6924b8d",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_phone",
+          "device_name": "Samsung Galaxy S23",
+          "os_version": "15",
+          "app_version": "10.15.0",
+          "screen_resolution": [
+            1080,
+            2400
+          ],
+          "language": "zh",
+          "country": "US",
+          "carrier": "T-Mobile",
+          "device_id": "7acf175e9f391dbd",
+          "install_id": "0f7e0b064d9142f5",
+          "advertising_id": "5b46da8bb6924b8d",
+          "strategy": "mobile_android"
+        },
+        "impersonate": "chrome99",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 12,
+      "timestamp": "2026-04-23T15:52:01.241434",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Samsung Galaxy S23",
+        "os_version": "15",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1080,
+          2400
+        ],
+        "language": "zh",
+        "country": "US",
+        "carrier": "T-Mobile",
+        "device_id": "7acf175e9f391dbd",
+        "install_id": "0f7e0b064d9142f5",
+        "advertising_id": "5b46da8bb6924b8d",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 12,
+      "timestamp": "2026-04-23T15:52:01.243040",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "Samsung Galaxy S23",
+        "os_version": "15",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1080,
+          2400
+        ],
+        "language": "zh",
+        "country": "US",
+        "carrier": "T-Mobile",
+        "device_id": "7acf175e9f391dbd",
+        "install_id": "0f7e0b064d9142f5",
+        "advertising_id": "5b46da8bb6924b8d",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 13,
+      "timestamp": "2026-04-23T15:52:10.002828",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Pixel Tablet",
+        "os_version": "15",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1600,
+          2560
+        ],
+        "language": "en",
+        "country": "FR",
+        "carrier": "AT&T",
+        "device_id": "c2ffab99907c8882",
+        "install_id": "c3b9102ff070447a",
+        "advertising_id": "60d90a9a763e4c57",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_tablet",
+          "device_name": "Pixel Tablet",
+          "os_version": "15",
+          "app_version": "10.15.0",
+          "screen_resolution": [
+            1600,
+            2560
+          ],
+          "language": "en",
+          "country": "FR",
+          "carrier": "AT&T",
+          "device_id": "c2ffab99907c8882",
+          "install_id": "c3b9102ff070447a",
+          "advertising_id": "60d90a9a763e4c57",
+          "strategy": "mobile_tablet"
+        },
+        "impersonate": "chrome100",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 13,
+      "timestamp": "2026-04-23T15:52:11.734725",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Pixel Tablet",
+        "os_version": "15",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1600,
+          2560
+        ],
+        "language": "en",
+        "country": "FR",
+        "carrier": "AT&T",
+        "device_id": "c2ffab99907c8882",
+        "install_id": "c3b9102ff070447a",
+        "advertising_id": "60d90a9a763e4c57",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 13,
+      "timestamp": "2026-04-23T15:52:11.736233",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Pixel Tablet",
+        "os_version": "15",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1600,
+          2560
+        ],
+        "language": "en",
+        "country": "FR",
+        "carrier": "AT&T",
+        "device_id": "c2ffab99907c8882",
+        "install_id": "c3b9102ff070447a",
+        "advertising_id": "60d90a9a763e4c57",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 14,
+      "timestamp": "2026-04-23T15:52:20.738341",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "iphone",
+        "device_name": "iPhone15,4",
+        "os_version": "16.6",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1179,
+          2556
+        ],
+        "language": "es",
+        "country": "SA",
+        "carrier": "Verizon",
+        "device_id": "a54c26ec7f4cd89d",
+        "install_id": "1e60e8cbe7be454d",
+        "advertising_id": "9c3f0f568f774c47",
+        "strategy": "mobile_ios"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "iphone",
+          "device_name": "iPhone15,4",
+          "os_version": "16.6",
+          "app_version": "10.18.2",
+          "screen_resolution": [
+            1179,
+            2556
+          ],
+          "language": "es",
+          "country": "SA",
+          "carrier": "Verizon",
+          "device_id": "a54c26ec7f4cd89d",
+          "install_id": "1e60e8cbe7be454d",
+          "advertising_id": "9c3f0f568f774c47",
+          "strategy": "mobile_ios"
+        },
+        "impersonate": "safari15",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 14,
+      "timestamp": "2026-04-23T15:52:23.289322",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "iphone",
+        "device_name": "iPhone15,4",
+        "os_version": "16.6",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1179,
+          2556
+        ],
+        "language": "es",
+        "country": "SA",
+        "carrier": "Verizon",
+        "device_id": "a54c26ec7f4cd89d",
+        "install_id": "1e60e8cbe7be454d",
+        "advertising_id": "9c3f0f568f774c47",
+        "strategy": "mobile_ios"
+      },
+      "data": {
+        "error": "Impersonating safari15 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari15 is not supported"
+    },
+    {
+      "attempt": 15,
+      "timestamp": "2026-04-23T15:52:33.790653",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-G998B",
+        "os_version": "15",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1440,
+          3120
+        ],
+        "language": "zh",
+        "country": "US",
+        "carrier": "STC",
+        "device_id": "7d8329d60fa494f8",
+        "install_id": "9885de37af654876",
+        "advertising_id": "7c616f1d220e42ba",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_phone",
+          "device_name": "SM-G998B",
+          "os_version": "15",
+          "app_version": "10.18.2",
+          "screen_resolution": [
+            1440,
+            3120
+          ],
+          "language": "zh",
+          "country": "US",
+          "carrier": "STC",
+          "device_id": "7d8329d60fa494f8",
+          "install_id": "9885de37af654876",
+          "advertising_id": "7c616f1d220e42ba",
+          "strategy": "mobile_android"
+        },
+        "impersonate": "chrome107",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 15,
+      "timestamp": "2026-04-23T15:52:35.803789",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-G998B",
+        "os_version": "15",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1440,
+          3120
+        ],
+        "language": "zh",
+        "country": "US",
+        "carrier": "STC",
+        "device_id": "7d8329d60fa494f8",
+        "install_id": "9885de37af654876",
+        "advertising_id": "7c616f1d220e42ba",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 15,
+      "timestamp": "2026-04-23T15:52:35.803789",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-G998B",
+        "os_version": "15",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1440,
+          3120
+        ],
+        "language": "zh",
+        "country": "US",
+        "carrier": "STC",
+        "device_id": "7d8329d60fa494f8",
+        "install_id": "9885de37af654876",
+        "advertising_id": "7c616f1d220e42ba",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 16,
+      "timestamp": "2026-04-23T15:52:49.268694",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Galaxy Tab S9",
+        "os_version": "13",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          1800,
+          2880
+        ],
+        "language": "en",
+        "country": "ES",
+        "carrier": "AT&T",
+        "device_id": "c53c028db6e7c251",
+        "install_id": "7034d39ca84d488a",
+        "advertising_id": "13d1157567074b22",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_tablet",
+          "device_name": "Galaxy Tab S9",
+          "os_version": "13",
+          "app_version": "10.16.1",
+          "screen_resolution": [
+            1800,
+            2880
+          ],
+          "language": "en",
+          "country": "ES",
+          "carrier": "AT&T",
+          "device_id": "c53c028db6e7c251",
+          "install_id": "7034d39ca84d488a",
+          "advertising_id": "13d1157567074b22",
+          "strategy": "mobile_tablet"
+        },
+        "impersonate": "chrome104",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 16,
+      "timestamp": "2026-04-23T15:52:50.782362",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Galaxy Tab S9",
+        "os_version": "13",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          1800,
+          2880
+        ],
+        "language": "en",
+        "country": "ES",
+        "carrier": "AT&T",
+        "device_id": "c53c028db6e7c251",
+        "install_id": "7034d39ca84d488a",
+        "advertising_id": "13d1157567074b22",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 16,
+      "timestamp": "2026-04-23T15:52:50.782362",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Galaxy Tab S9",
+        "os_version": "13",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          1800,
+          2880
+        ],
+        "language": "en",
+        "country": "ES",
+        "carrier": "AT&T",
+        "device_id": "c53c028db6e7c251",
+        "install_id": "7034d39ca84d488a",
+        "advertising_id": "13d1157567074b22",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 17,
+      "timestamp": "2026-04-23T15:52:57.054372",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Mobile Safari",
+        "os_version": "Android 14",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          428,
+          926
+        ],
+        "language": "es",
+        "country": "FR",
+        "carrier": "STC",
+        "device_id": "2fc05d71b914fa74",
+        "install_id": "ecb45895ce544efb",
+        "advertising_id": "12fede47342f4f89",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "mobile_web",
+          "device_name": "Mobile Safari",
+          "os_version": "Android 14",
+          "app_version": "10.15.0",
+          "screen_resolution": [
+            428,
+            926
+          ],
+          "language": "es",
+          "country": "FR",
+          "carrier": "STC",
+          "device_id": "2fc05d71b914fa74",
+          "install_id": "ecb45895ce544efb",
+          "advertising_id": "12fede47342f4f89",
+          "strategy": "mobile_web"
+        },
+        "impersonate": "chrome101",
+        "headers_count": 19
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 17,
+      "timestamp": "2026-04-23T15:52:59.307581",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Mobile Safari",
+        "os_version": "Android 14",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          428,
+          926
+        ],
+        "language": "es",
+        "country": "FR",
+        "carrier": "STC",
+        "device_id": "2fc05d71b914fa74",
+        "install_id": "ecb45895ce544efb",
+        "advertising_id": "12fede47342f4f89",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 17,
+      "timestamp": "2026-04-23T15:52:59.308264",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Mobile Safari",
+        "os_version": "Android 14",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          428,
+          926
+        ],
+        "language": "es",
+        "country": "FR",
+        "carrier": "STC",
+        "device_id": "2fc05d71b914fa74",
+        "install_id": "ecb45895ce544efb",
+        "advertising_id": "12fede47342f4f89",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 18,
+      "timestamp": "2026-04-23T15:53:08.335019",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Surface Pro",
+        "os_version": "15",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          1600,
+          2560
+        ],
+        "language": "ja",
+        "country": "JP",
+        "carrier": "Verizon",
+        "device_id": "521d09e4eaf05fb9",
+        "install_id": "a4f0f3b38acc4504",
+        "advertising_id": "cfc181a6153046ec",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_tablet",
+          "device_name": "Surface Pro",
+          "os_version": "15",
+          "app_version": "10.16.1",
+          "screen_resolution": [
+            1600,
+            2560
+          ],
+          "language": "ja",
+          "country": "JP",
+          "carrier": "Verizon",
+          "device_id": "521d09e4eaf05fb9",
+          "install_id": "a4f0f3b38acc4504",
+          "advertising_id": "cfc181a6153046ec",
+          "strategy": "mobile_tablet"
+        },
+        "impersonate": "chrome107",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 18,
+      "timestamp": "2026-04-23T15:53:10.704449",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Surface Pro",
+        "os_version": "15",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          1600,
+          2560
+        ],
+        "language": "ja",
+        "country": "JP",
+        "carrier": "Verizon",
+        "device_id": "521d09e4eaf05fb9",
+        "install_id": "a4f0f3b38acc4504",
+        "advertising_id": "cfc181a6153046ec",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 18,
+      "timestamp": "2026-04-23T15:53:10.704449",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Surface Pro",
+        "os_version": "15",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          1600,
+          2560
+        ],
+        "language": "ja",
+        "country": "JP",
+        "carrier": "Verizon",
+        "device_id": "521d09e4eaf05fb9",
+        "install_id": "a4f0f3b38acc4504",
+        "advertising_id": "cfc181a6153046ec",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 19,
+      "timestamp": "2026-04-23T15:53:23.327294",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Chrome Mobile",
+        "os_version": "Android 15",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          414,
+          896
+        ],
+        "language": "es",
+        "country": "ES",
+        "carrier": "STC",
+        "device_id": "a4642ad154ab4f0c",
+        "install_id": "f412921005b640e2",
+        "advertising_id": "b0d4933c9fd64783",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "mobile_web",
+          "device_name": "Chrome Mobile",
+          "os_version": "Android 15",
+          "app_version": "10.17.0",
+          "screen_resolution": [
+            414,
+            896
+          ],
+          "language": "es",
+          "country": "ES",
+          "carrier": "STC",
+          "device_id": "a4642ad154ab4f0c",
+          "install_id": "f412921005b640e2",
+          "advertising_id": "b0d4933c9fd64783",
+          "strategy": "mobile_web"
+        },
+        "impersonate": "chrome99",
+        "headers_count": 19
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 19,
+      "timestamp": "2026-04-23T15:53:25.464334",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Chrome Mobile",
+        "os_version": "Android 15",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          414,
+          896
+        ],
+        "language": "es",
+        "country": "ES",
+        "carrier": "STC",
+        "device_id": "a4642ad154ab4f0c",
+        "install_id": "f412921005b640e2",
+        "advertising_id": "b0d4933c9fd64783",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 19,
+      "timestamp": "2026-04-23T15:53:25.464334",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Chrome Mobile",
+        "os_version": "Android 15",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          414,
+          896
+        ],
+        "language": "es",
+        "country": "ES",
+        "carrier": "STC",
+        "device_id": "a4642ad154ab4f0c",
+        "install_id": "f412921005b640e2",
+        "advertising_id": "b0d4933c9fd64783",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 20,
+      "timestamp": "2026-04-23T15:53:39.077756",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "iphone",
+        "device_name": "iPhone14,3",
+        "os_version": "16.6",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          1284,
+          2778
+        ],
+        "language": "zh",
+        "country": "US",
+        "carrier": "T-Mobile",
+        "device_id": "9af30946089868c1",
+        "install_id": "145434c2ccc44207",
+        "advertising_id": "49d8a423efad49d7",
+        "strategy": "mobile_ios"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "iphone",
+          "device_name": "iPhone14,3",
+          "os_version": "16.6",
+          "app_version": "10.16.1",
+          "screen_resolution": [
+            1284,
+            2778
+          ],
+          "language": "zh",
+          "country": "US",
+          "carrier": "T-Mobile",
+          "device_id": "9af30946089868c1",
+          "install_id": "145434c2ccc44207",
+          "advertising_id": "49d8a423efad49d7",
+          "strategy": "mobile_ios"
+        },
+        "impersonate": "safari16",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 20,
+      "timestamp": "2026-04-23T15:53:40.720432",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "iphone",
+        "device_name": "iPhone14,3",
+        "os_version": "16.6",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          1284,
+          2778
+        ],
+        "language": "zh",
+        "country": "US",
+        "carrier": "T-Mobile",
+        "device_id": "9af30946089868c1",
+        "install_id": "145434c2ccc44207",
+        "advertising_id": "49d8a423efad49d7",
+        "strategy": "mobile_ios"
+      },
+      "data": {
+        "error": "Impersonating safari16 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari16 is not supported"
+    },
+    {
+      "attempt": 21,
+      "timestamp": "2026-04-23T15:53:50.274626",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Samsung Browser",
+        "os_version": "Android 15",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          375,
+          667
+        ],
+        "language": "fr",
+        "country": "FR",
+        "carrier": "AT&T",
+        "device_id": "2b527a6dde2c38b6",
+        "install_id": "067712b73c6441ad",
+        "advertising_id": "5b2c6f84960844dc",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "mobile_web",
+          "device_name": "Samsung Browser",
+          "os_version": "Android 15",
+          "app_version": "10.16.1",
+          "screen_resolution": [
+            375,
+            667
+          ],
+          "language": "fr",
+          "country": "FR",
+          "carrier": "AT&T",
+          "device_id": "2b527a6dde2c38b6",
+          "install_id": "067712b73c6441ad",
+          "advertising_id": "5b2c6f84960844dc",
+          "strategy": "mobile_web"
+        },
+        "impersonate": "safari15",
+        "headers_count": 19
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 21,
+      "timestamp": "2026-04-23T15:53:52.043121",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "mobile_web",
+        "device_name": "Samsung Browser",
+        "os_version": "Android 15",
+        "app_version": "10.16.1",
+        "screen_resolution": [
+          375,
+          667
+        ],
+        "language": "fr",
+        "country": "FR",
+        "carrier": "AT&T",
+        "device_id": "2b527a6dde2c38b6",
+        "install_id": "067712b73c6441ad",
+        "advertising_id": "5b2c6f84960844dc",
+        "strategy": "mobile_web"
+      },
+      "data": {
+        "error": "Impersonating safari15 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari15 is not supported"
+    },
+    {
+      "attempt": 22,
+      "timestamp": "2026-04-23T15:53:58.001044",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-S918B",
+        "os_version": "14",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1080,
+          2340
+        ],
+        "language": "en",
+        "country": "CN",
+        "carrier": "Verizon",
+        "device_id": "8561c9104b071f27",
+        "install_id": "6ac2f4d9e5fe4aeb",
+        "advertising_id": "d6a4e381580f406c",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_phone",
+          "device_name": "SM-S918B",
+          "os_version": "14",
+          "app_version": "10.17.0",
+          "screen_resolution": [
+            1080,
+            2340
+          ],
+          "language": "en",
+          "country": "CN",
+          "carrier": "Verizon",
+          "device_id": "8561c9104b071f27",
+          "install_id": "6ac2f4d9e5fe4aeb",
+          "advertising_id": "d6a4e381580f406c",
+          "strategy": "mobile_android"
+        },
+        "impersonate": "chrome101",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 22,
+      "timestamp": "2026-04-23T15:54:00.779059",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-S918B",
+        "os_version": "14",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1080,
+          2340
+        ],
+        "language": "en",
+        "country": "CN",
+        "carrier": "Verizon",
+        "device_id": "8561c9104b071f27",
+        "install_id": "6ac2f4d9e5fe4aeb",
+        "advertising_id": "d6a4e381580f406c",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 22,
+      "timestamp": "2026-04-23T15:54:00.779059",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-S918B",
+        "os_version": "14",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1080,
+          2340
+        ],
+        "language": "en",
+        "country": "CN",
+        "carrier": "Verizon",
+        "device_id": "8561c9104b071f27",
+        "install_id": "6ac2f4d9e5fe4aeb",
+        "advertising_id": "d6a4e381580f406c",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 23,
+      "timestamp": "2026-04-23T15:54:13.372958",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad13,18",
+        "os_version": "16.5",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1640,
+          2360
+        ],
+        "language": "en",
+        "country": "FR",
+        "carrier": "Verizon",
+        "device_id": "a0b8cbbad2753902",
+        "install_id": "3c1aacb5d56b49c5",
+        "advertising_id": "0608865425fa4a21",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "ipad",
+          "device_name": "iPad13,18",
+          "os_version": "16.5",
+          "app_version": "10.15.0",
+          "screen_resolution": [
+            1640,
+            2360
+          ],
+          "language": "en",
+          "country": "FR",
+          "carrier": "Verizon",
+          "device_id": "a0b8cbbad2753902",
+          "install_id": "3c1aacb5d56b49c5",
+          "advertising_id": "0608865425fa4a21",
+          "strategy": "mobile_ipad"
+        },
+        "impersonate": "safari15",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 23,
+      "timestamp": "2026-04-23T15:54:16.073743",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad13,18",
+        "os_version": "16.5",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1640,
+          2360
+        ],
+        "language": "en",
+        "country": "FR",
+        "carrier": "Verizon",
+        "device_id": "a0b8cbbad2753902",
+        "install_id": "3c1aacb5d56b49c5",
+        "advertising_id": "0608865425fa4a21",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "error": "Impersonating safari15 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari15 is not supported"
+    },
+    {
+      "attempt": 24,
+      "timestamp": "2026-04-23T15:54:21.686967",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Galaxy Tab S9",
+        "os_version": "13",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1800,
+          2880
+        ],
+        "language": "es",
+        "country": "JP",
+        "carrier": "T-Mobile",
+        "device_id": "a10c9f3920063571",
+        "install_id": "975df0c0cb0a45ec",
+        "advertising_id": "af1ec194b82e49c5",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_tablet",
+          "device_name": "Galaxy Tab S9",
+          "os_version": "13",
+          "app_version": "10.15.0",
+          "screen_resolution": [
+            1800,
+            2880
+          ],
+          "language": "es",
+          "country": "JP",
+          "carrier": "T-Mobile",
+          "device_id": "a10c9f3920063571",
+          "install_id": "975df0c0cb0a45ec",
+          "advertising_id": "af1ec194b82e49c5",
+          "strategy": "mobile_tablet"
+        },
+        "impersonate": "chrome104",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 24,
+      "timestamp": "2026-04-23T15:54:24.555607",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Galaxy Tab S9",
+        "os_version": "13",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1800,
+          2880
+        ],
+        "language": "es",
+        "country": "JP",
+        "carrier": "T-Mobile",
+        "device_id": "a10c9f3920063571",
+        "install_id": "975df0c0cb0a45ec",
+        "advertising_id": "af1ec194b82e49c5",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 24,
+      "timestamp": "2026-04-23T15:54:24.556915",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Galaxy Tab S9",
+        "os_version": "13",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1800,
+          2880
+        ],
+        "language": "es",
+        "country": "JP",
+        "carrier": "T-Mobile",
+        "device_id": "a10c9f3920063571",
+        "install_id": "975df0c0cb0a45ec",
+        "advertising_id": "af1ec194b82e49c5",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 25,
+      "timestamp": "2026-04-23T15:54:39.272095",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-G998B",
+        "os_version": "13",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1080,
+          2340
+        ],
+        "language": "en",
+        "country": "FR",
+        "carrier": "AT&T",
+        "device_id": "e64c6d5cdaf394b0",
+        "install_id": "f3b5790d060f4e15",
+        "advertising_id": "33afa3d577514084",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_phone",
+          "device_name": "SM-G998B",
+          "os_version": "13",
+          "app_version": "10.15.0",
+          "screen_resolution": [
+            1080,
+            2340
+          ],
+          "language": "en",
+          "country": "FR",
+          "carrier": "AT&T",
+          "device_id": "e64c6d5cdaf394b0",
+          "install_id": "f3b5790d060f4e15",
+          "advertising_id": "33afa3d577514084",
+          "strategy": "mobile_android"
+        },
+        "impersonate": "chrome101",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 25,
+      "timestamp": "2026-04-23T15:54:42.675562",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-G998B",
+        "os_version": "13",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1080,
+          2340
+        ],
+        "language": "en",
+        "country": "FR",
+        "carrier": "AT&T",
+        "device_id": "e64c6d5cdaf394b0",
+        "install_id": "f3b5790d060f4e15",
+        "advertising_id": "33afa3d577514084",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 25,
+      "timestamp": "2026-04-23T15:54:42.676563",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "SM-G998B",
+        "os_version": "13",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1080,
+          2340
+        ],
+        "language": "en",
+        "country": "FR",
+        "carrier": "AT&T",
+        "device_id": "e64c6d5cdaf394b0",
+        "install_id": "f3b5790d060f4e15",
+        "advertising_id": "33afa3d577514084",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 26,
+      "timestamp": "2026-04-23T15:54:51.271831",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad13,18",
+        "os_version": "17.0",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          2048,
+          2732
+        ],
+        "language": "en",
+        "country": "FR",
+        "carrier": "STC",
+        "device_id": "e61397b42edb5733",
+        "install_id": "c624e42c61904489",
+        "advertising_id": "6328e7e166ec4db8",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "ipad",
+          "device_name": "iPad13,18",
+          "os_version": "17.0",
+          "app_version": "10.15.0",
+          "screen_resolution": [
+            2048,
+            2732
+          ],
+          "language": "en",
+          "country": "FR",
+          "carrier": "STC",
+          "device_id": "e61397b42edb5733",
+          "install_id": "c624e42c61904489",
+          "advertising_id": "6328e7e166ec4db8",
+          "strategy": "mobile_ipad"
+        },
+        "impersonate": "safari15",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 26,
+      "timestamp": "2026-04-23T15:54:52.972732",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad13,18",
+        "os_version": "17.0",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          2048,
+          2732
+        ],
+        "language": "en",
+        "country": "FR",
+        "carrier": "STC",
+        "device_id": "e61397b42edb5733",
+        "install_id": "c624e42c61904489",
+        "advertising_id": "6328e7e166ec4db8",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "error": "Impersonating safari15 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari15 is not supported"
+    },
+    {
+      "attempt": 27,
+      "timestamp": "2026-04-23T15:55:00.703733",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Surface Pro",
+        "os_version": "13",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1800,
+          2880
+        ],
+        "language": "es",
+        "country": "JP",
+        "carrier": "Verizon",
+        "device_id": "43497b25f3aefb7e",
+        "install_id": "e260fe282c5c40e2",
+        "advertising_id": "f254e0948ff34fc0",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_tablet",
+          "device_name": "Surface Pro",
+          "os_version": "13",
+          "app_version": "10.17.0",
+          "screen_resolution": [
+            1800,
+            2880
+          ],
+          "language": "es",
+          "country": "JP",
+          "carrier": "Verizon",
+          "device_id": "43497b25f3aefb7e",
+          "install_id": "e260fe282c5c40e2",
+          "advertising_id": "f254e0948ff34fc0",
+          "strategy": "mobile_tablet"
+        },
+        "impersonate": "chrome100",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 27,
+      "timestamp": "2026-04-23T15:55:04.119537",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Surface Pro",
+        "os_version": "13",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1800,
+          2880
+        ],
+        "language": "es",
+        "country": "JP",
+        "carrier": "Verizon",
+        "device_id": "43497b25f3aefb7e",
+        "install_id": "e260fe282c5c40e2",
+        "advertising_id": "f254e0948ff34fc0",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 27,
+      "timestamp": "2026-04-23T15:55:04.119537",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_tablet",
+        "device_name": "Surface Pro",
+        "os_version": "13",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1800,
+          2880
+        ],
+        "language": "es",
+        "country": "JP",
+        "carrier": "Verizon",
+        "device_id": "43497b25f3aefb7e",
+        "install_id": "e260fe282c5c40e2",
+        "advertising_id": "f254e0948ff34fc0",
+        "strategy": "mobile_tablet"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 28,
+      "timestamp": "2026-04-23T15:55:14.489198",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "iphone",
+        "device_name": "iPhone15,2",
+        "os_version": "17.1",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1284,
+          2778
+        ],
+        "language": "zh",
+        "country": "SA",
+        "carrier": "STC",
+        "device_id": "3676a102deab3789",
+        "install_id": "1b38334af5924530",
+        "advertising_id": "c6170aab58d74296",
+        "strategy": "mobile_ios"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "iphone",
+          "device_name": "iPhone15,2",
+          "os_version": "17.1",
+          "app_version": "10.18.2",
+          "screen_resolution": [
+            1284,
+            2778
+          ],
+          "language": "zh",
+          "country": "SA",
+          "carrier": "STC",
+          "device_id": "3676a102deab3789",
+          "install_id": "1b38334af5924530",
+          "advertising_id": "c6170aab58d74296",
+          "strategy": "mobile_ios"
+        },
+        "impersonate": "safari15",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 28,
+      "timestamp": "2026-04-23T15:55:15.582704",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "iphone",
+        "device_name": "iPhone15,2",
+        "os_version": "17.1",
+        "app_version": "10.18.2",
+        "screen_resolution": [
+          1284,
+          2778
+        ],
+        "language": "zh",
+        "country": "SA",
+        "carrier": "STC",
+        "device_id": "3676a102deab3789",
+        "install_id": "1b38334af5924530",
+        "advertising_id": "c6170aab58d74296",
+        "strategy": "mobile_ios"
+      },
+      "data": {
+        "error": "Impersonating safari15 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari15 is not supported"
+    },
+    {
+      "attempt": 29,
+      "timestamp": "2026-04-23T15:55:27.385237",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "OnePlus 11",
+        "os_version": "14",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1080,
+          2400
+        ],
+        "language": "zh",
+        "country": "SA",
+        "carrier": "STC",
+        "device_id": "31eba32d0583883b",
+        "install_id": "1e46cdd1fb954000",
+        "advertising_id": "e6ce4fea0f534695",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "android_phone",
+          "device_name": "OnePlus 11",
+          "os_version": "14",
+          "app_version": "10.17.0",
+          "screen_resolution": [
+            1080,
+            2400
+          ],
+          "language": "zh",
+          "country": "SA",
+          "carrier": "STC",
+          "device_id": "31eba32d0583883b",
+          "install_id": "1e46cdd1fb954000",
+          "advertising_id": "e6ce4fea0f534695",
+          "strategy": "mobile_android"
+        },
+        "impersonate": "chrome107",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 29,
+      "timestamp": "2026-04-23T15:55:30.361535",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "OnePlus 11",
+        "os_version": "14",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1080,
+          2400
+        ],
+        "language": "zh",
+        "country": "SA",
+        "carrier": "STC",
+        "device_id": "31eba32d0583883b",
+        "install_id": "1e46cdd1fb954000",
+        "advertising_id": "e6ce4fea0f534695",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "status": 403,
+        "error": "Failed to activate guest"
+      },
+      "success": false,
+      "error": "Status 403"
+    },
+    {
+      "attempt": 29,
+      "timestamp": "2026-04-23T15:55:30.362536",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "android_phone",
+        "device_name": "OnePlus 11",
+        "os_version": "14",
+        "app_version": "10.17.0",
+        "screen_resolution": [
+          1080,
+          2400
+        ],
+        "language": "zh",
+        "country": "SA",
+        "carrier": "STC",
+        "device_id": "31eba32d0583883b",
+        "install_id": "1e46cdd1fb954000",
+        "advertising_id": "e6ce4fea0f534695",
+        "strategy": "mobile_android"
+      },
+      "data": {
+        "error": "Failed to activate guest: 403"
+      },
+      "success": false,
+      "error": "Failed to activate guest: 403"
+    },
+    {
+      "attempt": 30,
+      "timestamp": "2026-04-23T15:55:36.004382",
+      "step": "mobile_session_init",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad13,18",
+        "os_version": "17.1",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1640,
+          2360
+        ],
+        "language": "ar",
+        "country": "FR",
+        "carrier": "STC",
+        "device_id": "35b76c452261e4d8",
+        "install_id": "e7d81ba81b4741d1",
+        "advertising_id": "1ea01aaf21754e45",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "fingerprint": {
+          "device_type": "ipad",
+          "device_name": "iPad13,18",
+          "os_version": "17.1",
+          "app_version": "10.15.0",
+          "screen_resolution": [
+            1640,
+            2360
+          ],
+          "language": "ar",
+          "country": "FR",
+          "carrier": "STC",
+          "device_id": "35b76c452261e4d8",
+          "install_id": "e7d81ba81b4741d1",
+          "advertising_id": "1ea01aaf21754e45",
+          "strategy": "mobile_ipad"
+        },
+        "impersonate": "safari15",
+        "headers_count": 22
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 30,
+      "timestamp": "2026-04-23T15:55:38.240148",
+      "step": "mobile_guest_token_extract",
+      "fingerprint": {
+        "device_type": "ipad",
+        "device_name": "iPad13,18",
+        "os_version": "17.1",
+        "app_version": "10.15.0",
+        "screen_resolution": [
+          1640,
+          2360
+        ],
+        "language": "ar",
+        "country": "FR",
+        "carrier": "STC",
+        "device_id": "35b76c452261e4d8",
+        "install_id": "e7d81ba81b4741d1",
+        "advertising_id": "1ea01aaf21754e45",
+        "strategy": "mobile_ipad"
+      },
+      "data": {
+        "error": "Impersonating safari15 is not supported"
+      },
+      "success": false,
+      "error": "Impersonating safari15 is not supported"
+    }
+  ],
+  "recommendations": [
+    "Try manual_cookies.py for guaranteed success",
+    "Consider using real mobile device for better results",
+    "Try different mobile carriers/networks"
+  ]
+}

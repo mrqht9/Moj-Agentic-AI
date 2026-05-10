@@ -1,16 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
 <style>
-  .login-tabs { display: flex; gap: 6px; margin-bottom: 18px; }
-  .login-tab {
-    flex: 1; padding: 10px; text-align: center; border-radius: 8px;
-    cursor: pointer; font-size: 14px; font-weight: 600;
-    background: var(--card-bg, #1E2D3D); color: var(--muted, #8B98A5);
-    border: 1px solid var(--border, #38444D); transition: all 0.2s;
-  }
-  .login-tab.active { background: var(--primary, #1D9BF0); color: #fff; border-color: var(--primary, #1D9BF0); }
-  .login-panel { display: none; }
-  .login-panel.active { display: block; }
   .file-zone {
     border: 2px dashed var(--border, #38444D); border-radius: 12px; padding: 28px;
     text-align: center; cursor: pointer; transition: border-color 0.2s; margin-bottom: 14px;
@@ -20,218 +10,62 @@
   .file-zone .fz-icon { font-size: 30px; margin-bottom: 6px; }
   .file-zone .fz-text { color: var(--muted, #8B98A5); font-size: 13px; }
   .file-zone .fz-name { color: var(--primary, #1D9BF0); font-size: 14px; font-weight: 600; margin-top: 6px; }
-  .bulk-progress { height: 6px; background: var(--border, #273340); border-radius: 3px; margin: 12px 0; overflow: hidden; display: none; }
-  .bulk-progress .fill { height: 100%; background: var(--primary, #1D9BF0); border-radius: 3px; transition: width 0.3s; width: 0%; }
-  .bulk-status { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 14px; display: none; text-align: center; line-height: 1.7; }
-  .bulk-status.loading { display: block; background: rgba(29,155,240,0.1); color: var(--primary, #1D9BF0); }
-  .bulk-status.success { display: block; background: rgba(0,186,124,0.1); color: #00BA7C; }
-  .bulk-status.error { display: block; background: rgba(244,33,46,0.1); color: #F4212E; }
-  .bulk-results { margin-top: 16px; }
-  .bulk-results .acc-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 12px; border-radius: 8px; margin-bottom: 4px; font-size: 13px;
-    background: var(--card-bg, #1E2D3D);
-  }
-  .acc-row .user { font-weight: 600; color: var(--primary, #1D9BF0); }
-  .acc-row .badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-  .acc-row .badge.ok { background: rgba(0,186,124,0.15); color: #00BA7C; }
-  .acc-row .badge.fail { background: rgba(244,33,46,0.15); color: #F4212E; }
-  .spinner-inline {
-    display: inline-block; width: 14px; height: 14px;
-    border: 2px solid var(--primary, #1D9BF0); border-top-color: transparent;
-    border-radius: 50%; animation: spin-bulk 0.8s linear infinite; vertical-align: middle; margin-left: 4px;
-  }
-  @keyframes spin-bulk { to { transform: rotate(360deg); } }
 </style>
 
   <div class="grid">
     <div class="card" style="grid-column: span 7">
-      <h3>تسجيل دخول X وحفظ الكوكيز</h3>
+      <h3>رفع كوكيز حساب X</h3>
 
-      <div class="login-tabs">
-        <div class="login-tab active" onclick="switchLoginTab('single', this)">حساب واحد</div>
-        <div class="login-tab" onclick="switchLoginTab('bulk', this)">عدة حسابات (CSV)</div>
-      </div>
+      <form method="POST" action="{{ url_for('login_page') }}" enctype="multipart/form-data" class="form" id="uploadForm">
+        <div class="field">
+          <label>اسم الحساب (اختياري — إذا لم يُحدد يُستخدم اسم الملف)</label>
+          <input class="input" name="label" placeholder="مثال: Ga6rsah" />
+        </div>
 
-      <!-- حساب واحد -->
-      <div class="login-panel active" id="panel-single">
-        <form method="POST" action="{{ url_for('login_page') }}" class="form">
-          <div class="field half">
-            <label>Label (اسم الحفظ)</label>
-            <input class="input" name="label" placeholder="acc1" required />
-          </div>
-          <div class="field half">
-            <label>Headless</label>
-            <select name="headless">
-              <option value="0">No</option>
-              <option value="1">Yes</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Username / Email</label>
-            <input class="input" name="username" required />
-          </div>
-          <div class="field">
-            <label>Password</label>
-            <input class="input" type="password" name="password" required />
-          </div>
-          <div class="field">
-            <button class="btn primary" type="submit">بدء تسجيل الدخول</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- عدة حسابات -->
-      <div class="login-panel" id="panel-bulk">
-        <div class="file-zone" id="fileZone" onclick="document.getElementById('csvFile').click()">
-          <input type="file" id="csvFile" accept=".csv,.txt">
-          <div class="fz-icon">📄</div>
-          <div class="fz-text">اضغط أو اسحب ملف CSV هنا</div>
+        <div class="file-zone" id="fileZone" onclick="document.getElementById('cookieFile').click()">
+          <input type="file" id="cookieFile" name="cookie_file" accept=".json">
+          <div class="fz-icon">🍪</div>
+          <div class="fz-text">اضغط أو اسحب ملف كوكيز (JSON) هنا</div>
           <div class="fz-name" id="fileName"></div>
         </div>
-        <div style="color:var(--muted);font-size:12px;text-align:center;margin-bottom:14px">
-          صيغة الملف: <code>username,password</code> أو <code>username,password,label</code> (سطر لكل حساب)
+
+        <div class="field">
+          <button class="btn primary" type="submit" id="submitBtn" disabled style="width:100%">رفع وحفظ الكوكيز</button>
         </div>
-        <button class="btn primary" id="bulkBtn" onclick="startBulkLogin()" disabled style="width:100%">بدء تسجيل الدخول</button>
-        <div class="bulk-progress" id="bulkProgress"><div class="fill" id="bulkFill"></div></div>
-        <div class="bulk-status" id="bulkStatus"></div>
-        <div class="bulk-results" id="bulkResults"></div>
-      </div>
+      </form>
     </div>
 
     <div class="card" style="grid-column: span 5">
       <h3>ملاحظات</h3>
       <ul style="margin:0;padding-right:18px;line-height:1.9;color:var(--muted);font-size:13px">
-        <li>سيتم حفظ الكوكيز في <code>cookies/&lt;label&gt;.json</code></li>
-        <li>يمكن لاحقاً اختيار نفس الكوكيز للنشر أو تعديل البروفايل</li>
-        <li>تسجيل الدخول يتم عبر API مباشر — بدون متصفح</li>
-        <li>لتسجيل عدة حسابات: ارفع ملف CSV بصيغة:<br><code>username,password</code></li>
+        <li>ارفق ملف كوكيز JSON مُصدَّر من المتصفح</li>
+        <li>اسم الحساب يُؤخذ من حقل "اسم الحساب" أو من اسم الملف المرفوع</li>
+        <li>سيتم تحويل الكوكيز تلقائياً لصيغة Playwright</li>
+        <li>يجب أن يحتوي الملف على <code>auth_token</code></li>
+        <li>سيتم حفظ الكوكيز في <code>cookies/&lt;اسم_الحساب&gt;.json</code></li>
+        <li>يمكن لاحقاً اختيار الحساب للنشر أو تعديل البروفايل</li>
       </ul>
     </div>
   </div>
 
 <script>
-function switchLoginTab(tab, el) {
-  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.login-panel').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('panel-' + tab).classList.add('active');
-}
-
-// CSV Upload
-let csvAccountCount = 0;
-const csvFile = document.getElementById('csvFile');
+const cookieFile = document.getElementById('cookieFile');
 const fileZone = document.getElementById('fileZone');
+const submitBtn = document.getElementById('submitBtn');
 
-csvFile.addEventListener('change', function(e) {
+cookieFile.addEventListener('change', function(e) {
   const file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    const lines = ev.target.result.trim().split('\n');
-    csvAccountCount = 0;
-    lines.forEach(function(line) {
-      line = line.trim();
-      if (!line || line.toLowerCase().startsWith('username')) return;
-      const parts = line.split(',');
-      if (parts.length >= 2 && parts[0].trim() && parts[1].trim()) csvAccountCount++;
-    });
-    document.getElementById('fileName').textContent = file.name + ' (' + csvAccountCount + ' حساب)';
-    document.getElementById('bulkBtn').disabled = (csvAccountCount === 0);
-  };
-  reader.readAsText(file);
+  document.getElementById('fileName').textContent = file.name;
+  submitBtn.disabled = false;
 });
 
 fileZone.addEventListener('dragover', function(e) { e.preventDefault(); fileZone.classList.add('dragover'); });
 fileZone.addEventListener('dragleave', function() { fileZone.classList.remove('dragover'); });
 fileZone.addEventListener('drop', function(e) {
   e.preventDefault(); fileZone.classList.remove('dragover');
-  csvFile.files = e.dataTransfer.files;
-  csvFile.dispatchEvent(new Event('change'));
+  cookieFile.files = e.dataTransfer.files;
+  cookieFile.dispatchEvent(new Event('change'));
 });
-
-// Bulk Login
-function startBulkLogin() {
-  if (csvAccountCount === 0) return;
-  var btn = document.getElementById('bulkBtn');
-  var status = document.getElementById('bulkStatus');
-  var bar = document.getElementById('bulkProgress');
-  var fill = document.getElementById('bulkFill');
-  var results = document.getElementById('bulkResults');
-
-  btn.disabled = true;
-  bar.style.display = 'block';
-  fill.style.width = '0%';
-  status.className = 'bulk-status loading';
-  status.innerHTML = '<span class="spinner-inline"></span> جاري تسجيل ' + csvAccountCount + ' حساب...';
-  results.innerHTML = '';
-
-  var formData = new FormData();
-  formData.append('csv_file', csvFile.files[0]);
-
-  fetch('{{ url_for("login_bulk_page") }}', { method: 'POST', body: formData })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.success && data.task_id) {
-        pollBulkTask(data.task_id);
-      } else {
-        status.className = 'bulk-status error';
-        status.innerHTML = '✗ ' + (data.error || 'فشل بدء المهمة');
-        btn.disabled = false;
-      }
-    })
-    .catch(function(err) {
-      status.className = 'bulk-status error';
-      status.innerHTML = '✗ خطأ: ' + err.message;
-      btn.disabled = false;
-    });
-}
-
-function pollBulkTask(taskId) {
-  var status = document.getElementById('bulkStatus');
-  var fill = document.getElementById('bulkFill');
-  var btn = document.getElementById('bulkBtn');
-  var resultsEl = document.getElementById('bulkResults');
-
-  var interval = setInterval(function() {
-    fetch('/x-login-bulk-status/' + taskId)
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        var pct = data.total > 0 ? Math.round((data.done / data.total) * 100) : 0;
-        fill.style.width = pct + '%';
-        status.className = 'bulk-status loading';
-        status.innerHTML = '<span class="spinner-inline"></span> ' + data.done + '/' + data.total +
-          ' (' + data.success + ' نجح، ' + data.failed + ' فشل)';
-
-        // عرض النتائج الحالية
-        var html = '';
-        if (data.results && data.results.length > 0) {
-          data.results.forEach(function(r) {
-            html += '<div class="acc-row"><span class="user">@' + r.username + '</span>';
-            if (r.success) {
-              html += '<span class="badge ok">✓ نجح</span>';
-            } else {
-              html += '<span class="badge fail">✗ فشل</span>';
-            }
-            html += '</div>';
-          });
-        }
-        resultsEl.innerHTML = html;
-
-        if (data.finished) {
-          clearInterval(interval);
-          if (data.failed === 0) {
-            status.className = 'bulk-status success';
-            status.innerHTML = '✓ تم تسجيل ' + data.success + ' حساب بنجاح!';
-          } else {
-            status.className = (data.success > 0) ? 'bulk-status success' : 'bulk-status error';
-            status.innerHTML = 'نجح: ' + data.success + ' | فشل: ' + data.failed;
-          }
-          btn.disabled = false;
-        }
-      })
-      .catch(function() {});
-  }, 2000);
-}
 </script>
 {% endblock %}
