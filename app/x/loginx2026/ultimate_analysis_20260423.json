@@ -1,0 +1,1066 @@
+{
+  "attempt": 1,
+  "timestamp": "2026-04-23T16:12:44.144722",
+  "method": "curl_cffi",
+  "step": "session_init",
+  "data": {
+    "version": "120",
+    "headers_count": 14
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 1,
+  "timestamp": "2026-04-23T16:12:44.604311",
+  "method": "curl_cffi",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 1,
+  "timestamp": "2026-04-23T16:12:47.744904",
+  "method": "manual",
+  "step": "allx_api_error",
+  "data": {
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=4527): Max retries exceeded with url: /api/accounts/login (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=4527): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 1,
+  "timestamp": "2026-04-23T16:12:47.943649",
+  "method": "manual",
+  "step": "manual_cookies",
+  "data": {
+    "status": "failed"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 1,
+  "timestamp": "2026-04-23T16:12:51.092081",
+  "method": "playwright",
+  "step": "session_init",
+  "data": {
+    "browser": "chromium"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 1,
+  "timestamp": "2026-04-23T16:13:21.511512",
+  "method": "playwright",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 1,
+  "timestamp": "2026-04-23T16:13:23.149101",
+  "method": "httpx",
+  "step": "session_init",
+  "data": {
+    "http2_enabled": true
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 1,
+  "timestamp": "2026-04-23T16:13:23.505113",
+  "method": "httpx",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 1,
+  "timestamp": "2026-04-23T16:13:26.545934",
+  "method": "selenium",
+  "step": "session_init",
+  "data": {
+    "browser": "chrome"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 1,
+  "timestamp": "2026-04-23T16:13:54.492919",
+  "method": "selenium",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 2,
+  "timestamp": "2026-04-23T16:14:08.640833",
+  "method": "httpx",
+  "step": "session_init",
+  "data": {
+    "http2_enabled": true
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 2,
+  "timestamp": "2026-04-23T16:14:09.039382",
+  "method": "httpx",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 2,
+  "timestamp": "2026-04-23T16:14:11.768528",
+  "method": "curl_cffi",
+  "step": "session_init",
+  "data": {
+    "version": "123",
+    "headers_count": 14
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 2,
+  "timestamp": "2026-04-23T16:14:12.165436",
+  "method": "curl_cffi",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 2,
+  "timestamp": "2026-04-23T16:14:15.027360",
+  "method": "selenium",
+  "step": "session_init",
+  "data": {
+    "browser": "chrome"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 2,
+  "timestamp": "2026-04-23T16:14:43.619974",
+  "method": "selenium",
+  "step": "login_error",
+  "data": {
+    "error": "Message: \nStacktrace:\n\tchromedriver!GetHandleVerifier [0x7ff7f0b4a8e5+14e45]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b4a950+14eb0]\n\tchromedriver!(No symbol) [0x7ff7f08bd6ed]\n\tchromedriver!(No symbol) [0x7ff7f0916cfe]\n\tchromedriver!(No symbol) [0x7ff7f091700c]\n\tchromedriver!(No symbol) [0x7ff7f0967cb7]\n\tchromedriver!(No symbol) [0x7ff7f096483b]\n\tchromedriver!(No symbol) [0x7ff7f09090e8]\n\tchromedriver!(No symbol) [0x7ff7f0909fc3]\n\tchromedriver!GetHandleVerifier [0x7ff7f0e60149+32a6a9]\n\tchromedriver!GetHandleVerifier [0x7ff7f0e5a715+324c75]\n\tchromedriver!GetHandleVerifier [0x7ff7f0e7c012+346572]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b67cb5+32215]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b7087c+3addc]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b540e4+1e644]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b54296+1e7f6]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b38737+2c97]\n\tKERNEL32!BaseThreadInitThunk [0x7ffe2da2e8d7+17]\n\tntdll!RtlUserThreadStart [0x7ffe2ec4c3fc+2c]\n"
+  },
+  "success": false,
+  "error": "Message: \nStacktrace:\n\tchromedriver!GetHandleVerifier [0x7ff7f0b4a8e5+14e45]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b4a950+14eb0]\n\tchromedriver!(No symbol) [0x7ff7f08bd6ed]\n\tchromedriver!(No symbol) [0x7ff7f0916cfe]\n\tchromedriver!(No symbol) [0x7ff7f091700c]\n\tchromedriver!(No symbol) [0x7ff7f0967cb7]\n\tchromedriver!(No symbol) [0x7ff7f096483b]\n\tchromedriver!(No symbol) [0x7ff7f09090e8]\n\tchromedriver!(No symbol) [0x7ff7f0909fc3]\n\tchromedriver!GetHandleVerifier [0x7ff7f0e60149+32a6a9]\n\tchromedriver!GetHandleVerifier [0x7ff7f0e5a715+324c75]\n\tchromedriver!GetHandleVerifier [0x7ff7f0e7c012+346572]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b67cb5+32215]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b7087c+3addc]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b540e4+1e644]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b54296+1e7f6]\n\tchromedriver!GetHandleVerifier [0x7ff7f0b38737+2c97]\n\tKERNEL32!BaseThreadInitThunk [0x7ffe2da2e8d7+17]\n\tntdll!RtlUserThreadStart [0x7ffe2ec4c3fc+2c]\n"
+}
+{
+  "attempt": 2,
+  "timestamp": "2026-04-23T16:14:47.749457",
+  "method": "playwright",
+  "step": "session_init",
+  "data": {
+    "browser": "chromium"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 2,
+  "timestamp": "2026-04-23T16:15:16.288206",
+  "method": "playwright",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 2,
+  "timestamp": "2026-04-23T16:15:20.860535",
+  "method": "manual",
+  "step": "allx_api_error",
+  "data": {
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=4527): Max retries exceeded with url: /api/accounts/login (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=4527): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 2,
+  "timestamp": "2026-04-23T16:15:21.062535",
+  "method": "manual",
+  "step": "manual_cookies",
+  "data": {
+    "status": "failed"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 3,
+  "timestamp": "2026-04-23T16:15:33.087881",
+  "method": "playwright",
+  "step": "session_init",
+  "data": {
+    "browser": "chromium"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 3,
+  "timestamp": "2026-04-23T16:16:01.414470",
+  "method": "playwright",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 3,
+  "timestamp": "2026-04-23T16:16:05.045033",
+  "method": "selenium",
+  "step": "session_init",
+  "data": {
+    "browser": "chrome"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 3,
+  "timestamp": "2026-04-23T16:16:44.374675",
+  "method": "selenium",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 3,
+  "timestamp": "2026-04-23T16:16:48.925341",
+  "method": "httpx",
+  "step": "session_init",
+  "data": {
+    "http2_enabled": true
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 3,
+  "timestamp": "2026-04-23T16:16:49.315581",
+  "method": "httpx",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 3,
+  "timestamp": "2026-04-23T16:16:52.511028",
+  "method": "manual",
+  "step": "allx_api_error",
+  "data": {
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=4527): Max retries exceeded with url: /api/accounts/login (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=4527): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 3,
+  "timestamp": "2026-04-23T16:16:52.721762",
+  "method": "manual",
+  "step": "manual_cookies",
+  "data": {
+    "status": "failed"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 3,
+  "timestamp": "2026-04-23T16:16:55.338689",
+  "method": "curl_cffi",
+  "step": "session_init",
+  "data": {
+    "version": "124",
+    "headers_count": 14
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 3,
+  "timestamp": "2026-04-23T16:16:55.770284",
+  "method": "curl_cffi",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 4,
+  "timestamp": "2026-04-23T16:17:04.756940",
+  "method": "selenium",
+  "step": "session_init",
+  "data": {
+    "browser": "chrome"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 4,
+  "timestamp": "2026-04-23T16:17:32.307116",
+  "method": "selenium",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 4,
+  "timestamp": "2026-04-23T16:17:37.510624",
+  "method": "playwright",
+  "step": "session_init",
+  "data": {
+    "browser": "chromium"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 4,
+  "timestamp": "2026-04-23T16:18:05.501634",
+  "method": "playwright",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 4,
+  "timestamp": "2026-04-23T16:18:06.646034",
+  "method": "curl_cffi",
+  "step": "session_init",
+  "data": {
+    "version": "123",
+    "headers_count": 14
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 4,
+  "timestamp": "2026-04-23T16:18:07.140235",
+  "method": "curl_cffi",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 4,
+  "timestamp": "2026-04-23T16:18:11.964107",
+  "method": "manual",
+  "step": "allx_api_error",
+  "data": {
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=4527): Max retries exceeded with url: /api/accounts/login (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=4527): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 4,
+  "timestamp": "2026-04-23T16:18:12.164217",
+  "method": "manual",
+  "step": "manual_cookies",
+  "data": {
+    "status": "failed"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 4,
+  "timestamp": "2026-04-23T16:18:15.202762",
+  "method": "httpx",
+  "step": "session_init",
+  "data": {
+    "http2_enabled": true
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 4,
+  "timestamp": "2026-04-23T16:18:15.551136",
+  "method": "httpx",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 5,
+  "timestamp": "2026-04-23T16:18:26.380106",
+  "method": "httpx",
+  "step": "session_init",
+  "data": {
+    "http2_enabled": true
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 5,
+  "timestamp": "2026-04-23T16:18:26.756838",
+  "method": "httpx",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 5,
+  "timestamp": "2026-04-23T16:18:28.739903",
+  "method": "playwright",
+  "step": "session_init",
+  "data": {
+    "browser": "chromium"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 5,
+  "timestamp": "2026-04-23T16:18:56.993325",
+  "method": "playwright",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 5,
+  "timestamp": "2026-04-23T16:19:00.029731",
+  "method": "curl_cffi",
+  "step": "session_init",
+  "data": {
+    "version": "123",
+    "headers_count": 14
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 5,
+  "timestamp": "2026-04-23T16:19:00.432101",
+  "method": "curl_cffi",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 5,
+  "timestamp": "2026-04-23T16:19:02.806819",
+  "method": "selenium",
+  "step": "session_init",
+  "data": {
+    "browser": "chrome"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 5,
+  "timestamp": "2026-04-23T16:19:30.591595",
+  "method": "selenium",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 5,
+  "timestamp": "2026-04-23T16:19:37.549617",
+  "method": "manual",
+  "step": "allx_api_error",
+  "data": {
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=4527): Max retries exceeded with url: /api/accounts/login (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=4527): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 5,
+  "timestamp": "2026-04-23T16:19:37.745865",
+  "method": "manual",
+  "step": "manual_cookies",
+  "data": {
+    "status": "failed"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 6,
+  "timestamp": "2026-04-23T16:19:52.835322",
+  "method": "playwright",
+  "step": "session_init",
+  "data": {
+    "browser": "chromium"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 6,
+  "timestamp": "2026-04-23T16:20:21.410070",
+  "method": "playwright",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 6,
+  "timestamp": "2026-04-23T16:20:23.094841",
+  "method": "httpx",
+  "step": "session_init",
+  "data": {
+    "http2_enabled": true
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 6,
+  "timestamp": "2026-04-23T16:20:23.582603",
+  "method": "httpx",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 6,
+  "timestamp": "2026-04-23T16:20:27.037404",
+  "method": "selenium",
+  "step": "session_init",
+  "data": {
+    "browser": "chrome"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 6,
+  "timestamp": "2026-04-23T16:20:55.976536",
+  "method": "selenium",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 6,
+  "timestamp": "2026-04-23T16:21:00.632683",
+  "method": "curl_cffi",
+  "step": "session_init",
+  "data": {
+    "version": "100",
+    "headers_count": 14
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 6,
+  "timestamp": "2026-04-23T16:21:01.049240",
+  "method": "curl_cffi",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 6,
+  "timestamp": "2026-04-23T16:21:04.676768",
+  "method": "manual",
+  "step": "allx_api_error",
+  "data": {
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=4527): Max retries exceeded with url: /api/accounts/login (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=4527): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 6,
+  "timestamp": "2026-04-23T16:21:04.873671",
+  "method": "manual",
+  "step": "manual_cookies",
+  "data": {
+    "status": "failed"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 7,
+  "timestamp": "2026-04-23T16:21:18.967703",
+  "method": "httpx",
+  "step": "session_init",
+  "data": {
+    "http2_enabled": true
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 7,
+  "timestamp": "2026-04-23T16:21:19.312849",
+  "method": "httpx",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 7,
+  "timestamp": "2026-04-23T16:21:21.873523",
+  "method": "selenium",
+  "step": "session_init",
+  "data": {
+    "browser": "chrome"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 7,
+  "timestamp": "2026-04-23T16:21:49.227736",
+  "method": "selenium",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 7,
+  "timestamp": "2026-04-23T16:21:55.841238",
+  "method": "manual",
+  "step": "allx_api_error",
+  "data": {
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=4527): Max retries exceeded with url: /api/accounts/login (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=4527): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 7,
+  "timestamp": "2026-04-23T16:21:56.042928",
+  "method": "manual",
+  "step": "manual_cookies",
+  "data": {
+    "status": "failed"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 7,
+  "timestamp": "2026-04-23T16:21:57.130597",
+  "method": "curl_cffi",
+  "step": "session_init",
+  "data": {
+    "version": "104",
+    "headers_count": 14
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 7,
+  "timestamp": "2026-04-23T16:21:57.511410",
+  "method": "curl_cffi",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 7,
+  "timestamp": "2026-04-23T16:22:00.695703",
+  "method": "playwright",
+  "step": "session_init",
+  "data": {
+    "browser": "chromium"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 7,
+  "timestamp": "2026-04-23T16:22:28.962720",
+  "method": "playwright",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 8,
+  "timestamp": "2026-04-23T16:22:37.405366",
+  "method": "playwright",
+  "step": "session_init",
+  "data": {
+    "browser": "chromium"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 8,
+  "timestamp": "2026-04-23T16:23:05.555387",
+  "method": "playwright",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 8,
+  "timestamp": "2026-04-23T16:23:07.234029",
+  "method": "httpx",
+  "step": "session_init",
+  "data": {
+    "http2_enabled": true
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 8,
+  "timestamp": "2026-04-23T16:23:07.595284",
+  "method": "httpx",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 8,
+  "timestamp": "2026-04-23T16:23:09.276379",
+  "method": "curl_cffi",
+  "step": "session_init",
+  "data": {
+    "version": "104",
+    "headers_count": 14
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 8,
+  "timestamp": "2026-04-23T16:23:09.688734",
+  "method": "curl_cffi",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 8,
+  "timestamp": "2026-04-23T16:23:12.425827",
+  "method": "selenium",
+  "step": "session_init",
+  "data": {
+    "browser": "chrome"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 8,
+  "timestamp": "2026-04-23T16:23:40.297293",
+  "method": "selenium",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 8,
+  "timestamp": "2026-04-23T16:23:46.509037",
+  "method": "manual",
+  "step": "allx_api_error",
+  "data": {
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=4527): Max retries exceeded with url: /api/accounts/login (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=4527): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 8,
+  "timestamp": "2026-04-23T16:23:46.704431",
+  "method": "manual",
+  "step": "manual_cookies",
+  "data": {
+    "status": "failed"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 9,
+  "timestamp": "2026-04-23T16:23:58.889864",
+  "method": "curl_cffi",
+  "step": "session_init",
+  "data": {
+    "version": "124",
+    "headers_count": 14
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 9,
+  "timestamp": "2026-04-23T16:23:59.276390",
+  "method": "curl_cffi",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 9,
+  "timestamp": "2026-04-23T16:24:02.971430",
+  "method": "playwright",
+  "step": "session_init",
+  "data": {
+    "browser": "chromium"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 9,
+  "timestamp": "2026-04-23T16:24:31.003048",
+  "method": "playwright",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 9,
+  "timestamp": "2026-04-23T16:24:36.059048",
+  "method": "manual",
+  "step": "allx_api_error",
+  "data": {
+    "error": "HTTPConnectionPool(host='127.0.0.1', port=4527): Max retries exceeded with url: /api/accounts/login (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=4527): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 9,
+  "timestamp": "2026-04-23T16:24:36.269777",
+  "method": "manual",
+  "step": "manual_cookies",
+  "data": {
+    "status": "failed"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 9,
+  "timestamp": "2026-04-23T16:24:38.026649",
+  "method": "httpx",
+  "step": "session_init",
+  "data": {
+    "http2_enabled": true
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 9,
+  "timestamp": "2026-04-23T16:24:38.597006",
+  "method": "httpx",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}
+{
+  "attempt": 9,
+  "timestamp": "2026-04-23T16:24:40.895993",
+  "method": "selenium",
+  "step": "session_init",
+  "data": {
+    "browser": "chrome"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 9,
+  "timestamp": "2026-04-23T16:25:09.265104",
+  "method": "selenium",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 10,
+  "timestamp": "2026-04-23T16:25:22.392233",
+  "method": "selenium",
+  "step": "session_init",
+  "data": {
+    "browser": "chrome"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 10,
+  "timestamp": "2026-04-23T16:25:51.402893",
+  "method": "selenium",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 10,
+  "timestamp": "2026-04-23T16:25:57.415153",
+  "method": "playwright",
+  "step": "session_init",
+  "data": {
+    "browser": "chromium"
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 10,
+  "timestamp": "2026-04-23T16:26:10.146599",
+  "method": "playwright",
+  "step": "login_failed",
+  "data": {
+    "reason": "password_field_not_found"
+  },
+  "success": false,
+  "error": null
+}
+{
+  "attempt": 10,
+  "timestamp": "2026-04-23T16:26:11.797604",
+  "method": "curl_cffi",
+  "step": "session_init",
+  "data": {
+    "version": "120",
+    "headers_count": 14
+  },
+  "success": true,
+  "error": null
+}
+{
+  "attempt": 10,
+  "timestamp": "2026-04-23T16:26:12.179090",
+  "method": "curl_cffi",
+  "step": "guest_token",
+  "data": {
+    "status": 403
+  },
+  "success": false,
+  "error": "Status 403"
+}

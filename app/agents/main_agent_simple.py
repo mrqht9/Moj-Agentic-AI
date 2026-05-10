@@ -94,7 +94,7 @@ class MainAgent:
                         "conversation_id": conversation_id
                     }
             
-            elif platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post", "delete_post"]:
+            elif platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post", "delete_post", "remove_account", "update_profile", "like_post", "repost", "share_post", "follow_user", "unfollow_user", "reply_to_comment", "bookmark_post"]:
                 context = {
                     "intent": intent,
                     "entities": entities,
@@ -179,7 +179,7 @@ class MainAgent:
                 }
             
             elif intent == "greeting":
-                greeting_msg = "مرحباً! 👋 أنا هنا لمساعدتك في إدارة حساباتك على منصات التواصل الاجتماعي. كيف يمكنني مساعدتك اليوم؟"
+                greeting_msg = "مرحباً! 👋 أنا **موج**، مساعدك الذكي لإدارة حساباتك على منصات التواصل الاجتماعي.\n\nيمكنني مساعدتك في:\n📎 رفع كوكيز وإضافة حسابات X\n✍️ نشر تغريدات وإعادة نشر\n❤️ إعجاب ومتابعة وحفظ\n💬 الرد على التغريدات\n📊 متابعة الترندات\n🗑️ حذف تغريدات وحسابات\n\nكيف يمكنني مساعدتك اليوم؟"
                 
                 if db and conversation_id:
                     try:

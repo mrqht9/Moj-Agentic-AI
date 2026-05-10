@@ -6,8 +6,10 @@ Tools for AI Agents
 """
 
 import sys
+import json
+import time
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from app.utils.secure_logger import get_secure_logger
@@ -19,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from app.services.intent_service import intent_service
 from app.services import x_bridge
 from app.x.modules.utils import safe_label
+from app.api.x_routes import _convert_to_playwright_format
 
 # مسار حفظ الكوكيز
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,25 +46,42 @@ def detect_user_intent(text: str) -> Dict[str, Any]:
     return result.to_dict()
 
 
-def _x_login_sync(username: str, password: str, label: str, headless: bool = True, user_id: Optional[int] = None) -> Dict[str, Any]:
-    """تسجيل الدخول عبر API سيرفر app/x"""
+def _x_save_cookies_sync(cookies_data: Union[str, dict, list], label: str, user_id: Optional[int] = None) -> Dict[str, Any]:
+    """حفظ كوكيز حساب X مباشرة (بدون تسجيل دخول)"""
     try:
-        safe_username = safe_label(username)
-        print(f"[Tools] تسجيل دخول عبر API: label={safe_username}, username={username}")
-
-        result = x_bridge.login(
-            label=safe_username,
-            username=username,
-            password=password,
-            headless=headless,
-        )
-
-        if not result.get("success"):
-            error = result.get("message") or result.get("error", "خطأ غير معروف")
-            return {"success": False, "message": f"فشل تسجيل الدخول: {error}"}
-
-        cookie_filename = result.get("filename", f"{safe_username}.json")
-
+        account_name = safe_label(label)
+        if not account_name:
+            return {"success": False, "message": "اسم الحساب فارغ"}
+        
+        print(f"[Tools] حفظ كوكيز حساب: {account_name}")
+        
+        # تحويل من JSON string إذا لزم الأمر
+        if isinstance(cookies_data, str):
+            cookies_data = json.loads(cookies_data)
+        
+        # تحويل إلى صيغة Playwright
+        playwright_data = _convert_to_playwright_format(cookies_data)
+        
+        # التحقق من وجود auth_token
+        cookie_names = {c['name'] for c in playwright_data.get('cookies', [])}
+        if 'auth_token' not in cookie_names:
+            return {"success": False, "message": "ملف الكوكيز لا يحتوي على auth_token — تأكد أن الكوكيز صالحة"}
+        
+        # حفظ الملف
+        dst = COOKIES_DIR / f"{account_name}.json"
+        with open(dst, 'w', encoding='utf-8') as f:
+            json.dump(playwright_data, f, ensure_ascii=False, indent=2)
+        
+        cookie_filename = dst.name
+        
+        # تسجيل في قاعدة بيانات X Suite
+        try:
+            from app.x.modules.db import upsert_cookie
+            upsert_cookie(account_name, cookie_filename)
+            print(f"[Tools] ✅ تم تسجيل '{account_name}' في X Suite DB")
+        except Exception as e:
+            print(f"[Tools] ⚠️ فشل تسجيل في X Suite DB: {e}")
+        
         # حفظ في قاعدة البيانات إذا كان user_id متوفراً
         if user_id:
             try:
@@ -72,7 +92,7 @@ def _x_login_sync(username: str, password: str, label: str, headless: bool = Tru
                 db = SessionLocal()
                 try:
                     existing = account_service.get_account_by_username(
-                        db=db, user_id=user_id, platform="x", username=username
+                        db=db, user_id=user_id, platform="x", username=account_name
                     )
                     if existing:
                         account_service.update_account(
@@ -83,22 +103,24 @@ def _x_login_sync(username: str, password: str, label: str, headless: bool = Tru
                     else:
                         account_service.create_account(
                             db=db, user_id=user_id, platform="x",
-                            username=username, display_name=username,
-                            account_label=username, cookie_filename=cookie_filename
+                            username=account_name, display_name=account_name,
+                            account_label=account_name, cookie_filename=cookie_filename
                         )
                 finally:
                     db.close()
             except Exception as e:
                 print(f"[ERROR] Failed to save account to database: {e}")
-
+        
         return {
             "success": True,
-            "message": f"تم تسجيل الدخول بنجاح وحفظ الحساب باسم '{username}'",
-            "label": username,
+            "message": f"تم حفظ كوكيز الحساب '{account_name}' بنجاح",
+            "label": account_name,
             "filename": cookie_filename
         }
+    except json.JSONDecodeError:
+        return {"success": False, "message": "الكوكيز المقدمة ليست بصيغة JSON صالحة"}
     except Exception as e:
-        return {"success": False, "message": f"فشل تسجيل الدخول: {str(e)}"}
+        return {"success": False, "message": f"فشل حفظ الكوكيز: {str(e)}"}
 
 
 def x_delete_account(account_name: str, user_id: Optional[int] = None) -> Dict[str, Any]:
@@ -192,43 +214,36 @@ def x_delete_account(account_name: str, user_id: Optional[int] = None) -> Dict[s
         }
 
 
-def x_login(username: str, password: str, label: str, headless: bool = True, user_id: Optional[int] = None) -> Dict[str, Any]:
+def x_upload_cookies(cookies_data: Union[str, dict, list], label: str, user_id: Optional[int] = None) -> Dict[str, Any]:
     """
-    تسجيل الدخول إلى منصة X (Twitter)
+    حفظ كوكيز حساب X (بدلاً من تسجيل الدخول بالباسورد)
     
     Args:
-        username: اسم المستخدم
-        password: كلمة المرور
+        cookies_data: بيانات الكوكيز (JSON string أو dict أو list)
         label: اسم الحساب للحفظ
-        headless: تشغيل المتصفح في الخلفية
         user_id: معرف المستخدم (لحفظ في قاعدة البيانات)
         
     Returns:
-        نتيجة عملية تسجيل الدخول
+        نتيجة عملية الحفظ
     """
     try:
-        # تشغيل في thread منفصل لتجنب تعارض asyncio
-        loop = None
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            pass
-        
-        if loop and loop.is_running():
-            # نحن داخل asyncio loop، استخدم thread pool
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                future = pool.submit(_x_login_sync, username, password, label, headless, user_id)
-                return future.result(timeout=300)  # 5 دقائق timeout
-        else:
-            # لا يوجد asyncio loop، نفذ مباشرة
-            return _x_login_sync(username, password, label, headless, user_id)
-    
+        return _x_save_cookies_sync(cookies_data, label, user_id)
     except Exception as e:
         return {
             "success": False,
-            "message": f"خطأ في تسجيل الدخول: {str(e)}"
+            "message": f"خطأ في حفظ الكوكيز: {str(e)}"
         }
+
+
+def x_login(username: str, password: str, label: str, headless: bool = True, user_id: Optional[int] = None) -> Dict[str, Any]:
+    """
+    تسجيل الدخول بالباسورد معطّل.
+    يرجى رفع كوكيز الحساب بدلاً من ذلك.
+    """
+    return {
+        "success": False,
+        "message": "⛔ تسجيل الدخول بكلمة المرور معطّل.\n\nيرجى إرفاق ملف كوكيز الحساب بدلاً من ذلك.\n📎 ارفق ملف JSON يحتوي على كوكيز الحساب وسيتم حفظه تلقائياً."
+    }
 
 
 def _x_post_sync(label: str, text: str, media_url: Optional[str] = None, headless: bool = True) -> Dict[str, Any]:
@@ -426,3 +441,185 @@ def x_update_profile(
             "success": False,
             "message": f"خطأ في التحديث: {str(e)}"
         }
+
+
+# ── إعجاب ──
+def _x_like_sync(label: str, tweet_url: str, headless: bool = True) -> Dict[str, Any]:
+    try:
+        label = safe_label(label)
+        result = x_bridge.like(cookie_label=label, tweet_url=tweet_url, headless=headless)
+        if result.get("success"):
+            return {"success": True, "message": f"✅ تم الإعجاب بالتغريدة من حساب '{label}'"}
+        else:
+            error = result.get("message") or result.get("error", "خطأ غير معروف")
+            return {"success": False, "message": f"❌ فشل الإعجاب: {error}"}
+    except Exception as e:
+        return {"success": False, "message": f"فشل الإعجاب: {str(e)}"}
+
+
+def x_like(label: str, tweet_url: str, headless: bool = True) -> Dict[str, Any]:
+    """إعجاب بتغريدة على منصة X"""
+    try:
+        loop = None
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            pass
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(_x_like_sync, label, tweet_url, headless)
+                return future.result(timeout=120)
+        else:
+            return _x_like_sync(label, tweet_url, headless)
+    except Exception as e:
+        return {"success": False, "message": f"خطأ في الإعجاب: {str(e)}"}
+
+
+# ── إعادة نشر (ريتويت) ──
+def _x_repost_sync(label: str, tweet_url: str, headless: bool = True) -> Dict[str, Any]:
+    try:
+        label = safe_label(label)
+        result = x_bridge.repost(cookie_label=label, tweet_url=tweet_url, headless=headless)
+        if result.get("success"):
+            return {"success": True, "message": f"✅ تمت إعادة النشر من حساب '{label}'"}
+        else:
+            error = result.get("message") or result.get("error", "خطأ غير معروف")
+            return {"success": False, "message": f"❌ فشل إعادة النشر: {error}"}
+    except Exception as e:
+        return {"success": False, "message": f"فشل إعادة النشر: {str(e)}"}
+
+
+def x_repost(label: str, tweet_url: str, headless: bool = True) -> Dict[str, Any]:
+    """إعادة نشر تغريدة على منصة X"""
+    try:
+        loop = None
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            pass
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(_x_repost_sync, label, tweet_url, headless)
+                return future.result(timeout=120)
+        else:
+            return _x_repost_sync(label, tweet_url, headless)
+    except Exception as e:
+        return {"success": False, "message": f"خطأ في إعادة النشر: {str(e)}"}
+
+
+# ── متابعة ──
+def _x_follow_sync(label: str, profile_url: str, headless: bool = True) -> Dict[str, Any]:
+    try:
+        label = safe_label(label)
+        result = x_bridge.follow(cookie_label=label, profile_url=profile_url, headless=headless)
+        if result.get("success"):
+            return {"success": True, "message": f"✅ تمت متابعة الحساب من '{label}'"}
+        else:
+            error = result.get("message") or result.get("error", "خطأ غير معروف")
+            return {"success": False, "message": f"❌ فشل المتابعة: {error}"}
+    except Exception as e:
+        return {"success": False, "message": f"فشل المتابعة: {str(e)}"}
+
+
+def x_follow(label: str, profile_url: str, headless: bool = True) -> Dict[str, Any]:
+    """متابعة حساب على منصة X"""
+    try:
+        loop = None
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            pass
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(_x_follow_sync, label, profile_url, headless)
+                return future.result(timeout=120)
+        else:
+            return _x_follow_sync(label, profile_url, headless)
+    except Exception as e:
+        return {"success": False, "message": f"خطأ في المتابعة: {str(e)}"}
+
+
+# ── إلغاء متابعة ──
+def x_unfollow(label: str, profile_url: str, headless: bool = True) -> Dict[str, Any]:
+    """إلغاء متابعة حساب على منصة X"""
+    try:
+        label = safe_label(label)
+        loop = None
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            pass
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(x_bridge.unfollow, cookie_label=label, profile_url=profile_url, headless=headless)
+                result = future.result(timeout=120)
+        else:
+            result = x_bridge.unfollow(cookie_label=label, profile_url=profile_url, headless=headless)
+        if result.get("success"):
+            return {"success": True, "message": f"✅ تم إلغاء المتابعة من حساب '{label}'"}
+        else:
+            return {"success": False, "message": f"❌ فشل إلغاء المتابعة: {result.get('error', 'خطأ')}"}
+    except Exception as e:
+        return {"success": False, "message": f"خطأ في إلغاء المتابعة: {str(e)}"}
+
+
+# ── رد على تغريدة ──
+def _x_reply_sync(label: str, tweet_url: str, reply_text: str, headless: bool = True) -> Dict[str, Any]:
+    try:
+        label = safe_label(label)
+        result = x_bridge.reply(cookie_label=label, tweet_url=tweet_url, reply_text=reply_text, headless=headless)
+        if result.get("success"):
+            return {"success": True, "message": f"✅ تم الرد على التغريدة من حساب '{label}'"}
+        else:
+            error = result.get("message") or result.get("error", "خطأ غير معروف")
+            return {"success": False, "message": f"❌ فشل الرد: {error}"}
+    except Exception as e:
+        return {"success": False, "message": f"فشل الرد: {str(e)}"}
+
+
+def x_reply(label: str, tweet_url: str, reply_text: str, headless: bool = True) -> Dict[str, Any]:
+    """الرد على تغريدة على منصة X"""
+    try:
+        loop = None
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            pass
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(_x_reply_sync, label, tweet_url, reply_text, headless)
+                return future.result(timeout=120)
+        else:
+            return _x_reply_sync(label, tweet_url, reply_text, headless)
+    except Exception as e:
+        return {"success": False, "message": f"خطأ في الرد: {str(e)}"}
+
+
+# ── حفظ تغريدة (بوكمارك) ──
+def x_bookmark(label: str, tweet_url: str, headless: bool = True) -> Dict[str, Any]:
+    """حفظ تغريدة في المفضلة على منصة X"""
+    try:
+        label = safe_label(label)
+        loop = None
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            pass
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(x_bridge.bookmark, cookie_label=label, tweet_url=tweet_url, headless=headless)
+                result = future.result(timeout=120)
+        else:
+            result = x_bridge.bookmark(cookie_label=label, tweet_url=tweet_url, headless=headless)
+        if result.get("success"):
+            return {"success": True, "message": f"✅ تم حفظ التغريدة في المفضلة من حساب '{label}'"}
+        else:
+            return {"success": False, "message": f"❌ فشل الحفظ: {result.get('error', 'خطأ')}"}
+    except Exception as e:
+        return {"success": False, "message": f"خطأ في الحفظ: {str(e)}"}

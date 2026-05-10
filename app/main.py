@@ -191,6 +191,7 @@ async def websocket_endpoint(websocket: WebSocket):
             user_id = message_data.get("user_id", None)
             user_email = message_data.get("user_email", None)
             attachment = message_data.get("attachment", None)
+            file_upload = message_data.get("file_upload", None)
 
             await manager.send_message({
                 "type": "user_message",
@@ -205,6 +206,57 @@ async def websocket_endpoint(websocket: WebSocket):
             }, websocket)
             
             try:
+                # معالجة ملفات الكوكيز
+                if file_upload:
+                    file_name = file_upload.get("name", "")
+                    file_content = file_upload.get("content", "")
+                    file_type = file_upload.get("type", "")
+                    
+                    if file_name.endswith('.json') and 'auth_token' in file_content:
+                        # معالجة ملف كوكيز X مباشرة
+                        try:
+                            from app.agents.tools import _x_save_cookies_sync
+                            cookies_data = json.loads(file_content)
+                            label = file_name.replace('.json', '').strip()
+                            
+                            result = _x_save_cookies_sync(cookies_data, label) or {}
+                            
+                            await manager.send_message({
+                                "type": "typing",
+                                "status": False
+                            }, websocket)
+                            
+                            if result and result.get("success"):
+                                await manager.send_message({
+                                    "type": "assistant_message",
+                                    "message": f"✅ {result.get('message', 'تم حفظ الكوكيز بنجاح')}",
+                                    "timestamp": datetime.now().isoformat()
+                                }, websocket)
+                            else:
+                                await manager.send_message({
+                                    "type": "assistant_message",
+                                    "message": f"❌ {result.get('message', 'فشل حفظ الكوكيز')}",
+                                    "timestamp": datetime.now().isoformat()
+                                }, websocket)
+                        except Exception as e:
+                            await manager.send_message({
+                                "type": "typing",
+                                "status": False
+                            }, websocket)
+                            await manager.send_message({
+                                "type": "assistant_message",
+                                "message": f"❌ خطأ في معالجة ملف الكوكيز: {str(e)}",
+                                "timestamp": datetime.now().isoformat()
+                            }, websocket)
+                        continue
+                    else:
+                        await manager.send_message({
+                            "type": "assistant_message",
+                            "message": "تم استلام الملف. يرجى التأكد من أنه ملف كوكيز X صالح (JSON يحتوي على auth_token).",
+                            "timestamp": datetime.now().isoformat()
+                        }, websocket)
+                        continue
+
                 if (not user_message or not str(user_message).strip()) and attachment:
                     try:
                         db = next(get_db())
@@ -252,9 +304,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 }, websocket)
                 
                 # إرسال رد الوكيل
-                if agent_result.get("success"):
-                    response_message = agent_result.get("message", "")
-                    
+                if not agent_result or not isinstance(agent_result, dict):
+                    agent_result = {"success": False, "message": None}
+                
+                response_message = agent_result.get("message")
+                
+                if agent_result.get("success") and response_message:
                     # إضافة معلومات إضافية إذا كانت متاحة
                     metadata = {}
                     if agent_result.get("intent_result"):
@@ -270,11 +325,19 @@ async def websocket_endpoint(websocket: WebSocket):
                         "attachment": attachment,
                         "timestamp": datetime.now().isoformat()
                     }, websocket)
-                else:
-                    # في حالة الفشل
+                elif response_message:
+                    # في حالة الفشل مع وجود رسالة
                     await manager.send_message({
                         "type": "assistant_message",
-                        "message": agent_result.get("message", "عذراً، لم أتمكن من معالجة طلبك."),
+                        "message": response_message,
+                        "attachment": attachment,
+                        "timestamp": datetime.now().isoformat()
+                    }, websocket)
+                else:
+                    # لا يوجد رد من الوكيل - رد افتراضي ذكي
+                    await manager.send_message({
+                        "type": "assistant_message",
+                        "message": "مرحباً! أنا موج، مساعدك الذكي لإدارة حساباتك على منصات التواصل الاجتماعي. كيف يمكنني مساعدتك؟\n\nيمكنك:\n📎 رفع ملف كوكيز لإضافة حساب\n✍️ النشر والتفاعل مع التغريدات\n📊 متابعة الترندات\n\nاكتب 'مساعدة' لعرض جميع الأوامر.",
                         "attachment": attachment,
                         "timestamp": datetime.now().isoformat()
                     }, websocket)

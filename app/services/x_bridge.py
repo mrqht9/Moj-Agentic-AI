@@ -146,15 +146,13 @@ def _api_call(method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
         return {"success": False, "message": f"خطأ في الاتصال: {str(e)}"}
 
 
-# ── تسجيل دخول ──
+# ── تسجيل دخول (معطّل) ──
 def login(label: str, username: str, password: str, headless: bool = True) -> Dict[str, Any]:
-    """تسجيل دخول عبر API"""
-    return _api_call("POST", "/api/login", json={
-        "label": label,
-        "username": username,
-        "password": password,
-        "headless": headless,
-    })
+    """تسجيل الدخول بالباسورد معطّل. يرجى رفع كوكيز الحساب بدلاً من ذلك."""
+    return {
+        "success": False,
+        "message": "تسجيل الدخول بكلمة المرور معطّل. يرجى رفع ملف كوكيز الحساب عبر /api/x/upload-cookies"
+    }
 
 
 # ── نشر تغريدة ──

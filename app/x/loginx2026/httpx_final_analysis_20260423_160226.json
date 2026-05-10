@@ -1,0 +1,1687 @@
+{
+  "total_attempts": 25,
+  "success": false,
+  "failure_patterns": [],
+  "all_attempts_data": [
+    {
+      "attempt": 1,
+      "timestamp": "2026-04-23T15:57:10.840168",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "firefox",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "Asia/Tokyo",
+        "language": "de-DE",
+        "platform": "MacIntel",
+        "architecture": "x86",
+        "device_memory": "32",
+        "hardware_concurrency": "4",
+        "strategy": "realistic"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "firefox",
+          "os_type": "windows",
+          "screen_resolution": [
+            1920,
+            1080
+          ],
+          "timezone": "Asia/Tokyo",
+          "language": "de-DE",
+          "platform": "MacIntel",
+          "architecture": "x86",
+          "device_memory": "32",
+          "hardware_concurrency": "4",
+          "strategy": "realistic"
+        },
+        "headers_count": 17,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 1,
+      "timestamp": "2026-04-23T15:57:13.671705",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "firefox",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "Asia/Tokyo",
+        "language": "de-DE",
+        "platform": "MacIntel",
+        "architecture": "x86",
+        "device_memory": "32",
+        "hardware_concurrency": "4",
+        "strategy": "realistic"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 2,
+      "timestamp": "2026-04-23T15:57:26.644944",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "macos",
+        "screen_resolution": [
+          1366,
+          768
+        ],
+        "timezone": "Europe/London",
+        "language": "en-GB",
+        "platform": "MacIntel",
+        "architecture": "x86",
+        "device_memory": "32",
+        "hardware_concurrency": "4",
+        "strategy": "realistic"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "macos",
+          "screen_resolution": [
+            1366,
+            768
+          ],
+          "timezone": "Europe/London",
+          "language": "en-GB",
+          "platform": "MacIntel",
+          "architecture": "x86",
+          "device_memory": "32",
+          "hardware_concurrency": "4",
+          "strategy": "realistic"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 2,
+      "timestamp": "2026-04-23T15:57:28.421601",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "macos",
+        "screen_resolution": [
+          1366,
+          768
+        ],
+        "timezone": "Europe/London",
+        "language": "en-GB",
+        "platform": "MacIntel",
+        "architecture": "x86",
+        "device_memory": "32",
+        "hardware_concurrency": "4",
+        "strategy": "realistic"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 3,
+      "timestamp": "2026-04-23T15:57:37.806029",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "opera",
+        "os_type": "macos",
+        "screen_resolution": [
+          3840,
+          2160
+        ],
+        "timezone": "America/Chicago",
+        "language": "zh-CN",
+        "platform": "MacIntel",
+        "architecture": "arm",
+        "device_memory": "64",
+        "hardware_concurrency": "64",
+        "strategy": "experimental"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "opera",
+          "os_type": "macos",
+          "screen_resolution": [
+            3840,
+            2160
+          ],
+          "timezone": "America/Chicago",
+          "language": "zh-CN",
+          "platform": "MacIntel",
+          "architecture": "arm",
+          "device_memory": "64",
+          "hardware_concurrency": "64",
+          "strategy": "experimental"
+        },
+        "headers_count": 17,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 3,
+      "timestamp": "2026-04-23T15:57:40.741271",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "opera",
+        "os_type": "macos",
+        "screen_resolution": [
+          3840,
+          2160
+        ],
+        "timezone": "America/Chicago",
+        "language": "zh-CN",
+        "platform": "MacIntel",
+        "architecture": "arm",
+        "device_memory": "64",
+        "hardware_concurrency": "64",
+        "strategy": "experimental"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 4,
+      "timestamp": "2026-04-23T15:57:53.401252",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "ios",
+        "screen_resolution": [
+          1600,
+          900
+        ],
+        "timezone": "Asia/Dubai",
+        "language": "en-US",
+        "platform": "iPhone",
+        "architecture": "arm64",
+        "device_memory": "16",
+        "hardware_concurrency": "16",
+        "strategy": "aggressive"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "ios",
+          "screen_resolution": [
+            1600,
+            900
+          ],
+          "timezone": "Asia/Dubai",
+          "language": "en-US",
+          "platform": "iPhone",
+          "architecture": "arm64",
+          "device_memory": "16",
+          "hardware_concurrency": "16",
+          "strategy": "aggressive"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 4,
+      "timestamp": "2026-04-23T15:57:54.898231",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "ios",
+        "screen_resolution": [
+          1600,
+          900
+        ],
+        "timezone": "Asia/Dubai",
+        "language": "en-US",
+        "platform": "iPhone",
+        "architecture": "arm64",
+        "device_memory": "16",
+        "hardware_concurrency": "16",
+        "strategy": "aggressive"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 5,
+      "timestamp": "2026-04-23T15:58:06.883266",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "windows",
+          "screen_resolution": [
+            1920,
+            1080
+          ],
+          "timezone": "America/New_York",
+          "language": "en-US",
+          "platform": "Win32",
+          "architecture": "x64",
+          "device_memory": "8",
+          "hardware_concurrency": "4",
+          "strategy": "stealth"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 5,
+      "timestamp": "2026-04-23T15:58:09.667558",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 6,
+      "timestamp": "2026-04-23T15:58:24.130170",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "edge",
+        "os_type": "openbsd",
+        "screen_resolution": [
+          1366,
+          768
+        ],
+        "timezone": "Asia/Dubai",
+        "language": "it-IT",
+        "platform": "iPad",
+        "architecture": "x86",
+        "device_memory": "4",
+        "hardware_concurrency": "16",
+        "strategy": "experimental"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "edge",
+          "os_type": "openbsd",
+          "screen_resolution": [
+            1366,
+            768
+          ],
+          "timezone": "Asia/Dubai",
+          "language": "it-IT",
+          "platform": "iPad",
+          "architecture": "x86",
+          "device_memory": "4",
+          "hardware_concurrency": "16",
+          "strategy": "experimental"
+        },
+        "headers_count": 17,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 6,
+      "timestamp": "2026-04-23T15:58:27.273360",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "edge",
+        "os_type": "openbsd",
+        "screen_resolution": [
+          1366,
+          768
+        ],
+        "timezone": "Asia/Dubai",
+        "language": "it-IT",
+        "platform": "iPad",
+        "architecture": "x86",
+        "device_memory": "4",
+        "hardware_concurrency": "16",
+        "strategy": "experimental"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 7,
+      "timestamp": "2026-04-23T15:58:34.434037",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "ios",
+        "screen_resolution": [
+          1280,
+          720
+        ],
+        "timezone": "Europe/London",
+        "language": "en-US",
+        "platform": "Linux x86_64",
+        "architecture": "x86",
+        "device_memory": "16",
+        "hardware_concurrency": "24",
+        "strategy": "aggressive"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "ios",
+          "screen_resolution": [
+            1280,
+            720
+          ],
+          "timezone": "Europe/London",
+          "language": "en-US",
+          "platform": "Linux x86_64",
+          "architecture": "x86",
+          "device_memory": "16",
+          "hardware_concurrency": "24",
+          "strategy": "aggressive"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 7,
+      "timestamp": "2026-04-23T15:58:37.550762",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "ios",
+        "screen_resolution": [
+          1280,
+          720
+        ],
+        "timezone": "Europe/London",
+        "language": "en-US",
+        "platform": "Linux x86_64",
+        "architecture": "x86",
+        "device_memory": "16",
+        "hardware_concurrency": "24",
+        "strategy": "aggressive"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 8,
+      "timestamp": "2026-04-23T15:58:48.394604",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "firefox",
+        "os_type": "linux",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "Asia/Tokyo",
+        "language": "es-ES",
+        "platform": "iPhone",
+        "architecture": "arm64",
+        "device_memory": "32",
+        "hardware_concurrency": "12",
+        "strategy": "experimental"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "firefox",
+          "os_type": "linux",
+          "screen_resolution": [
+            1440,
+            900
+          ],
+          "timezone": "Asia/Tokyo",
+          "language": "es-ES",
+          "platform": "iPhone",
+          "architecture": "arm64",
+          "device_memory": "32",
+          "hardware_concurrency": "12",
+          "strategy": "experimental"
+        },
+        "headers_count": 17,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 8,
+      "timestamp": "2026-04-23T15:58:50.757133",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "firefox",
+        "os_type": "linux",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "Asia/Tokyo",
+        "language": "es-ES",
+        "platform": "iPhone",
+        "architecture": "arm64",
+        "device_memory": "32",
+        "hardware_concurrency": "12",
+        "strategy": "experimental"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 9,
+      "timestamp": "2026-04-23T15:59:01.182293",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "firefox",
+        "os_type": "openbsd",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "Europe/London",
+        "language": "es-ES",
+        "platform": "Linux armv7l",
+        "architecture": "arm64",
+        "device_memory": "2",
+        "hardware_concurrency": "24",
+        "strategy": "experimental"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "firefox",
+          "os_type": "openbsd",
+          "screen_resolution": [
+            1440,
+            900
+          ],
+          "timezone": "Europe/London",
+          "language": "es-ES",
+          "platform": "Linux armv7l",
+          "architecture": "arm64",
+          "device_memory": "2",
+          "hardware_concurrency": "24",
+          "strategy": "experimental"
+        },
+        "headers_count": 17,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 9,
+      "timestamp": "2026-04-23T15:59:04.510007",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "firefox",
+        "os_type": "openbsd",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "Europe/London",
+        "language": "es-ES",
+        "platform": "Linux armv7l",
+        "architecture": "arm64",
+        "device_memory": "2",
+        "hardware_concurrency": "24",
+        "strategy": "experimental"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 10,
+      "timestamp": "2026-04-23T15:59:11.760129",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "safari",
+        "os_type": "freebsd",
+        "screen_resolution": [
+          3840,
+          2160
+        ],
+        "timezone": "Europe/London",
+        "language": "de-DE",
+        "platform": "iPad",
+        "architecture": "arm",
+        "device_memory": "32",
+        "hardware_concurrency": "8",
+        "strategy": "experimental"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "safari",
+          "os_type": "freebsd",
+          "screen_resolution": [
+            3840,
+            2160
+          ],
+          "timezone": "Europe/London",
+          "language": "de-DE",
+          "platform": "iPad",
+          "architecture": "arm",
+          "device_memory": "32",
+          "hardware_concurrency": "8",
+          "strategy": "experimental"
+        },
+        "headers_count": 17,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 10,
+      "timestamp": "2026-04-23T15:59:14.930482",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "safari",
+        "os_type": "freebsd",
+        "screen_resolution": [
+          3840,
+          2160
+        ],
+        "timezone": "Europe/London",
+        "language": "de-DE",
+        "platform": "iPad",
+        "architecture": "arm",
+        "device_memory": "32",
+        "hardware_concurrency": "8",
+        "strategy": "experimental"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 11,
+      "timestamp": "2026-04-23T15:59:27.953198",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "windows",
+          "screen_resolution": [
+            1920,
+            1080
+          ],
+          "timezone": "America/New_York",
+          "language": "en-US",
+          "platform": "Win32",
+          "architecture": "x64",
+          "device_memory": "8",
+          "hardware_concurrency": "4",
+          "strategy": "stealth"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 11,
+      "timestamp": "2026-04-23T15:59:29.834124",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 12,
+      "timestamp": "2026-04-23T15:59:40.427986",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "opera",
+        "os_type": "linux",
+        "screen_resolution": [
+          1366,
+          768
+        ],
+        "timezone": "Europe/London",
+        "language": "pt-BR",
+        "platform": "iPhone",
+        "architecture": "arm",
+        "device_memory": "128",
+        "hardware_concurrency": "16",
+        "strategy": "experimental"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "opera",
+          "os_type": "linux",
+          "screen_resolution": [
+            1366,
+            768
+          ],
+          "timezone": "Europe/London",
+          "language": "pt-BR",
+          "platform": "iPhone",
+          "architecture": "arm",
+          "device_memory": "128",
+          "hardware_concurrency": "16",
+          "strategy": "experimental"
+        },
+        "headers_count": 17,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 12,
+      "timestamp": "2026-04-23T15:59:43.601018",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "opera",
+        "os_type": "linux",
+        "screen_resolution": [
+          1366,
+          768
+        ],
+        "timezone": "Europe/London",
+        "language": "pt-BR",
+        "platform": "iPhone",
+        "architecture": "arm",
+        "device_memory": "128",
+        "hardware_concurrency": "16",
+        "strategy": "experimental"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 13,
+      "timestamp": "2026-04-23T15:59:52.842842",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "windows",
+          "screen_resolution": [
+            1920,
+            1080
+          ],
+          "timezone": "America/New_York",
+          "language": "en-US",
+          "platform": "Win32",
+          "architecture": "x64",
+          "device_memory": "8",
+          "hardware_concurrency": "4",
+          "strategy": "stealth"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 13,
+      "timestamp": "2026-04-23T15:59:55.663480",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 14,
+      "timestamp": "2026-04-23T16:00:06.338661",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "firefox",
+        "os_type": "linux",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "Europe/London",
+        "language": "en-GB",
+        "platform": "MacIntel",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "8",
+        "strategy": "realistic"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "firefox",
+          "os_type": "linux",
+          "screen_resolution": [
+            1440,
+            900
+          ],
+          "timezone": "Europe/London",
+          "language": "en-GB",
+          "platform": "MacIntel",
+          "architecture": "x64",
+          "device_memory": "8",
+          "hardware_concurrency": "8",
+          "strategy": "realistic"
+        },
+        "headers_count": 17,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 14,
+      "timestamp": "2026-04-23T16:00:09.508276",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "firefox",
+        "os_type": "linux",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "Europe/London",
+        "language": "en-GB",
+        "platform": "MacIntel",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "8",
+        "strategy": "realistic"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 15,
+      "timestamp": "2026-04-23T16:00:16.331029",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "linux",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "America/New_York",
+        "language": "fr-FR",
+        "platform": "Linux x86_64",
+        "architecture": "x64",
+        "device_memory": "16",
+        "hardware_concurrency": "4",
+        "strategy": "realistic"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "linux",
+          "screen_resolution": [
+            1440,
+            900
+          ],
+          "timezone": "America/New_York",
+          "language": "fr-FR",
+          "platform": "Linux x86_64",
+          "architecture": "x64",
+          "device_memory": "16",
+          "hardware_concurrency": "4",
+          "strategy": "realistic"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 15,
+      "timestamp": "2026-04-23T16:00:19.425451",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "linux",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "America/New_York",
+        "language": "fr-FR",
+        "platform": "Linux x86_64",
+        "architecture": "x64",
+        "device_memory": "16",
+        "hardware_concurrency": "4",
+        "strategy": "realistic"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 16,
+      "timestamp": "2026-04-23T16:00:25.858107",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "macos",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "Asia/Tokyo",
+        "language": "fr-FR",
+        "platform": "MacIntel",
+        "architecture": "x86",
+        "device_memory": "16",
+        "hardware_concurrency": "16",
+        "strategy": "realistic"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "macos",
+          "screen_resolution": [
+            1440,
+            900
+          ],
+          "timezone": "Asia/Tokyo",
+          "language": "fr-FR",
+          "platform": "MacIntel",
+          "architecture": "x86",
+          "device_memory": "16",
+          "hardware_concurrency": "16",
+          "strategy": "realistic"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 16,
+      "timestamp": "2026-04-23T16:00:28.142826",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "macos",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "Asia/Tokyo",
+        "language": "fr-FR",
+        "platform": "MacIntel",
+        "architecture": "x86",
+        "device_memory": "16",
+        "hardware_concurrency": "16",
+        "strategy": "realistic"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 17,
+      "timestamp": "2026-04-23T16:00:35.870346",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1366,
+          768
+        ],
+        "timezone": "Asia/Tokyo",
+        "language": "en-GB",
+        "platform": "Win32",
+        "architecture": "arm64",
+        "device_memory": "16",
+        "hardware_concurrency": "4",
+        "strategy": "realistic"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "windows",
+          "screen_resolution": [
+            1366,
+            768
+          ],
+          "timezone": "Asia/Tokyo",
+          "language": "en-GB",
+          "platform": "Win32",
+          "architecture": "arm64",
+          "device_memory": "16",
+          "hardware_concurrency": "4",
+          "strategy": "realistic"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 17,
+      "timestamp": "2026-04-23T16:00:38.657953",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1366,
+          768
+        ],
+        "timezone": "Asia/Tokyo",
+        "language": "en-GB",
+        "platform": "Win32",
+        "architecture": "arm64",
+        "device_memory": "16",
+        "hardware_concurrency": "4",
+        "strategy": "realistic"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 18,
+      "timestamp": "2026-04-23T16:00:45.975489",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "windows",
+          "screen_resolution": [
+            1920,
+            1080
+          ],
+          "timezone": "America/New_York",
+          "language": "en-US",
+          "platform": "Win32",
+          "architecture": "x64",
+          "device_memory": "8",
+          "hardware_concurrency": "4",
+          "strategy": "stealth"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 18,
+      "timestamp": "2026-04-23T16:00:47.438629",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 19,
+      "timestamp": "2026-04-23T16:01:00.939954",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "windows",
+          "screen_resolution": [
+            1920,
+            1080
+          ],
+          "timezone": "America/New_York",
+          "language": "en-US",
+          "platform": "Win32",
+          "architecture": "x64",
+          "device_memory": "8",
+          "hardware_concurrency": "4",
+          "strategy": "stealth"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 19,
+      "timestamp": "2026-04-23T16:01:04.248305",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 20,
+      "timestamp": "2026-04-23T16:01:19.274603",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          2560,
+          1440
+        ],
+        "timezone": "America/New_York",
+        "language": "de-DE",
+        "platform": "MacIntel",
+        "architecture": "x64",
+        "device_memory": "64",
+        "hardware_concurrency": "24",
+        "strategy": "aggressive"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "windows",
+          "screen_resolution": [
+            2560,
+            1440
+          ],
+          "timezone": "America/New_York",
+          "language": "de-DE",
+          "platform": "MacIntel",
+          "architecture": "x64",
+          "device_memory": "64",
+          "hardware_concurrency": "24",
+          "strategy": "aggressive"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 20,
+      "timestamp": "2026-04-23T16:01:22.671567",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          2560,
+          1440
+        ],
+        "timezone": "America/New_York",
+        "language": "de-DE",
+        "platform": "MacIntel",
+        "architecture": "x64",
+        "device_memory": "64",
+        "hardware_concurrency": "24",
+        "strategy": "aggressive"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 21,
+      "timestamp": "2026-04-23T16:01:36.054214",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "linux",
+        "screen_resolution": [
+          1366,
+          768
+        ],
+        "timezone": "Europe/London",
+        "language": "de-DE",
+        "platform": "Linux x86_64",
+        "architecture": "arm64",
+        "device_memory": "16",
+        "hardware_concurrency": "8",
+        "strategy": "realistic"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "linux",
+          "screen_resolution": [
+            1366,
+            768
+          ],
+          "timezone": "Europe/London",
+          "language": "de-DE",
+          "platform": "Linux x86_64",
+          "architecture": "arm64",
+          "device_memory": "16",
+          "hardware_concurrency": "8",
+          "strategy": "realistic"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 21,
+      "timestamp": "2026-04-23T16:01:37.486502",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "linux",
+        "screen_resolution": [
+          1366,
+          768
+        ],
+        "timezone": "Europe/London",
+        "language": "de-DE",
+        "platform": "Linux x86_64",
+        "architecture": "arm64",
+        "device_memory": "16",
+        "hardware_concurrency": "8",
+        "strategy": "realistic"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 22,
+      "timestamp": "2026-04-23T16:01:45.699218",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "edge",
+        "os_type": "macos",
+        "screen_resolution": [
+          2560,
+          1440
+        ],
+        "timezone": "Australia/Sydney",
+        "language": "ru-RU",
+        "platform": "iPad",
+        "architecture": "x64",
+        "device_memory": "2",
+        "hardware_concurrency": "8",
+        "strategy": "experimental"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "edge",
+          "os_type": "macos",
+          "screen_resolution": [
+            2560,
+            1440
+          ],
+          "timezone": "Australia/Sydney",
+          "language": "ru-RU",
+          "platform": "iPad",
+          "architecture": "x64",
+          "device_memory": "2",
+          "hardware_concurrency": "8",
+          "strategy": "experimental"
+        },
+        "headers_count": 17,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 22,
+      "timestamp": "2026-04-23T16:01:49.024838",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "edge",
+        "os_type": "macos",
+        "screen_resolution": [
+          2560,
+          1440
+        ],
+        "timezone": "Australia/Sydney",
+        "language": "ru-RU",
+        "platform": "iPad",
+        "architecture": "x64",
+        "device_memory": "2",
+        "hardware_concurrency": "8",
+        "strategy": "experimental"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 23,
+      "timestamp": "2026-04-23T16:01:59.747446",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "firefox",
+        "os_type": "macos",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "fr-FR",
+        "platform": "Linux x86_64",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "16",
+        "strategy": "realistic"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "firefox",
+          "os_type": "macos",
+          "screen_resolution": [
+            1920,
+            1080
+          ],
+          "timezone": "America/New_York",
+          "language": "fr-FR",
+          "platform": "Linux x86_64",
+          "architecture": "x64",
+          "device_memory": "8",
+          "hardware_concurrency": "16",
+          "strategy": "realistic"
+        },
+        "headers_count": 17,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 23,
+      "timestamp": "2026-04-23T16:02:03.092749",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "firefox",
+        "os_type": "macos",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "fr-FR",
+        "platform": "Linux x86_64",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "16",
+        "strategy": "realistic"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 24,
+      "timestamp": "2026-04-23T16:02:13.863464",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "windows",
+          "screen_resolution": [
+            1920,
+            1080
+          ],
+          "timezone": "America/New_York",
+          "language": "en-US",
+          "platform": "Win32",
+          "architecture": "x64",
+          "device_memory": "8",
+          "hardware_concurrency": "4",
+          "strategy": "stealth"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 24,
+      "timestamp": "2026-04-23T16:02:15.898669",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "windows",
+        "screen_resolution": [
+          1920,
+          1080
+        ],
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "platform": "Win32",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "4",
+        "strategy": "stealth"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "attempt": 25,
+      "timestamp": "2026-04-23T16:02:24.488062",
+      "step": "httpx_session_init",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "macos",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "Europe/London",
+        "language": "en-US",
+        "platform": "MacIntel",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "8",
+        "strategy": "realistic"
+      },
+      "data": {
+        "fingerprint": {
+          "browser_type": "chrome",
+          "os_type": "macos",
+          "screen_resolution": [
+            1440,
+            900
+          ],
+          "timezone": "Europe/London",
+          "language": "en-US",
+          "platform": "MacIntel",
+          "architecture": "x64",
+          "device_memory": "8",
+          "hardware_concurrency": "8",
+          "strategy": "realistic"
+        },
+        "headers_count": 22,
+        "http2_enabled": true,
+        "timeout": 30.0
+      },
+      "success": false,
+      "error": null
+    },
+    {
+      "attempt": 25,
+      "timestamp": "2026-04-23T16:02:26.960483",
+      "step": "httpx_guest_token_extract",
+      "fingerprint": {
+        "browser_type": "chrome",
+        "os_type": "macos",
+        "screen_resolution": [
+          1440,
+          900
+        ],
+        "timezone": "Europe/London",
+        "language": "en-US",
+        "platform": "MacIntel",
+        "architecture": "x64",
+        "device_memory": "8",
+        "hardware_concurrency": "8",
+        "strategy": "realistic"
+      },
+      "data": {
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      "success": false,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    }
+  ],
+  "recommendations": [
+    "Try manual_cookies.py for guaranteed success",
+    "HTTPX with HTTP/2 shows promise but needs refinement",
+    "Consider combining HTTPX with residential proxy"
+  ]
+}
