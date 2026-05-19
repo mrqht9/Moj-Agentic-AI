@@ -78,6 +78,11 @@ async def startup_event():
         print(f"Warning: X Suite server failed to start: {str(e)}")
 
     try:
+        x_bridge.start_loginx_server()
+    except Exception as e:
+        print(f"Warning: LoginX server failed to start: {str(e)}")
+
+    try:
         asyncio.create_task(scheduler_tick())
         print("Scheduler tick started (every 30s)")
     except Exception as e:
@@ -206,13 +211,89 @@ async def websocket_endpoint(websocket: WebSocket):
             }, websocket)
             
             try:
-                # معالجة ملفات الكوكيز
+                # معالجة ملفات الكوكيز و CSV
                 if file_upload:
                     file_name = file_upload.get("name", "")
                     file_content = file_upload.get("content", "")
                     file_type = file_upload.get("type", "")
                     
-                    if file_name.endswith('.json') and 'auth_token' in file_content:
+                    # ── ملف CSV لتسجيل دخول جماعي ──
+                    if file_name.endswith('.csv'):
+                        try:
+                            import csv, io, threading
+                            from app.agents.tools import x_login_account, LOGINX_BASE_URL, LOGINX_API_KEY
+                            
+                            reader = csv.DictReader(io.StringIO(file_content))
+                            accounts = []
+                            for row in reader:
+                                username = (row.get("username") or "").strip()
+                                password = (row.get("password") or "").strip()
+                                email = (row.get("email") or "").strip()
+                                if username and password:
+                                    accounts.append({"username": username, "password": password, "email": email})
+                            
+                            if not accounts:
+                                await manager.send_message({
+                                    "type": "assistant_message",
+                                    "message": "❌ ملف CSV فارغ أو لا يحتوي على أعمدة username و password",
+                                    "timestamp": datetime.now().isoformat()
+                                }, websocket)
+                                continue
+                            
+                            await manager.send_message({
+                                "type": "typing",
+                                "status": False
+                            }, websocket)
+                            
+                            await manager.send_message({
+                                "type": "assistant_message",
+                                "message": f"📋 تم قراءة **{len(accounts)}** حساب من ملف CSV\n\n🔄 جاري بدء تسجيل الدخول الجماعي...\n\n⏳ سيتم تسجيل كل حساب على حدة. هذه العملية قد تستغرق وقتاً.",
+                                "timestamp": datetime.now().isoformat()
+                            }, websocket)
+                            
+                            # تسجيل دخول جماعي عبر API
+                            import requests
+                            headers = {"X-API-Key": LOGINX_API_KEY, "Content-Type": "application/json"}
+                            try:
+                                resp = requests.post(
+                                    f"{LOGINX_BASE_URL}/api/login/bulk",
+                                    json={"accounts": accounts},
+                                    headers=headers, timeout=10
+                                )
+                                data = resp.json()
+                                if data.get("success"):
+                                    session_id = data.get("session_id")
+                                    await manager.send_message({
+                                        "type": "assistant_message",
+                                        "message": f"✅ بدأت عملية تسجيل الدخول الجماعي\n\n📊 عدد الحسابات: {len(accounts)}\n🔑 Session ID: `{session_id}`\n\nسيتم إعلامك عند الانتهاء.",
+                                        "timestamp": datetime.now().isoformat()
+                                    }, websocket)
+                                else:
+                                    await manager.send_message({
+                                        "type": "assistant_message",
+                                        "message": f"❌ فشل بدء التسجيل الجماعي: {data.get('error', 'خطأ')}",
+                                        "timestamp": datetime.now().isoformat()
+                                    }, websocket)
+                            except requests.ConnectionError:
+                                await manager.send_message({
+                                    "type": "assistant_message",
+                                    "message": "❌ سيرفر LoginX غير متصل!\n\nتأكد من تشغيل سيرفر loginx على بورت 5000",
+                                    "timestamp": datetime.now().isoformat()
+                                }, websocket)
+                        except Exception as e:
+                            await manager.send_message({
+                                "type": "typing",
+                                "status": False
+                            }, websocket)
+                            await manager.send_message({
+                                "type": "assistant_message",
+                                "message": f"❌ خطأ في معالجة ملف CSV: {str(e)}",
+                                "timestamp": datetime.now().isoformat()
+                            }, websocket)
+                        continue
+                    
+                    # ── ملف JSON كوكيز ──
+                    elif file_name.endswith('.json') and 'auth_token' in file_content:
                         # معالجة ملف كوكيز X مباشرة
                         try:
                             from app.agents.tools import _x_save_cookies_sync
@@ -252,7 +333,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     else:
                         await manager.send_message({
                             "type": "assistant_message",
-                            "message": "تم استلام الملف. يرجى التأكد من أنه ملف كوكيز X صالح (JSON يحتوي على auth_token).",
+                            "message": "تم استلام الملف. الأنواع المدعومة:\n\n📄 **CSV** — تسجيل دخول جماعي (أعمدة: username, password, email)\n📎 **JSON** — ملف كوكيز X (يحتوي على auth_token)",
                             "timestamp": datetime.now().isoformat()
                         }, websocket)
                         continue
@@ -365,7 +446,8 @@ async def upload_file(file: UploadFile = File(...)):
 
     allowed_images = {".png", ".jpg", ".jpeg", ".webp"}
     allowed_docs = {".pdf", ".doc", ".docx", ".xls", ".xlsx"}
-    allowed = allowed_images | allowed_docs
+    allowed_data = {".csv", ".json", ".txt"}
+    allowed = allowed_images | allowed_docs | allowed_data
     if ext not in allowed:
         raise HTTPException(status_code=400, detail="نوع الملف غير مسموح")
 

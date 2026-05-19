@@ -7,16 +7,33 @@
 from typing import Dict, Any, Optional
 import re
 from .tools import (x_upload_cookies, x_post, x_update_profile, x_delete_account, x_delete_tweet,
-                    x_like, x_repost, x_follow, x_unfollow, x_reply, x_bookmark)
+                    x_like, x_repost, x_follow, x_unfollow, x_reply, x_bookmark, x_login_account,
+                    x_login_status)
 from app.utils.validators import sanitize_text, sanitize_username, sanitize_account_name
 
 
 class XAgent:
     """وكيل X المبسط"""
-    
+
     def __init__(self, llm_config: Dict[str, Any]):
         self.llm_config = llm_config
-    
+
+    def _wants_visible(self, message: str) -> bool:
+        """اكتشاف هل المستخدم يريد رؤية المتصفح أثناء العملية (headless=False)."""
+        if not message:
+            return False
+        keywords = [
+            r"بشكل\s*ظاهر", r"بشكل\s*مرئي", r"اظهر\s*المتصفح", r"أظهر\s*المتصفح",
+            r"اشوف\s*العملي", r"أشوف\s*العملي", r"ابغى\s*اشوف", r"أبغى\s*أشوف",
+            r"خل\s*اشوف", r"خلني\s*اشوف", r"شغّل.*ظاهر", r"بدون\s*اخفاء",
+            r"بدون\s*إخفاء", r"ظاهرة", r"مرئية", r"visible", r"not\s*headless",
+            r"no\s*headless", r"show\s*browser",
+        ]
+        for pat in keywords:
+            if re.search(pat, message, re.IGNORECASE):
+                return True
+        return False
+
     def _extract_account_name(self, message: str, entities: Dict, context: Dict = None) -> str:
         """استخراج اسم الحساب من الرسالة"""
         # أولاً: تحقق من entities
@@ -82,6 +99,14 @@ class XAgent:
         intent = context.get("intent") if context else None
         entities = context.get("entities", {}) if context else {}
         
+        # معالجة "حالة التسجيل" بشكل مباشر
+        status_match = re.search(r'حالة\s*(?:التسجيل|تسجيل\s*الدخول|اللوقن)', message)
+        if status_match:
+            session_id_match = re.search(r'(api_\w+)', message)
+            sid = session_id_match.group(1) if session_id_match else ""
+            result = x_login_status(sid)
+            return result.get("message", "لا توجد معلومات")
+        
         if intent == "add_account":
             user_id = context.get("user_id") if context else None
             cookies_data = context.get("cookies_data") if context else None
@@ -93,7 +118,6 @@ class XAgent:
                     label = sanitize_account_name(label)
                 
                 if not label:
-                    # استخدم اسم الملف إذا متوفر
                     label = context.get("cookie_filename", "account") if context else "account"
                     label = sanitize_account_name(label)
                 
@@ -104,15 +128,45 @@ class XAgent:
                 else:
                     return f"❌ فشل حفظ الكوكيز\n\n{result.get('message', 'حدث خطأ غير متوقع')}"
             else:
-                # لا يوجد كوكيز — اعتذر واطلب رفع ملف كوكيز
-                return (
-                    "⛔ عذراً، تسجيل الدخول باسم المستخدم وكلمة المرور غير متاح حالياً.\n\n"
-                    "📎 **الطريقة البديلة:** ارفق ملف كوكيز الحساب (ملف JSON) وسيتم حفظه تلقائياً.\n\n"
-                    "📖 **الخطوات:**\n"
-                    "1. استخرج كوكيز حسابك من المتصفح (JSON)\n"
-                    "2. ارفق الملف هنا وسيتم حفظه باسم الملف\n"
-                    "3. يمكنك بعدها استخدام الحساب للنشر وإدارة المحتوى"
-                )
+                # حاول استخراج username و password من الرسالة
+                username = entities.get("username")
+                password = entities.get("password")
+                email = entities.get("email", "")
+                
+                # أنماط استخراج: "سجل دخول user123 pass456" أو "اليوزر user الباسورد pass"
+                if not username or not password:
+                    login_patterns = [
+                        r"(?:اليوزر|يوزر|username|user)\s*[:\s]\s*(\S+)\s+(?:الباسورد|باسورد|password|pass)\s*[:\s]\s*(\S+)",
+                        r"(?:سجل\s*دخول|login|دخلني|سجل\s*لي|دخول|ادخل|سجل)\s+(?:الحساب|حسابي?|لحساب|account)\s+(\S+)\s+(?:الباسورد|باسورد|password|pass)\s*[:\s]*\s*(\S+)",
+                        r"(?:سجل\s*دخول|login|دخلني|سجل\s*لي|دخول|ادخل|سجل)\s+(\S+)\s+(?:الباسورد|باسورد|password|pass)\s*[:\s]*\s*(\S+)",
+                        r"(?:سجل\s*دخول|login)\s+(\S+)\s+(\S+)",
+                        r"(?:دخول|ادخل|سجل)\s+(\S+)\s+(\S+)",
+                    ]
+                    for pattern in login_patterns:
+                        match = re.search(pattern, message, re.IGNORECASE)
+                        if match:
+                            username = match.group(1)
+                            password = match.group(2)
+                            break
+                
+                if username and password:
+                    # تحديد وضع المحاكي (مخفي/ظاهر) — افتراضياً ظاهر
+                    headless = entities.get("headless", False)
+                    
+                    # تسجيل دخول عبر loginx API
+                    mode_text = "مخفي" if headless else "ظاهر"
+                    result = x_login_account(username, password, email, headless=headless)
+                    return result.get("message", "حدث خطأ")
+                else:
+                    return (
+                        "📝 **لتسجيل دخول حساب X:**\n\n"
+                        "**الطريقة 1 — بالكردنشلز:**\n"
+                        "اكتب: `سجل دخول username password`\n"
+                        "أو: `اليوزر username الباسورد password`\n\n"
+                        "**الطريقة 2 — بالكوكيز:**\n"
+                        "📎 ارفق ملف كوكيز JSON عبر زر الملفات\n\n"
+                        "اختر الطريقة المناسبة لك."
+                    )
         
         elif intent == "create_post":
             content = entities.get("content")
@@ -140,7 +194,6 @@ class XAgent:
                     if not tweet_url:
                         # استخرج الرابط من الـ message إذا لم يكن في حقل منفصل
                         message = result.get("message", "")
-                        import re
                         url_match = re.search(r'https://x\.com/\w+/status/\d+', message)
                         if url_match:
                             tweet_url = url_match.group(0)
@@ -252,32 +305,34 @@ class XAgent:
             account = self._extract_account_name(message, entities, context)
             if account:
                 account = sanitize_account_name(account)
-            
+
             if not profile_url:
                 # حاول بناء رابط من اسم المستخدم في الرسالة
                 username_match = re.search(r'@(\w+)', message)
                 if username_match:
                     profile_url = f"https://x.com/{username_match.group(1)}"
-            
+
             if profile_url:
-                result = x_follow(account, profile_url)
+                headless = not self._wants_visible(message)
+                result = x_follow(account, profile_url, headless=headless)
                 return result.get("message", "تم محاولة المتابعة")
             else:
                 return "⚠️ يرجى تحديد الحساب المراد متابعته\n\nمثال: تابع @username\nأو: تابع https://x.com/username"
-        
+
         elif intent == "unfollow_user":
             profile_url = entities.get("profile_url")
             account = self._extract_account_name(message, entities, context)
             if account:
                 account = sanitize_account_name(account)
-            
+
             if not profile_url:
                 username_match = re.search(r'@(\w+)', message)
                 if username_match:
                     profile_url = f"https://x.com/{username_match.group(1)}"
-            
+
             if profile_url:
-                result = x_unfollow(account, profile_url)
+                headless = not self._wants_visible(message)
+                result = x_unfollow(account, profile_url, headless=headless)
                 return result.get("message", "تم محاولة إلغاء المتابعة")
             else:
                 return "⚠️ يرجى تحديد الحساب\n\nمثال: ألغ متابعة @username"

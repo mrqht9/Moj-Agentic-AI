@@ -562,7 +562,8 @@ def x_unfollow(label: str, profile_url: str, headless: bool = True) -> Dict[str,
         if result.get("success"):
             return {"success": True, "message": f"✅ تم إلغاء المتابعة من حساب '{label}'"}
         else:
-            return {"success": False, "message": f"❌ فشل إلغاء المتابعة: {result.get('error', 'خطأ')}"}
+            error = result.get("message") or result.get("error") or "خطأ غير معروف"
+            return {"success": False, "message": f"❌ فشل إلغاء المتابعة: {error}"}
     except Exception as e:
         return {"success": False, "message": f"خطأ في إلغاء المتابعة: {str(e)}"}
 
@@ -623,3 +624,91 @@ def x_bookmark(label: str, tweet_url: str, headless: bool = True) -> Dict[str, A
             return {"success": False, "message": f"❌ فشل الحفظ: {result.get('error', 'خطأ')}"}
     except Exception as e:
         return {"success": False, "message": f"خطأ في الحفظ: {str(e)}"}
+
+
+# ── تسجيل دخول حساب X عبر LDPlayer (loginx) ──
+LOGINX_BASE_URL = "http://127.0.0.1:5000"
+LOGINX_API_KEY = "sk-loginx-2026-secret"
+
+
+def x_login_account(username: str, password: str, email: str = "", headless: bool = False) -> Dict[str, Any]:
+    """تسجيل دخول حساب X عبر LDPlayer + Chrome automation (غير متزامن — لا يعلّق المحادثة)"""
+    import requests
+    
+    try:
+        username = username.strip()
+        password = password.strip()
+        
+        if not username or not password:
+            return {"success": False, "message": "⚠️ اسم المستخدم وكلمة المرور مطلوبين"}
+        
+        # إرسال طلب التسجيل
+        headers = {"X-API-Key": LOGINX_API_KEY, "Content-Type": "application/json"}
+        payload = {"username": username, "password": password, "email": email, "headless": headless}
+        
+        resp = requests.post(f"{LOGINX_BASE_URL}/api/login", json=payload, headers=headers, timeout=10)
+        data = resp.json()
+        
+        if not data.get("success"):
+            return {"success": False, "message": f"❌ فشل بدء التسجيل: {data.get('error', 'خطأ')}"}
+        
+        session_id = data.get("session_id")
+        mode = "مخفي 👻" if headless else "ظاهر 🖥️"
+        
+        return {
+            "success": True,
+            "message": (
+                f"🚀 **بدأت عملية تسجيل الدخول لحساب '{username}'**\n\n"
+                f"📋 **المعرّف:** `{session_id}`\n"
+                f"🖥️ **وضع المحاكي:** {mode}\n\n"
+                f"⏳ العملية تعمل بالخلفية — يمكنك متابعة استخدام موج بشكل عادي.\n\n"
+                f"💡 للاستعلام عن الحالة اكتب: `حالة التسجيل`"
+            ),
+            "session_id": session_id
+        }
+        
+    except requests.ConnectionError:
+        return {
+            "success": False,
+            "message": "❌ سيرفر LoginX غير متصل!\n\nتأكد من تشغيل سيرفر loginx على بورت 5000:\n`cd app/x/loginx && python app.py`"
+        }
+    except Exception as e:
+        return {"success": False, "message": f"❌ خطأ في تسجيل الدخول: {str(e)}"}
+
+
+def x_login_status(session_id: str = "") -> Dict[str, Any]:
+    """استعلام عن حالة عملية تسجيل الدخول"""
+    import requests
+    
+    try:
+        headers = {"X-API-Key": LOGINX_API_KEY}
+        
+        # إذا ما عطى session_id، نجيب آخر عملية
+        if not session_id:
+            # نجرب نجيب آخر task
+            resp = requests.get(f"{LOGINX_BASE_URL}/api/cookies", headers=headers, timeout=5)
+            return {"success": True, "message": "💡 استخدم: `حالة التسجيل SESSION_ID`\n\nأو اكتب `حالة التسجيل` بعد بدء عملية تسجيل دخول."}
+        
+        resp = requests.get(f"{LOGINX_BASE_URL}/api/status/{session_id}", headers=headers, timeout=10)
+        data = resp.json()
+        
+        status = data.get("status", "unknown")
+        results = data.get("results", [])
+        
+        if status == "running":
+            return {"success": True, "message": f"⏳ **العملية قيد التنفيذ...**\n\nالمعرّف: `{session_id}`"}
+        elif status == "done":
+            success_count = sum(1 for r in results if r.get("success"))
+            total = len(results)
+            lines = [f"✅ **اكتملت العملية:** {success_count}/{total} حساب نجح\n"]
+            for r in results:
+                icon = "✅" if r.get("success") else "❌"
+                lines.append(f"{icon} {r.get('username')}")
+            return {"success": True, "message": "\n".join(lines)}
+        else:
+            return {"success": True, "message": f"ℹ️ الحالة: {status}"}
+            
+    except requests.ConnectionError:
+        return {"success": False, "message": "❌ سيرفر LoginX غير متصل"}
+    except Exception as e:
+        return {"success": False, "message": f"❌ خطأ: {str(e)}"}

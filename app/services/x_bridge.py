@@ -113,6 +113,104 @@ def stop_xsuite_server():
         _process = None
 
 
+# ─── LoginX سيرفر ──────────────────────────────────────────
+LOGINX_PORT = int(os.getenv("LOGINX_PORT", "5000"))
+LOGINX_DIR = XSUITE_DIR / "loginx"   # app/x/loginx
+_loginx_process: Optional[subprocess.Popen] = None
+
+
+def _is_loginx_running() -> bool:
+    """تحقق إذا سيرفر loginx شغال"""
+    try:
+        r = requests.get(f"http://127.0.0.1:{LOGINX_PORT}/api/health", timeout=3)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+
+def start_loginx_server() -> bool:
+    """تشغيل سيرفر loginx بالخلفية"""
+    global _loginx_process
+
+    if _loginx_process and _loginx_process.poll() is None and _is_loginx_running():
+        print(f"[X-Bridge] سيرفر loginx شغال بالفعل على بورت {LOGINX_PORT}")
+        return True
+
+    if _loginx_process and _loginx_process.poll() is None:
+        try:
+            _loginx_process.terminate()
+            _loginx_process.wait(timeout=5)
+        except Exception:
+            _loginx_process.kill()
+        _loginx_process = None
+
+    loginx_app = LOGINX_DIR / "app.py"
+    if not loginx_app.exists():
+        print(f"[X-Bridge] ⚠️ ملف loginx/app.py غير موجود: {loginx_app}")
+        return False
+
+    print(f"[X-Bridge] تشغيل سيرفر loginx على بورت {LOGINX_PORT} ...")
+
+    python_exe = sys.executable
+    env = os.environ.copy()
+
+    try:
+        print(f"[X-Bridge] loginx path: {loginx_app}")
+        print(f"[X-Bridge] loginx dir: {LOGINX_DIR}")
+        print(f"[X-Bridge] python exe: {python_exe}")
+
+        _loginx_process = subprocess.Popen(
+            [python_exe, str(loginx_app)],
+            cwd=str(LOGINX_DIR),
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
+        )
+        atexit.register(stop_loginx_server)
+
+        for i in range(15):
+            time.sleep(1)
+            if _is_loginx_running():
+                print(f"[X-Bridge] ✅ سيرفر loginx جاهز على بورت {LOGINX_PORT}")
+                return True
+            if _loginx_process.poll() is not None:
+                out = _loginx_process.stdout.read().decode(errors="ignore")[:1000]
+                print(f"[X-Bridge] ❌ سيرفر loginx توقف مبكراً (exit code: {_loginx_process.returncode}):\n{out}")
+                return False
+            if i == 5:
+                print(f"[X-Bridge] loginx لا يزال يبدأ... (انتظار)")
+
+        # آخر محاولة قراءة الخطأ
+        if _loginx_process.poll() is not None:
+            out = _loginx_process.stdout.read().decode(errors="ignore")[:1000]
+            print(f"[X-Bridge] ❌ loginx output:\n{out}")
+        print("[X-Bridge] ❌ تجاوز وقت انتظار تشغيل سيرفر loginx")
+        return False
+
+    except Exception as e:
+        import traceback
+        print(f"[X-Bridge] ❌ فشل تشغيل سيرفر loginx: {e}")
+        traceback.print_exc()
+        return False
+
+
+def stop_loginx_server():
+    """إيقاف سيرفر loginx"""
+    global _loginx_process
+    if _loginx_process and _loginx_process.poll() is None:
+        print("[X-Bridge] إيقاف سيرفر loginx ...")
+        try:
+            if sys.platform == "win32":
+                _loginx_process.terminate()
+            else:
+                _loginx_process.send_signal(signal.SIGTERM)
+            _loginx_process.wait(timeout=10)
+        except Exception:
+            _loginx_process.kill()
+        _loginx_process = None
+
+
 # ─── دوال API ──────────────────────────────────────────────
 def _api_call(method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
     """استدعاء API عام مع معالجة الأخطاء"""

@@ -130,6 +130,9 @@ class IntentService:
                 r"اضف لي حساب",
                 r"سجل لي",
                 r"دخلني",
+                r"اليوزر\s+\S+\s+الباسورد",
+                r"يوزر\s+\S+\s+باسورد",
+                r"username\s+\S+\s+password",
                 r"add account",
                 r"connect account",
                 r"link account",
@@ -309,18 +312,23 @@ class IntentService:
                 r"أعد تغريد",
                 r"ريبوست",
             ],
+            # ⚠️ UNFOLLOW قبل FOLLOW — لأن أنماط FOLLOW (تابع/متابعة) تطابق
+            # نص "ألغ متابعة" كـ substring، فلو فُحصت FOLLOW أولاً ستفوز خطأً.
+            # الأنماط تنتهي بـ "متابعة" (بـ ة) لتطابق word boundary وتحصل على confidence=0.95
+            # وتسبق FOLLOW الذي يطابق "متابعة" أيضاً بنفس الـ confidence.
+            IntentType.UNFOLLOW_USER: [
+                r"الغ.*متابعة",
+                r"الغاء.*متابعة",
+                r"فك.*متابعة",
+                r"ألغ.*متابعة",
+                r"unfollow",
+            ],
             IntentType.FOLLOW_USER: [
                 r"تابع",
                 r"follow",
                 r"متابعة",
                 r"تابع حساب",
                 r"تابع.*@",
-            ],
-            IntentType.UNFOLLOW_USER: [
-                r"الغ.*متابع",
-                r"unfollow",
-                r"فك.*متابع",
-                r"الغاء.*متابع",
             ],
             IntentType.BOOKMARK_POST: [
                 r"احفظ.*تغريد",
@@ -632,6 +640,36 @@ class IntentService:
             profile_url_match = re.search(r'(https?://(?:x|twitter)\.com/\w+)', text)
             if profile_url_match:
                 entities["profile_url"] = profile_url_match.group(1)
+
+        # استخراج بيانات تسجيل الدخول (username + password)
+        if intent == IntentType.ADD_ACCOUNT:
+            login_patterns = [
+                # "اليوزر X الباسورد Y" أو "يوزر X باسورد Y"
+                r"(?:اليوزر|يوزر|username|user)\s*[:\s]\s*(\S+)\s+(?:الباسورد|باسورد|password|pass)\s*[:\s]\s*(\S+)",
+                # "سجل دخول الحساب X الباسورد Y"
+                r"(?:سجل\s*دخول|login|دخلني|سجل\s*لي)\s+(?:الحساب|حسابي?|لحساب|account)\s+(\S+)\s+(?:الباسورد|باسورد|password|pass)\b[:\s]*\s*(\S+)",
+                # "سجل دخول X الباسورد Y"
+                r"(?:سجل\s*دخول|login|دخلني|سجل\s*لي)\s+(\S+)\s+(?:الباسورد|باسورد|password|pass)\b[:\s]*\s*(\S+)",
+                # "سجل دخول X Y" — بدون كلمة "الباسورد"
+                r"(?:سجل\s*دخول|login|دخلني|سجل\s*لي)\s+(\S+)\s+(\S+)",
+            ]
+            for pattern in login_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    entities["username"] = match.group(1)
+                    entities["password"] = match.group(2)
+                    break
+            
+            # استخراج الإيميل إذا موجود
+            email_match = re.search(r'(?:الايميل|ايميل|email)\s*[:\s]\s*(\S+@\S+)', text, re.IGNORECASE)
+            if email_match:
+                entities["email"] = email_match.group(1)
+            
+            # استخراج وضع المحاكي (مخفي/ظاهر)
+            if re.search(r'مخفي|خفي|hidden|headless|بالخلفية|بالخلفيه', text, re.IGNORECASE):
+                entities["headless"] = True
+            elif re.search(r'ظاهر|مرئي|visible|show|اظهر|أظهر|بدون إخفاء|بدون اخفاء', text, re.IGNORECASE):
+                entities["headless"] = False
 
         # استخراج الأرقام
         numbers = re.findall(r'\d+', text)
