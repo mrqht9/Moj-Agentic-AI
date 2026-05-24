@@ -268,7 +268,7 @@ def _x_post_sync(label: str, text: str, media_url: Optional[str] = None, headles
             full_msg = f"✅ {msg} على حساب '{label}'"
             if tweet_url:
                 full_msg += f"\n🔗 {tweet_url}"
-            return {"success": True, "message": full_msg}
+            return {"success": True, "message": full_msg, "tweet_url": tweet_url}
         else:
             error = result.get("message") or result.get("error", "خطأ غير معروف")
             return {

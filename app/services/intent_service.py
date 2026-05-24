@@ -27,6 +27,12 @@ class IntentType(str, Enum):
     SCHEDULE_POST = "schedule_post"
     DELETE_POST = "delete_post"
     EDIT_POST = "edit_post"
+
+    # إدارة الهوية / البروفايل
+    UPDATE_PROFILE = "update_profile"
+
+    # توليد هوية وهمية (Identity Generator)
+    GENERATE_IDENTITY = "generate_identity"
     
     # التحليلات والإحصائيات
     GET_ANALYTICS = "get_analytics"
@@ -222,12 +228,49 @@ class IntentService:
                 r"publish"
             ],
             IntentType.SCHEDULE_POST: [
-                r"جدول منشور",
-                r"انشر في وقت",
-                r"schedule post",
-                r"post later",
-                r"انشر غداً",
-                r"انشر بعد"
+                r"^جدول\b",
+                r"^اجدول\b",
+                r"^جدولة\b",
+                r"^جدوّل\b",
+                r"جدول.*منشور",
+                r"جدول.*تغريد",
+                r"جدول.*بوست",
+                r"جدولة.*منشور",
+                r"جدولة.*تغريد",
+                r"جدولة.*بوست",
+                r"جدول لي",
+                r"ابي.*اجدول",
+                r"ابغى.*اجدول",
+                r"ودي.*اجدول",
+                r"اجدول.*تغريد",
+                r"اجدول.*منشور",
+                r"اجدولها",
+                r"جدولها",
+                r"جدوله",
+                r"انشر.*في\s*الساعة",
+                r"انشر.*الساعة\s*\d",
+                r"انشر.*بعد\s*\d",
+                r"انشر.*غدا",
+                r"انشر.*غداً",
+                r"انشر.*بكر[اةه]",
+                r"انشر.*بكير",
+                r"انشر.*في\s*\d{1,2}:\d{2}",
+                r"غرد.*بعد\s*\d",
+                r"غرد.*غدا",
+                r"غرد.*غداً",
+                r"غرد.*بكر[اةه]",
+                r"غرد.*الساعة\s*\d",
+                r"اكتب.*تغريد.*بعد\s*\d",
+                r"اكتب.*تغريد.*غدا",
+                r"اكتب.*تغريد.*الساعة",
+                r"schedule.*post",
+                r"schedule.*tweet",
+                r"post.*later",
+                r"post.*at\s*\d",
+                r"tweet.*at\s*\d",
+                r"tweet.*tomorrow",
+                r"post.*tomorrow",
+                r"schedule.*for",
             ],
             IntentType.DELETE_POST: [
                 r"احذف منشور",
@@ -255,6 +298,124 @@ class IntentService:
                 r"edit post",
                 r"modify post",
                 r"update post"
+            ],
+
+            # توليد هوية وهمية (شخصية + صور)
+            IntentType.GENERATE_IDENTITY: [
+                r"ولّد\s*(?:لي\s*)?هوي",
+                r"ولد\s*(?:لي\s*)?هوي",
+                r"توليد\s*هوي",
+                r"اصنع\s*(?:لي\s*)?هوي",
+                r"انشئ\s*(?:لي\s*)?هوي",
+                r"أنشئ\s*(?:لي\s*)?هوي",
+                r"اعمل\s*(?:لي\s*)?هوي",
+                r"سو\s*لي\s*هوي",
+                r"ولّد\s*(?:لي\s*)?شخصي",
+                r"ولد\s*(?:لي\s*)?شخصي",
+                r"توليد\s*شخصي",
+                r"اصنع\s*(?:لي\s*)?شخصي",
+                r"اعطني\s*شخصي",
+                r"ولّد\s*(?:ملف|بروفايل)",
+                r"ولد\s*(?:ملف|بروفايل)",
+                r"توليد\s*(?:ملف|بروفايل)",
+                r"اصنع\s*(?:ملف|بروفايل)",
+                r"انشئ\s*(?:ملف|بروفايل)\s*(?:شخصي|وهمي)",
+                r"ولّد\s*(?:لي\s*)?حساب\s*(?:وهمي|تجريبي|مزيف|عشوائي)",
+                r"ولد\s*(?:لي\s*)?حساب\s*(?:وهمي|تجريبي|مزيف|عشوائي)",
+                r"اعطني\s*هوي",
+                r"اعطني\s*شخصي",
+                r"هوية\s*عشوائي",
+                r"شخصية\s*عشوائي",
+                r"ملف\s*عشوائي",
+                r"حساب\s*عشوائي",
+                r"بروفايل\s*عشوائي",
+                r"generate\s*identity",
+                r"create\s*identity",
+                r"generate\s*profile",
+                r"create\s*profile",
+                r"random\s*profile",
+                r"random\s*identity",
+                r"fake\s*profile",
+                r"fake\s*identity",
+                r"new\s*persona",
+            ],
+
+            # تعديل الهوية / البروفايل
+            IntentType.UPDATE_PROFILE: [
+                r"عدّل.*هوي",
+                r"عدل.*هوي",
+                r"عدّل.*الملف",
+                r"عدل.*الملف",
+                r"عدّل.*بروفايل",
+                r"عدل.*بروفايل",
+                r"عدّل.*بايو",
+                r"عدل.*بايو",
+                r"تعديل.*هوي",
+                r"تعديل.*الملف.*شخصي",
+                r"تعديل.*بروفايل",
+                r"تعديل.*بايو",
+                r"تعديل.*نبذ",
+                r"تحديث.*بروفايل",
+                r"تحديث.*الملف.*شخصي",
+                r"تحديث.*هوي",
+                r"تحديث.*بايو",
+                r"حدّث.*بروفايل",
+                r"حدث.*بروفايل",
+                r"حدّث.*بايو",
+                r"حدث.*بايو",
+                r"غيّر.*[اإ]سم",
+                r"غير.*[اإ]سم",
+                r"غيّر.*الاسم",
+                r"غير.*الاسم",
+                r"عدّل.*[اإ]سم",
+                r"عدل.*[اإ]سم",
+                r"عدّل.*الاسم",
+                r"عدل.*الاسم",
+                r"تعديل.*[اإ]سم",
+                r"تعديل.*الاسم",
+                r"تغيير.*[اإ]سم",
+                r"تغيير.*الاسم",
+                r"غيّر.*البايو",
+                r"غير.*البايو",
+                r"غيّر.*بايو",
+                r"غير.*بايو",
+                r"غيّر.*النبذ",
+                r"غير.*النبذ",
+                # الصورة الشخصية (avatar) — بـ "ال" أو بدونها
+                r"غيّر.*صورة",
+                r"غير.*صورة",
+                r"عدّل.*صورة",
+                r"عدل.*صورة",
+                r"تعديل.*صورة",
+                r"تحديث.*صورة",
+                r"حدّث.*صورة",
+                r"حدث.*صورة",
+                r"غيّر.*أفاتار",
+                r"غير.*افاتار",
+                # الغلاف (banner) — بـ "ال" أو بدونها
+                r"غيّر.*غلاف",
+                r"غير.*غلاف",
+                r"عدّل.*غلاف",
+                r"عدل.*غلاف",
+                r"تعديل.*غلاف",
+                r"تحديث.*غلاف",
+                r"حدّث.*غلاف",
+                r"حدث.*غلاف",
+                r"غيّر.*بانر",
+                r"غير.*بانر",
+                r"عدّل.*بانر",
+                r"عدل.*بانر",
+                r"تعديل.*بانر",
+                r"تحديث.*بانر",
+                r"update.*profile",
+                r"edit.*profile",
+                r"change.*profile",
+                r"update.*bio",
+                r"change.*bio",
+                r"update.*avatar",
+                r"change.*avatar",
+                r"change.*banner",
+                r"update.*display.*name",
             ],
             
             # التحليلات
@@ -371,8 +532,11 @@ class IntentService:
                 r"trend.*status",
             ],
             IntentType.GET_HOT_TRENDS: [
-                r"ترندات حارة",
-                r"ترند حار",
+                r"ترندات نشطة",
+                r"ترند نشط",
+                r"الترندات النشطة",
+                r"ترندات حارة",  # alias قديم للتوافق
+                r"ترند حار",     # alias قديم للتوافق
                 r"hot trends",
                 r"الاكثر رواج",
                 r"الأكثر رواج",
@@ -480,11 +644,11 @@ class IntentService:
             IntentResult: نتيجة التعرف على النية
         """
         text_lower = text.lower()
-        
+
         # البحث عن النية
         detected_intent = IntentType.UNKNOWN
         max_confidence = 0.0
-        
+
         for intent_type, patterns in self.intent_patterns.items():
             for pattern in patterns:
                 if re.search(pattern, text_lower, re.IGNORECASE):
@@ -492,6 +656,33 @@ class IntentService:
                     if confidence > max_confidence:
                         max_confidence = confidence
                         detected_intent = intent_type
+
+        # Override: لو النية كُشفت كنشر فوري (CREATE_POST) لكن في كلمات جدولة قوية،
+        # فهي نية جدولة (SCHEDULE_POST). هذا يمنع نشر تغريدة كان المفترض جدولتها.
+        if detected_intent == IntentType.CREATE_POST:
+            schedule_signals = [
+                r"\bجدول\b", r"\bجدولة\b", r"\bاجدول\b", r"\bجدولها\b", r"\bجدوله\b",
+                r"\bجدولي\b", r"\bجدوّل\b",
+                r"بعد\s+\d+\s+(?:ساعة|ساعات|دقيقة|دقايق|دقائق|يوم|ايام|أيام)",
+                r"\bغداً\b", r"\bغدا\b", r"\bبكر[ةاه]\b", r"\bبكير\b",
+                r"الساعة\s+\d{1,2}", r"\bschedule\b", r"\blater\b", r"\btomorrow\b",
+            ]
+            for sig in schedule_signals:
+                if re.search(sig, text_lower, re.IGNORECASE):
+                    detected_intent = IntentType.SCHEDULE_POST
+                    max_confidence = 0.95
+                    break
+
+        # Override: لو النية كُشفت كـ GET_TRENDS لكن النص يحتوي على كلمات تدل على
+        # الترندات النشطة/الحارة، حوّلها إلى GET_HOT_TRENDS.
+        if detected_intent == IntentType.GET_TRENDS:
+            hot_signals = [r"نشطة", r"نشط", r"حارة", r"حار(?!ة)", r"الأقوى",
+                           r"الاقوى", r"hot", r"trending\s*now"]
+            for sig in hot_signals:
+                if re.search(sig, text_lower, re.IGNORECASE):
+                    detected_intent = IntentType.GET_HOT_TRENDS
+                    max_confidence = 0.95
+                    break
         
         # استخراج المنصة
         platform = self._detect_platform(text_lower)
@@ -531,21 +722,25 @@ class IntentService:
         """استخراج الكيانات من النص حسب النية"""
         entities = {}
         
-        # استخراج الوقت/التاريخ
+        # استخراج الوقت/التاريخ — يتم تحديث entities["schedule_time"] بأول مطابقة
         time_patterns = [
-            (r"غداً|tomorrow", "tomorrow"),
-            (r"بعد (\d+) ساعة|in (\d+) hour", "hours"),
-            (r"في الساعة (\d+)", "time"),
-            (r"(\d{1,2}):(\d{2})", "time")
+            (r"بعد\s+(\d+)\s+(?:ساعة|ساعات|ساع)|in\s+(\d+)\s+hours?", "hours_from_now"),
+            (r"بعد\s+(\d+)\s+(?:دقيقة|دقايق|دقائق|دق)|in\s+(\d+)\s+min(?:utes?)?", "minutes_from_now"),
+            (r"بعد\s+(\d+)\s+(?:يوم|أيام|ايام)|in\s+(\d+)\s+days?", "days_from_now"),
+            (r"(?:بعد\s*)?(?:غداً|غدا|بكر[ةاه]|بكير|tomorrow)", "tomorrow"),
+            (r"بعد\s*بكر[ةاه]|after\s*tomorrow|day\s*after\s*tomorrow", "day_after_tomorrow"),
+            (r"(?:في\s*)?الساعة\s+(\d{1,2})(?:\s*:\s*(\d{2}))?(?:\s*(صباح|صباحاً|ص|مساء|مساءً|م|ليلاً|am|pm))?", "at_hour"),
+            (r"(\d{1,2}):(\d{2})", "hh_mm"),
         ]
-        
         for pattern, entity_type in time_patterns:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 entities["schedule_time"] = {
                     "type": entity_type,
-                    "value": match.group(0)
+                    "value": match.group(0),
+                    "groups": [g for g in match.groups() if g],
                 }
+                break
         
         # استخراج اسم الحساب
         account_patterns = [
@@ -557,11 +752,21 @@ class IntentService:
             r"على حساب\s+(\w+)"
         ]
         
+        # كلمات لا تصلح أن تكون أسماء حسابات (تظهر بعد كلمة "حساب" لكنها ليست أسماء)
+        _account_blacklist = {"https", "http", "الحساب", "حسابي", "حسابك", "default_account",
+                              "جديد", "نشط", "قديم", "الجديد", "القديم",
+                              "إلى", "الى", "الي", "to", "من", "في", "على",
+                              "اسم", "إسم", "الاسم", "اسمي", "بايو", "البايو",
+                              "هوية", "هويه", "الهوية", "الهويه",
+                              "بروفايل", "البروفايل", "ملف", "الملف",
+                              "صورة", "الصورة", "غلاف", "الغلاف", "بانر", "البانر"}
         for pattern in account_patterns:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
-                entities["account_name"] = match.group(1)
-                break
+                candidate = match.group(1).strip()
+                if candidate.lower() not in _account_blacklist:
+                    entities["account_name"] = candidate
+                    break
         
         # استخراج اسم الحساب من أوامر الحذف/الإدارة إذا لم يُلتقط بعد
         if not entities.get("account_name") and intent in [IntentType.REMOVE_ACCOUNT]:
@@ -640,6 +845,174 @@ class IntentService:
             profile_url_match = re.search(r'(https?://(?:x|twitter)\.com/\w+)', text)
             if profile_url_match:
                 entities["profile_url"] = profile_url_match.group(1)
+
+        # استخراج بيانات توليد الهوية الوهمية
+        if intent == IntentType.GENERATE_IDENTITY:
+            text_lower = text.lower()
+
+            # الجنس
+            if re.search(r"\b(?:امرأة|أنثى|انثى|بنت|فتاة|نسائي|female|woman|girl)\b", text_lower):
+                entities["gender"] = "امرأة"
+            elif re.search(r"\b(?:رجل|ذكر|شاب|رجالي|male|man|boy)\b", text_lower):
+                entities["gender"] = "رجل"
+
+            # الجنسية
+            nationalities_map = {
+                "سعودي": ["سعودي", "سعودية", "السعودي"],
+                "إماراتي": ["إماراتي", "اماراتي", "إماراتية"],
+                "كويتي": ["كويتي", "كويتية"],
+                "قطري": ["قطري", "قطرية"],
+                "بحريني": ["بحريني", "بحرينية"],
+                "عماني": ["عماني", "عمانية"],
+                "أردني": ["أردني", "اردني", "أردنية"],
+                "لبناني": ["لبناني", "لبنانية"],
+                "فلسطيني": ["فلسطيني", "فلسطينية"],
+                "عراقي": ["عراقي", "عراقية"],
+                "سوري": ["سوري", "سورية"],
+                "مصري": ["مصري", "مصرية"],
+                "جزائري": ["جزائري", "جزائرية"],
+                "مغربي": ["مغربي", "مغربية"],
+                "تونسي": ["تونسي", "تونسية"],
+                "ليبي": ["ليبي", "ليبية"],
+                "سوداني": ["سوداني", "سودانية"],
+                "أمريكي": ["أمريكي", "امريكي", "american"],
+                "بريطاني": ["بريطاني", "british"],
+            }
+            for canonical, variants in nationalities_map.items():
+                for v in variants:
+                    if re.search(rf"\b{v}\b", text_lower):
+                        entities["nationality"] = canonical
+                        break
+                if entities.get("nationality"):
+                    break
+
+            # التوجه — يقبل صيغة المذكر والمؤنث (ساخر/ساخرة)
+            orientation_map = {
+                "ساخر": "ساخر", "ناقد": "ناقد", "صريح": "صريح",
+                "سياسي": "سياسي", "ديني": "ديني", "تقني": "تقني",
+                "رياضي": "رياضي", "اجتماعي": "اجتماعي", "فني": "فني",
+                "فكاهي": "فكاهي", "تعليمي": "تعليمي",
+                "اقتصادي": "اقتصادي", "ثقافي": "ثقافي",
+            }
+            for kw, val in orientation_map.items():
+                # يطابق "ساخر" أو "ساخرة" (مع تاء التأنيث)
+                if re.search(rf"{kw}[ةه]?\b", text_lower):
+                    entities["orientation"] = val
+                    break
+
+            # طول البايو
+            if re.search(r"بايو\s*(?:طويل|طويلة|مطوّل)|long\s*bio", text_lower):
+                entities["bio_length"] = "طويل"
+            elif re.search(r"بايو\s*(?:قصير|قصيرة|مختصر)|short\s*bio", text_lower):
+                entities["bio_length"] = "قصير"
+
+            # نوع الصورة
+            if re.search(r"\b(?:بدون|ما\s*ابي|بلا)\s*صور\b|no\s*images?", text_lower):
+                entities["with_images"] = False
+            elif re.search(r"\b(?:مع|بـ?صور|بصور|with\s*images?)\b", text_lower):
+                entities["with_images"] = True
+
+            # لون البشرة
+            if re.search(r"\b(?:بشرة\s*فاتح|أبيض|ابيض|fair|light\s*skin)\b", text_lower):
+                entities["skin_tone"] = "فاتح"
+            elif re.search(r"\b(?:بشرة\s*داكن|أسمر|اسمر|dark\s*skin)\b", text_lower):
+                entities["skin_tone"] = "داكن"
+            elif re.search(r"\b(?:بشرة\s*حنطي|قمحي|حنطي|tan\s*skin)\b", text_lower):
+                entities["skin_tone"] = "حنطي"
+
+        # استخراج بيانات تعديل الهوية / البروفايل
+        if intent == IntentType.UPDATE_PROFILE:
+            def _clean(v: str) -> str:
+                # إزالة الكلمات اللاحقة مثل "لحساب X" أولاً، ثم علامات الاقتباس من الأطراف
+                v = v.strip()
+                v = re.sub(r"\s+(?:لحساب|للحساب|في\s*حساب|على\s*حساب)\s+\S+\s*$", "", v, flags=re.IGNORECASE).strip()
+                v = v.strip("'\"«»").strip()
+                return v
+
+            # الاسم: بين علامات اقتباس
+            # ملاحظة: نقبل "اسم" و "إسم" و "الاسم" و "الإسم" و "اسمي"
+            name_match = re.search(
+                r"(?:الإسم|الاسم|إسم(?:\s*العرض)?|اسم(?:\s*العرض)?|إسمي|اسمي|name)"
+                r"(?:\s+(?:الحساب|حسابي|حسابك))?"
+                r"\s*(?:[:=]|\s+(?:إلى|الى|الي|to))?\s*['\"«](.+?)['\"»]",
+                text, re.IGNORECASE
+            )
+            # الاسم: بعد "الاسم إلى ..." بدون اقتباسات (يأخذ كلمة واحدة أو أكثر)
+            # يقبل: "اسم حساب X إلى Y", "اسم حسابي إلى Y", "الاسم إلى Y"
+            if not name_match:
+                name_match = re.search(
+                    r"(?:الإسم|الاسم|إسم\s*العرض|اسم\s*العرض|إسمي|اسمي"
+                    r"|[اإ]سم\s+(?:الحساب|حسابي|حسابك|حساب\s+\S+))"
+                    r"\s+(?:إلى|الى|الي|to|=|:)\s+([^\n،,]+?)"
+                    r"(?:\s+(?:و|والبايو|والصور|والموقع|والرابط)|\s*$)",
+                    text, re.IGNORECASE
+                )
+            if name_match:
+                entities["name"] = _clean(name_match.group(1))
+
+            # البايو / النبذة: بين علامات اقتباس (حتى لو فُصلت بكلمات مثل "حسابي إلى")
+            bio_match = re.search(
+                r"(?:البايو|بايو|النبذة|نبذة|bio)\s+(?:\S+\s+)*?(?:إلى|الى|الي|to|=|:)\s*['\"«](.+?)['\"»]",
+                text, re.IGNORECASE
+            )
+            # البايو: مباشرة بين علامات اقتباس
+            if not bio_match:
+                bio_match = re.search(
+                    r"(?:البايو|بايو|النبذة|نبذة|bio)\s*[:=]?\s*['\"«](.+?)['\"»]",
+                    text, re.IGNORECASE
+                )
+            # البايو: بعد "البايو إلى ..." بدون اقتباسات
+            if not bio_match:
+                bio_match = re.search(
+                    r"(?:البايو|بايو|النبذة|نبذة)\s+(?:إلى|الى|الي|to|=)\s+([^\n،,]+?)(?:\s+(?:و|والاسم|والصور|والموقع|والرابط)|\s*$)",
+                    text, re.IGNORECASE
+                )
+            if bio_match:
+                entities["bio"] = _clean(bio_match.group(1))
+
+            # الموقع
+            location_match = re.search(
+                r"(?:الموقع|موقع(?!\s*رابط)|location)\s*[:=]?\s*['\"«]?([^\n،,'\"»]+?)['\"»]?(?:\s+(?:و|والاسم|والبايو|والصور|والرابط)|\s*$)",
+                text, re.IGNORECASE
+            )
+            if location_match:
+                loc = location_match.group(1).strip()
+                if loc and not loc.startswith("http"):
+                    entities["location"] = loc
+
+            # الويبسايت
+            website_match = re.search(
+                r"(?:الويبسايت|الويب\s*سايت|الموقع\s*الإلكتروني|الرابط|website|url)\s*[:=]?\s*(https?://\S+)",
+                text, re.IGNORECASE
+            )
+            if website_match:
+                entities["website"] = website_match.group(1).rstrip('.,،؛)')
+
+            # رابط الصورة الشخصية (avatar) — يقبل كلمات بينية مثل "حساب X إلى"
+            avatar_match = re.search(
+                r"(?:صورة|الصورة|أفاتار|الافاتار|avatar|profile\s*picture)"
+                r"(?:[^\n]*?)"  # أي كلمات بينية على نفس السطر (غير جشع)
+                r"(https?://\S+)",
+                text, re.IGNORECASE
+            )
+            if avatar_match:
+                entities["avatar_url"] = avatar_match.group(1).rstrip('.,،؛)')
+
+            # رابط الغلاف (banner)
+            banner_match = re.search(
+                r"(?:الغلاف|غلاف|البانر|بانر|banner|header)"
+                r"(?:[^\n]*?)"
+                r"(https?://\S+)",
+                text, re.IGNORECASE
+            )
+            if banner_match:
+                entities["banner_url"] = banner_match.group(1).rstrip('.,،؛)')
+
+            # وضع المتصفح (مخفي/ظاهر)
+            if re.search(r'مخفي|خفي|hidden|headless|بالخلفية|بالخلفيه', text, re.IGNORECASE):
+                entities["headless"] = True
+            elif re.search(r'ظاهر|مرئي|visible|show|اظهر|أظهر|بدون\s*إخفاء|بدون\s*اخفاء', text, re.IGNORECASE):
+                entities["headless"] = False
 
         # استخراج بيانات تسجيل الدخول (username + password)
         if intent == IntentType.ADD_ACCOUNT:

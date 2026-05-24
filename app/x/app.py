@@ -1588,7 +1588,122 @@ def api_delete_tweet_by_id():
         return jsonify({'success': False, 'task_id': op_id, 'error': str(e)}), 500
 
 
+# =====================
+# Scheduled Posts API (NEW)
+# =====================
+from modules.db import (
+    insert_scheduled_post,
+    get_scheduled_post,
+    list_scheduled_posts,
+    delete_scheduled_post,
+)
+from modules.scheduled_publisher import start_worker as start_sched_worker
+
+
+@app.route('/api/scheduled_post', methods=['POST'])
+@require_api_token
+def api_schedule_post():
+    """جدولة تغريدة لنشر تلقائي في وقت محدد."""
+    payload = request.get_json(silent=True) or {}
+    event_id = (payload.get('event_id') or '').strip()
+    cookie_label = (payload.get('cookie_label') or '').strip()
+    content = (payload.get('content') or '').strip()
+    run_at = (payload.get('run_at') or '').strip()  # ISO UTC "YYYY-MM-DD HH:MM:SS"
+    media_url = payload.get('media_url')
+    callback_url = payload.get('callback_url')
+    callback_payload = payload.get('callback_payload')
+    max_attempts = int(payload.get('max_attempts') or 3)
+
+    if not event_id or not cookie_label or not content or not run_at:
+        return jsonify({
+            'success': False,
+            'error': 'يجب إرسال event_id, cookie_label, content, run_at'
+        }), 400
+
+    cookie = get_cookie_by_label(cookie_label)
+    if not cookie:
+        return jsonify({
+            'success': False,
+            'error': f"الحساب '{cookie_label}' غير مسجّل"
+        }), 404
+
+    if isinstance(callback_payload, (dict, list)):
+        callback_payload = json.dumps(callback_payload, ensure_ascii=False)
+
+    try:
+        insert_scheduled_post(
+            event_id=event_id,
+            cookie_label=cookie_label,
+            content=content,
+            run_at=run_at,
+            media_url=media_url,
+            callback_url=callback_url,
+            callback_payload=callback_payload,
+            max_attempts=max_attempts,
+        )
+        return jsonify({
+            'success': True,
+            'event_id': event_id,
+            'status': 'SCHEDULED',
+            'run_at': run_at,
+            'message': 'تم جدولة التغريدة بنجاح'
+        }), 200
+    except Exception as e:
+        msg = str(e)
+        if 'UNIQUE constraint' in msg:
+            return jsonify({'success': False, 'error': f"event_id '{event_id}' موجود مسبقاً"}), 409
+        return jsonify({'success': False, 'error': msg}), 500
+
+
+@app.route('/api/scheduled_post/<event_id>', methods=['GET'])
+@require_api_token
+def api_get_scheduled_post(event_id):
+    post = get_scheduled_post(event_id)
+    if not post:
+        return jsonify({'success': False, 'error': 'غير موجود'}), 404
+    return jsonify({'success': True, 'post': post}), 200
+
+
+@app.route('/api/scheduled_post/<event_id>', methods=['DELETE'])
+@require_api_token
+def api_delete_scheduled_post(event_id):
+    post = get_scheduled_post(event_id)
+    if not post:
+        return jsonify({'success': False, 'error': 'غير موجود'}), 404
+    if post['status'] in ('PUBLISHING',):
+        return jsonify({'success': False, 'error': 'لا يمكن الحذف أثناء النشر'}), 409
+    delete_scheduled_post(event_id)
+    return jsonify({'success': True, 'event_id': event_id, 'message': 'تم الحذف'}), 200
+
+
+@app.route('/api/scheduled_posts', methods=['GET'])
+@require_api_token
+def api_list_scheduled_posts():
+    status = request.args.get('status')
+    limit = int(request.args.get('limit', 100))
+    posts = list_scheduled_posts(status=status, limit=limit)
+    return jsonify({'success': True, 'count': len(posts), 'posts': posts}), 200
+
+
+# تشغيل الـ background worker للجدولة
+@app.before_request
+def _ensure_scheduler_started():
+    """يضمن تشغيل scheduler worker (idempotent — يبدأ مرة واحدة فقط)."""
+    if not getattr(app, '_sched_started', False):
+        try:
+            start_sched_worker()
+            app._sched_started = True
+        except Exception as e:
+            print(f"[X-Server] Failed to start scheduled publisher: {e}")
+
+
 if __name__ == '__main__':
     port = int(os.getenv('PORT', '5789'))
     debug = os.getenv('FLASK_DEBUG', '0') == '1'
+    # شغّل الـ scheduler عند البدء
+    try:
+        start_sched_worker()
+        print('[X-Server] ✅ Scheduled publisher worker started')
+    except Exception as e:
+        print(f'[X-Server] ⚠️ Failed to start scheduler worker: {e}')
     app.run(host='0.0.0.0', port=port, debug=debug, use_reloader=False)

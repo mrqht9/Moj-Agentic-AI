@@ -118,6 +118,12 @@ class ScheduleEvent(Base):
     intent_time = Column(String(50), nullable=False)
     mood = Column(String(50), nullable=False)
     status = Column(String(50), default="SCHEDULED", nullable=False)
+    # حقول الإشعار والنتيجة بعد النشر التلقائي
+    conversation_id = Column(Integer, nullable=True, index=True)
+    user_id = Column(Integer, nullable=True, index=True)
+    tweet_url = Column(String(500), nullable=True)
+    error_message = Column(Text, nullable=True)
+    published_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

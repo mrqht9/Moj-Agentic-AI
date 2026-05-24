@@ -34,6 +34,29 @@ class XAgent:
                 return True
         return False
 
+    def _get_registered_x_accounts(self) -> list:
+        """جلب قائمة labels الحسابات المسجّلة فعلاً في DB سيرفر app/x"""
+        try:
+            import sys
+            from pathlib import Path
+            x_dir = Path(__file__).parent.parent / "x"
+            if str(x_dir) not in sys.path:
+                sys.path.insert(0, str(x_dir))
+            from modules.db import list_cookies
+            cookies = list_cookies()
+            return [c["label"] for c in cookies if c.get("label")]
+        except Exception as e:
+            print(f"[X_Agent] Failed to read x DB: {e}")
+            # fallback لأسماء الملفات في المجلد
+            try:
+                from pathlib import Path
+                cookies_dir = Path(__file__).parent.parent / "x" / "cookies"
+                if cookies_dir.exists():
+                    return [p.stem for p in cookies_dir.glob("*.json")]
+            except Exception:
+                pass
+            return []
+
     def _extract_account_name(self, message: str, entities: Dict, context: Dict = None) -> str:
         """استخراج اسم الحساب من الرسالة"""
         # أولاً: تحقق من entities
@@ -48,11 +71,20 @@ class XAgent:
             r"على حساب\s+(\w+)",
             r"@(\w+)"
         ]
-        
+        # كلمات لا تصلح كأسماء حسابات
+        _blacklist = {"https", "http", "الحساب", "حسابي", "حسابك", "default_account",
+                      "جديد", "نشط", "قديم", "الجديد", "القديم",
+                      "إلى", "الى", "الي", "to", "من", "في", "على",
+                      "اسم", "إسم", "الاسم", "اسمي", "بايو", "البايو",
+                      "هوية", "هويه", "الهوية", "بروفايل", "البروفايل",
+                      "صورة", "الصورة", "غلاف", "الغلاف", "بانر", "البانر"}
+
         for pattern in account_patterns:
             match = re.search(pattern, message, re.IGNORECASE)
             if match:
-                return match.group(1)
+                candidate = match.group(1).strip()
+                if candidate.lower() not in _blacklist:
+                    return candidate
         
         # ثالثاً: استخدم قاعدة البيانات للحسابات النشطة (دائماً)
         user_id = context.get("user_id") if context else None
@@ -271,12 +303,91 @@ class XAgent:
                 return "⚠️ يرجى تحديد اسم الحساب المراد حذفه\n\nمثال: احذف حساب test_user"
         
         elif intent == "update_profile":
-            account = entities.get("account_name", "default_account")
             name = entities.get("name")
             bio = entities.get("bio")
-            
-            result = x_update_profile(account, name=name, bio=bio)
-            return result.get("message", "تم محاولة تحديث الملف الشخصي")
+            location = entities.get("location")
+            website = entities.get("website")
+            avatar_url = entities.get("avatar_url")
+            banner_url = entities.get("banner_url")
+
+            # تأكد أن في حقل واحد على الأقل يبي يتعدل
+            if not any([name, bio, location, website, avatar_url, banner_url]):
+                return (
+                    "⚠️ ما حددت إيش تبي تعدل في الهوية.\n\n"
+                    "💡 جرب مثلاً:\n"
+                    "• \"عدّل بايو حسابي إلى 'مطور برمجيات'\"\n"
+                    "• \"غيّر الاسم إلى 'أحمد' والبايو إلى 'كاتب محتوى'\"\n"
+                    "• \"حدّث بروفايل حساب test_user: الاسم 'سارة' الموقع 'الرياض'\"\n"
+                    "• \"غيّر صورة الحساب https://example.com/pic.jpg\"\n"
+                    "• \"غيّر الغلاف https://example.com/banner.jpg\"\n\n"
+                    "الحقول المدعومة: الاسم، البايو، الموقع، الرابط (الويبسايت)، الصورة، الغلاف"
+                )
+
+            # حدد اسم الحساب — أولاً من entities/الرسالة، ثم من DB سيرفر app/x
+            account = self._extract_account_name(message, entities, context)
+            if account:
+                account = sanitize_account_name(account)
+
+            # تحقق أن الحساب موجود في DB سيرفر app/x (وليس بس في ملفات الكوكيز)
+            registered_labels = self._get_registered_x_accounts()
+
+            if not account or account not in registered_labels:
+                if not registered_labels:
+                    return (
+                        "⚠️ لا توجد حسابات X مسجّلة بعد.\n\n"
+                        "💡 سجّل الدخول أولاً عبر:\n"
+                        "• الواجهة على /x/login\n"
+                        "• أو رفع كوكيز الحساب"
+                    )
+
+                accounts_list = "\n".join(f"• @{lbl}" for lbl in registered_labels)
+                if not account:
+                    return (
+                        "⚠️ يرجى تحديد اسم الحساب اللي تبي تعدل هويته.\n\n"
+                        f"📋 الحسابات المتاحة ({len(registered_labels)}):\n{accounts_list}\n\n"
+                        "💡 مثال: \"غيّر صورة حساب " + registered_labels[0] + " https://...\""
+                    )
+                # account حُدّد لكن غير مسجّل
+                return (
+                    f"⚠️ الحساب \"@{account}\" غير مسجّل في النظام.\n\n"
+                    f"📋 الحسابات المتاحة ({len(registered_labels)}):\n{accounts_list}\n\n"
+                    "💡 استخدم اسماً من القائمة أعلاه."
+                )
+
+            # وضع المتصفح: من الـ entities أو من الكلمات في الرسالة
+            headless = entities.get("headless")
+            if headless is None:
+                headless = not self._wants_visible(message)
+
+            # تنفيذ
+            print(f"[DEBUG] X_Agent: Updating profile for '{account}' "
+                  f"(name={name}, bio={bio}, location={location}, "
+                  f"website={website}, avatar={bool(avatar_url)}, "
+                  f"banner={bool(banner_url)}, headless={headless})")
+
+            result = x_update_profile(
+                account,
+                name=name,
+                bio=bio,
+                location=location,
+                website=website,
+                avatar_url=avatar_url,
+                banner_url=banner_url,
+                headless=headless,
+            )
+
+            if result.get("success"):
+                changes = []
+                if name: changes.append(f"الاسم → {name}")
+                if bio: changes.append(f"البايو → {bio}")
+                if location: changes.append(f"الموقع → {location}")
+                if website: changes.append(f"الرابط → {website}")
+                if avatar_url: changes.append("الصورة الشخصية ✓")
+                if banner_url: changes.append("الغلاف ✓")
+                changes_str = "\n• ".join(changes)
+                return f"✅ تم تحديث هوية الحساب @{account} بنجاح\n\n• {changes_str}"
+
+            return result.get("message", "⚠️ ما قدرت أحدث الملف الشخصي")
         
         elif intent == "like_post":
             tweet_url = entities.get("tweet_url")
@@ -362,6 +473,220 @@ class XAgent:
                 return result.get("message", "تم محاولة الحفظ")
             else:
                 return "⚠️ يرجى إرفاق رابط التغريدة\n\nمثال: احفظ تغريدة https://x.com/user/status/123456789"
-        
+
+        elif intent == "schedule_post":
+            return self._handle_schedule_post(message, entities, context)
+
         # إذا لم يتم التعرف على النية، لا ترجع شيء (دع الوكيل الرئيسي يتعامل معها)
         return None
+
+    # ────────────────────────── جدولة التغريدات ──────────────────────────
+    def _parse_schedule_time(self, schedule_entity: Dict[str, Any]):
+        """تحويل entity الوقت إلى datetime مستقبلية بتوقيت UTC (naive)"""
+        from datetime import datetime, timedelta, timezone
+        if not schedule_entity:
+            return None
+
+        KSA = timezone(timedelta(hours=3))
+        UTC = timezone.utc
+        now_ksa = datetime.now(UTC).astimezone(KSA)
+
+        t = schedule_entity.get("type")
+        groups = schedule_entity.get("groups") or []
+
+        try:
+            if t == "hours_from_now" and groups:
+                n = int(groups[0])
+                return (now_ksa + timedelta(hours=n)).astimezone(UTC).replace(tzinfo=None)
+
+            if t == "minutes_from_now" and groups:
+                n = int(groups[0])
+                return (now_ksa + timedelta(minutes=n)).astimezone(UTC).replace(tzinfo=None)
+
+            if t == "days_from_now" and groups:
+                n = int(groups[0])
+                return (now_ksa + timedelta(days=n)).astimezone(UTC).replace(tzinfo=None)
+
+            if t == "tomorrow":
+                # غداً نفس الساعة الحالية
+                target = now_ksa + timedelta(days=1)
+                return target.astimezone(UTC).replace(tzinfo=None)
+
+            if t == "day_after_tomorrow":
+                target = now_ksa + timedelta(days=2)
+                return target.astimezone(UTC).replace(tzinfo=None)
+
+            if t == "at_hour" and groups:
+                hour = int(groups[0])
+                minute = int(groups[1]) if len(groups) >= 2 and str(groups[1]).isdigit() else 0
+                # إذا فيه مؤشر مساء/م/pm، حوّل لـ 24h
+                if len(groups) >= 3:
+                    suffix = str(groups[-1]).lower()
+                    if suffix in ("مساء", "مساءً", "م", "pm", "ليلاً") and hour < 12:
+                        hour += 12
+                    elif suffix in ("صباح", "صباحاً", "ص", "am") and hour == 12:
+                        hour = 0
+                target = now_ksa.replace(hour=hour % 24, minute=minute, second=0, microsecond=0)
+                if target <= now_ksa:
+                    target += timedelta(days=1)
+                return target.astimezone(UTC).replace(tzinfo=None)
+
+            if t == "hh_mm" and len(groups) >= 2:
+                hour = int(groups[0])
+                minute = int(groups[1])
+                target = now_ksa.replace(hour=hour % 24, minute=minute, second=0, microsecond=0)
+                if target <= now_ksa:
+                    target += timedelta(days=1)
+                return target.astimezone(UTC).replace(tzinfo=None)
+        except (ValueError, TypeError, IndexError):
+            return None
+
+        return None
+
+    def _extract_tweet_content(self, message: str, entities: Dict) -> str:
+        """استخراج نص التغريدة المجدولة"""
+        # أولاً: لو موجود في entities
+        content = entities.get("content")
+        if content:
+            return content.strip()
+
+        # ثانياً: ابحث عن نص بين علامات اقتباس
+        m = re.search(r"['\"«](.+?)['\"»]", message)
+        if m:
+            return m.group(1).strip()
+
+        # ثالثاً: استخرج النص بعد كلمة مفتاحية
+        for kw in ["تغريدة", "تغريده", "منشور", "بوست", "غرد", "انشر", "اكتب",
+                  "tweet", "post"]:
+            if kw in message.lower():
+                parts = re.split(rf"{kw}\s*[:\-]?\s*", message, maxsplit=1, flags=re.IGNORECASE)
+                if len(parts) > 1:
+                    remaining = parts[1].strip()
+                    # احذف الكلمات المتعلقة بالوقت أو الحساب
+                    remaining = re.sub(
+                        r"(?:بعد\s+\d+\s+(?:ساعة|ساعات|دقيقة|دقايق|يوم|أيام|ايام)|"
+                        r"غدا?ً?|بكر[ةاه]|بكير|في\s*الساعة\s+\d+(?::\d+)?|"
+                        r"الساعة\s+\d+(?::\d+)?|\d{1,2}:\d{2}|"
+                        r"(?:في|على|من|ل)\s*حساب\s+\S+|"
+                        r"@\w+)",
+                        "", remaining, flags=re.IGNORECASE
+                    ).strip()
+                    remaining = re.sub(r"\s+", " ", remaining).strip(" .,،:-")
+                    if remaining and len(remaining) >= 2:
+                        return remaining
+        return ""
+
+    def _handle_schedule_post(self, message: str, entities: Dict, context: Dict) -> str:
+        """معالجة طلب جدولة تغريدة"""
+        from datetime import datetime, timedelta, timezone
+
+        # 1) استخراج النص
+        content = self._extract_tweet_content(message, entities)
+        if not content:
+            return (
+                "⚠️ ما حددت نص التغريدة.\n\n"
+                "💡 جرب مثلاً:\n"
+                "• \"جدول تغريدة 'صباح الخير' بكرا الساعة 9\"\n"
+                "• \"انشر بعد 3 ساعات 'تذكير للاجتماع'\"\n"
+                "• \"اكتب تغريدة غداً: مرحباً بالجميع\""
+            )
+
+        # 2) استخراج الحساب والتحقق منه
+        account = self._extract_account_name(message, entities, context)
+        if account:
+            account = sanitize_account_name(account)
+        registered = self._get_registered_x_accounts()
+
+        if not account or account not in registered:
+            if not registered:
+                return "⚠️ لا توجد حسابات X مسجّلة. سجّل الدخول أولاً."
+            accounts_list = "\n".join(f"• @{lbl}" for lbl in registered)
+            if not account:
+                # استخدم أول حساب مسجّل كافتراضي
+                account = registered[0]
+                print(f"[X_Agent] No account specified, using default: @{account}")
+            else:
+                return (
+                    f"⚠️ الحساب \"@{account}\" غير مسجّل.\n\n"
+                    f"📋 الحسابات المتاحة ({len(registered)}):\n{accounts_list}"
+                )
+
+        # 3) استخراج الوقت
+        schedule_time_entity = entities.get("schedule_time")
+        run_at = self._parse_schedule_time(schedule_time_entity)
+        # لو ما حدد وقت، الـ schedule_service يختار تلقائياً حسب محتوى التغريدة
+
+        # 4) إنشاء الحدث في DB المحلية (للتتبع) + إرسال للسيرفر app/x للنشر التلقائي
+        try:
+            from app.db.database import SessionLocal
+            from app.services.schedule_service import create_schedule_event
+            from app.services import x_bridge
+
+            conversation_id = (context or {}).get("conversation_id")
+            user_id = (context or {}).get("user_id")
+
+            db = SessionLocal()
+            try:
+                # احفظ في DB المحلي (للتتبع + بيانات الإشعار)
+                event = create_schedule_event(
+                    db=db,
+                    platform="x",
+                    username=account,
+                    category="user_scheduled",
+                    content=content,
+                    run_at=run_at,
+                    conversation_id=conversation_id,
+                    user_id=user_id,
+                )
+                run_at_for_bridge = event.run_at  # نستخدم الوقت اللي اختاره الـ service
+
+                # أرسل للسيرفر app/x ليتولى النشر التلقائي
+                run_at_iso = run_at_for_bridge.strftime('%Y-%m-%d %H:%M:%S')
+                # webhook لإشعار الشات بنتيجة النشر
+                webhook_base = (context or {}).get("webhook_base") or "http://127.0.0.1:3000"
+                callback_url = f"{webhook_base}/api/webhooks/schedule_callback"
+
+                bridge_result = x_bridge.schedule_post(
+                    event_id=event.schedule_event_id,
+                    cookie_label=account,
+                    content=content,
+                    run_at=run_at_iso,
+                    callback_url=callback_url,
+                    callback_payload={
+                        "conversation_id": conversation_id,
+                        "user_id": user_id,
+                    },
+                    max_attempts=3,
+                )
+
+                if not bridge_result.get("success"):
+                    # فشل التسجيل في سيرفر النشر — احذف الحدث المحلي
+                    db.delete(event)
+                    db.commit()
+                    err = bridge_result.get("message", bridge_result.get("error", "خطأ غير معروف"))
+                    return f"⚠️ فشل تسجيل الجدولة في نظام النشر: {err}"
+
+                # تنسيق الوقت بتوقيت السعودية للعرض
+                KSA = timezone(timedelta(hours=3))
+                run_at_ksa = event.run_at.replace(tzinfo=timezone.utc).astimezone(KSA)
+                time_str = run_at_ksa.strftime("%Y-%m-%d %I:%M %p")
+
+                response = (
+                    f"✅ تم جدولة التغريدة في نظام النشر التلقائي\n\n"
+                    f"📝 النص: {content[:100]}{'...' if len(content) > 100 else ''}\n"
+                    f"👤 الحساب: @{account}\n"
+                    f"🕐 وقت النشر: {time_str} (توقيت السعودية)\n"
+                    f"🆔 معرف الجدولة: {event.schedule_event_id}\n"
+                    f"🔁 محاولات إعادة النشر عند الفشل: 3 (بفواصل 1د/5د/15د)\n"
+                    f"🔔 سيصلك إشعار في الشات عند النشر أو الفشل\n"
+                )
+                if run_at is None:
+                    response += f"⚙️ تم اختيار الوقت تلقائياً حسب نوع المحتوى ({event.intent_time})\n"
+                return response
+            finally:
+                db.close()
+        except Exception as e:
+            print(f"[X_Agent] Schedule error: {e}")
+            import traceback
+            traceback.print_exc()
+            return f"⚠️ فشل جدولة التغريدة: {e}"

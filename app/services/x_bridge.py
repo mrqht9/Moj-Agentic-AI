@@ -41,16 +41,80 @@ def _is_running() -> bool:
         return False
 
 
+def _has_latest_endpoints() -> bool:
+    """
+    يتحقق أن السيرفر الشغّال يحتوي على الـ endpoints الجديدة (scheduled_post).
+    لو رجع 404 → النسخة قديمة ولازم نقتل العملية ونشغّل الجديدة.
+    لو رجع 200/401/403 → النسخة محدّثة.
+    """
+    try:
+        r = requests.get(f"{XSUITE_BASE_URL}/api/scheduled_posts",
+                         headers=_HEADERS, timeout=5)
+        # 404 = endpoint غير موجود → نسخة قديمة
+        # 200/401/403/405 = endpoint موجود → نسخة محدّثة
+        return r.status_code != 404
+    except Exception:
+        return False
+
+
+def _kill_process_on_port(port: int) -> bool:
+    """يقتل أي عملية تستمع على البورت المُحدد (Windows + Linux)."""
+    try:
+        if sys.platform == "win32":
+            # ابحث عن PID على البورت
+            result = subprocess.run(
+                ["netstat", "-ano", "-p", "tcp"],
+                capture_output=True, text=True, timeout=5
+            )
+            pids_to_kill = set()
+            for line in result.stdout.splitlines():
+                if f":{port}" in line and "LISTENING" in line:
+                    parts = line.split()
+                    if parts and parts[-1].isdigit():
+                        pids_to_kill.add(parts[-1])
+            killed = False
+            for pid in pids_to_kill:
+                try:
+                    subprocess.run(["taskkill", "/F", "/PID", pid],
+                                   capture_output=True, timeout=5)
+                    killed = True
+                    print(f"[X-Bridge] قتل العملية القديمة PID={pid} على بورت {port}")
+                except Exception as e:
+                    print(f"[X-Bridge] فشل قتل PID={pid}: {e}")
+            return killed
+        else:
+            # Linux/Mac
+            result = subprocess.run(["lsof", "-ti", f":{port}"],
+                                    capture_output=True, text=True, timeout=5)
+            pids = [p.strip() for p in result.stdout.splitlines() if p.strip()]
+            for pid in pids:
+                try:
+                    subprocess.run(["kill", "-9", pid], capture_output=True, timeout=5)
+                    print(f"[X-Bridge] قتل العملية القديمة PID={pid} على بورت {port}")
+                except Exception:
+                    pass
+            return bool(pids)
+    except Exception as e:
+        print(f"[X-Bridge] _kill_process_on_port error: {e}")
+        return False
+
+
 def start_xsuite_server() -> bool:
     """تشغيل سيرفر app/x بالخلفية (دائماً يحاول يشغّل إذا ما في process محلي)"""
     global _process
 
-    # إذا عندنا process محلي شغال، تحقق أنه فعلاً يستجيب
-    if _process and _process.poll() is None and _is_running():
+    # إذا عندنا process محلي شغال + يستجيب + يحتوي الـ endpoints الجديدة، استخدمه
+    if _process and _process.poll() is None and _is_running() and _has_latest_endpoints():
         print(f"[X-Bridge] سيرفر app/x شغال بالفعل على بورت {XSUITE_PORT}")
         return True
 
-    # أوقف أي process قديم
+    # إذا في سيرفر شغال على البورت لكنه نسخة قديمة (بدون _process لدينا) → اقتله
+    if _is_running() and not _has_latest_endpoints():
+        print(f"[X-Bridge] ⚠️ سيرفر app/x القديم شغّال على بورت {XSUITE_PORT} — قتله للتحديث")
+        _kill_process_on_port(XSUITE_PORT)
+        time.sleep(2)
+
+    # أوقف أي process محلي قديم نمتلكه
     if _process and _process.poll() is None:
         try:
             _process.terminate()
@@ -275,6 +339,45 @@ def delete_tweet(cookie_label: str, tweet_id: str, headless: bool = True) -> Dic
         "headless": headless,
     }
     return _api_call("POST", "/api/delete-tweet", json=payload)
+
+
+# ── جدولة تغريدة (مع نشر تلقائي في app/x) ──
+def schedule_post(
+    event_id: str,
+    cookie_label: str,
+    content: str,
+    run_at: str,                      # ISO UTC "YYYY-MM-DD HH:MM:SS"
+    media_url: Optional[str] = None,
+    callback_url: Optional[str] = None,
+    callback_payload: Optional[Dict[str, Any]] = None,
+    max_attempts: int = 3,
+) -> Dict[str, Any]:
+    """يرسل طلب جدولة تغريدة لسيرفر app/x ليتولى النشر التلقائي."""
+    return _api_call("POST", "/api/scheduled_post", json={
+        "event_id": event_id,
+        "cookie_label": cookie_label,
+        "content": content,
+        "run_at": run_at,
+        "media_url": media_url,
+        "callback_url": callback_url,
+        "callback_payload": callback_payload,
+        "max_attempts": max_attempts,
+    })
+
+
+def get_scheduled_post(event_id: str) -> Dict[str, Any]:
+    return _api_call("GET", f"/api/scheduled_post/{event_id}")
+
+
+def cancel_scheduled_post(event_id: str) -> Dict[str, Any]:
+    return _api_call("DELETE", f"/api/scheduled_post/{event_id}")
+
+
+def list_scheduled_posts(status: Optional[str] = None, limit: int = 100) -> Dict[str, Any]:
+    params = {"limit": limit}
+    if status:
+        params["status"] = status
+    return _api_call("GET", "/api/scheduled_posts", params=params)
 
 
 # ── تحديث الملف الشخصي ──

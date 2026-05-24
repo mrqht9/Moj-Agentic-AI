@@ -83,6 +83,12 @@ async def startup_event():
         print(f"Warning: LoginX server failed to start: {str(e)}")
 
     try:
+        from app.services import identity_bridge
+        identity_bridge.start_identity_server()
+    except Exception as e:
+        print(f"Warning: Identity server failed to start: {str(e)}")
+
+    try:
         asyncio.create_task(scheduler_tick())
         print("Scheduler tick started (every 30s)")
     except Exception as e:
