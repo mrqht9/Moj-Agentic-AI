@@ -94,12 +94,31 @@ class MainAgent:
                         "conversation_id": conversation_id
                     }
             
-            elif platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post", "delete_post"]:
+            elif intent == "generate_identity":
+                identity_response = self._handle_generate_identity(message, entities)
+                if db and conversation_id:
+                    try:
+                        memory_service.add_message(
+                            db=db, conversation_id=conversation_id,
+                            role="assistant", content=identity_response,
+                            intent=intent, confidence=confidence, agent="Identity_Agent"
+                        )
+                    except: pass
+                return {
+                    "success": True,
+                    "message": identity_response,
+                    "intent_result": intent_result,
+                    "agent": "Identity_Agent",
+                    "conversation_id": conversation_id
+                }
+
+            elif platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post", "delete_post", "remove_account", "update_profile", "like_post", "repost", "share_post", "follow_user", "unfollow_user", "reply_to_comment", "bookmark_post"]:
                 context = {
                     "intent": intent,
                     "entities": entities,
                     "platform": platform,
-                    "user_id": user_id
+                    "user_id": user_id,
+                    "conversation_id": conversation_id,
                 }
                 
                 x_response = self.x_agent.process_request(message, context)
@@ -138,28 +157,132 @@ class MainAgent:
                 }
             
             elif intent == "help":
-                help_message = """مرحباً! يمكنني مساعدتك في:
+                help_message = """🤖 **أنا موج — مساعدك لإدارة منصات التواصل**
 
-📱 **إدارة الحسابات:**
-- إضافة حساب جديد على X
-- عرض قائمة الحسابات
+هذي كل الأوامر اللي أفهمها مع مثال على كل واحد:
 
-📝 **إدارة المحتوى:**
-- نشر تغريدات
-- جدولة منشورات
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 **إدارة الحسابات**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📊 **تحليل الترندات:**
-- "وش الترندات؟" — نظرة عامة على الترندات
-- "ترندات حارة" — عرض الترندات HOT فقط
-- "ابحث ترند [كلمة]" — بحث في الترندات
-- "حالة الترندات" — حالة النظام
+🔹 **إضافة حساب** (بالكوكيز أو يوزر/باسورد):
+• `اضف حساب وارفق ملف الكوكيز`
+• `سجل دخول الحساب myuser الباسورد mypass`
 
-أمثلة:
-- "أضف حساب تويتر"
-- "وش يتصدر اليوم؟"
-- "ابحث ترند الذكاء الاصطناعي"
+🔹 **عرض الحسابات:**
+• `اعرض حساباتي`
+• `كم حساب عندي`
 
-كيف يمكنني مساعدتك؟"""
+🔹 **حذف حساب:**
+• `احذف حساب test_user`
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✍️ **النشر والمحتوى**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔹 **نشر تغريدة:**
+• `انشر تغريدة "مرحباً بالجميع"`
+• `غرد "صباح الخير" من حساب myuser`
+• `انشر "نص" مع الصورة https://example.com/pic.jpg`
+
+🔹 **جدولة تغريدة:**
+• `جدول تغريدة "تذكير" بكرا الساعة 9`
+• `جدول بعد 3 ساعات "اجتماع مهم"`
+• `انشر الساعة 14:30 "النص"`
+
+🔹 **حذف تغريدة:**
+• `احذف تغريدة 1234567890123456789`
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 **توليد هويات وهمية (AI)**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔹 **هوية عشوائية كاملة:**
+• `ولّد هوية عشوائية`
+• `اصنع لي شخصية`
+
+🔹 **بمعايير محددة:**
+• `ولّد هوية سعودي رجل تقني`
+• `ولّد شخصية امرأة كويتية ساخرة`
+• `ولّد هوية مصري رياضي بايو قصير`
+
+🔹 **بدون صور (أسرع):**
+• `ولّد هوية بدون صور`
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎭 **تعديل هوية الحساب**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔹 **تغيير الاسم:**
+• `غيّر اسم الحساب إلى خالد`
+
+🔹 **تغيير البايو:**
+• `عدّل البايو إلى "مطور برمجيات"`
+
+🔹 **تغيير الصورة الشخصية:**
+• `غيّر صورة الحساب https://example.com/avatar.jpg`
+
+🔹 **تغيير الغلاف:**
+• `غيّر الغلاف https://example.com/banner.jpg`
+
+🔹 **تعديل كامل:**
+• `حدّث بروفايل حساب myuser: الاسم "أحمد" البايو "كاتب" الموقع "الرياض"`
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❤️ **التفاعل مع التغريدات**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔹 **إعجاب (لايك):**
+• `لايك https://x.com/user/status/123456`
+
+🔹 **إعادة نشر (ريتويت):**
+• `أعد نشر https://x.com/user/status/123456`
+
+🔹 **رد:**
+• `رد على https://x.com/user/status/123456 "نص الرد"`
+
+🔹 **حفظ (بوكمارك):**
+• `احفظ تغريدة https://x.com/user/status/123456`
+
+🔹 **متابعة / إلغاء متابعة:**
+• `تابع @username`
+• `الغ متابعة @username`
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 **الترندات**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔹 **نظرة عامة:**
+• `وش الترند اليوم؟`
+• `آخر الترندات`
+
+🔹 **الترندات النشطة:**
+• `ترندات نشطة`
+• `أعلى ترند`
+
+🔹 **بحث بكلمة:**
+• `ترند السعودية`
+• `ابحث ترند الذكاء الاصطناعي`
+• `هل يتصدر الهلال؟`
+
+🔹 **تفاصيل ترند:**
+• انسخ سطر من قائمة الترندات وأرسله
+• أو اكتب: `تفاصيل ترند [العنوان]`
+
+🔹 **تشغيل جمع الترندات يدوياً:**
+• `شغل ترند`
+• `اجمع ترندات`
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 **نصائح**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• لو ما حددت حساب، أستخدم أول حساب مسجّل عندك
+• لإظهار المتصفح أثناء التنفيذ: أضف `بشكل ظاهر`
+• الجدولة بتوقيت السعودية تلقائياً
+• كل صور البروفايل لازم تكون روابط مباشرة (مش Pinterest)
+
+اكتب أي أمر من فوق وأنا أساعدك! 🚀"""
                 
                 if db and conversation_id:
                     try:
@@ -179,7 +302,7 @@ class MainAgent:
                 }
             
             elif intent == "greeting":
-                greeting_msg = "مرحباً! 👋 أنا هنا لمساعدتك في إدارة حساباتك على منصات التواصل الاجتماعي. كيف يمكنني مساعدتك اليوم؟"
+                greeting_msg = "مرحباً! 👋 أنا **موج**، مساعدك الذكي لإدارة حساباتك على منصات التواصل الاجتماعي.\n\nيمكنني مساعدتك في:\n📎 رفع كوكيز وإضافة حسابات X\n✍️ نشر تغريدات وإعادة نشر\n❤️ إعجاب ومتابعة وحفظ\n💬 الرد على التغريدات\n📊 متابعة الترندات\n🗑️ حذف تغريدات وحسابات\n\nكيف يمكنني مساعدتك اليوم؟"
                 
                 if db and conversation_id:
                     try:
@@ -308,3 +431,94 @@ class MainAgent:
                 "message": None,  # لا رد تلقائي
                 "error": str(e)
             }
+
+    # ─────────────────── توليد الهوية الوهمية ───────────────────
+    def _handle_generate_identity(self, message: str, entities: Dict[str, Any]) -> str:
+        """ينشئ هوية وهمية عبر سيرفر app/identity"""
+        from app.services import identity_bridge
+
+        # تأكد أن السيرفر شغّال
+        try:
+            identity_bridge.start_identity_server()
+        except Exception as e:
+            return f"⚠️ فشل تشغيل سيرفر توليد الهويات: {e}"
+
+        # هل المستخدم يبي صور؟ (افتراضي: نعم)
+        with_images = entities.get("with_images")
+        if with_images is None:
+            # لو ما حدد، نفترض نعم (الميزة الكاملة)
+            with_images = True
+
+        # حدّد لو هو طلب عشوائي بحت أو محدد
+        has_specifics = any(entities.get(k) for k in
+                            ["gender", "nationality", "orientation",
+                             "bio_length", "skin_tone"])
+
+        try:
+            if not has_specifics:
+                # طلب عشوائي
+                if with_images:
+                    result = identity_bridge.generate_random_profile_with_images()
+                else:
+                    result = identity_bridge.generate_random_profile()
+            else:
+                # طلب بمعايير
+                params = {
+                    "description": message[:200],
+                    "nationality": entities.get("nationality", "سعودي"),
+                    "orientation": entities.get("orientation", "عام"),
+                    "bioLength": entities.get("bio_length", "متوسط"),
+                    "imageType": "شخص",
+                    "headerImageType": "طبيعة",
+                    "gender": entities.get("gender", "رجل"),
+                    "skinTone": entities.get("skin_tone", "حنطي"),
+                    "headerText": "",
+                    "bioStyle": "فصحى",
+                    "useCustomPrompts": False,
+                    "customProfilePicPrompt": "",
+                    "customHeaderImagePrompt": "",
+                }
+                result = identity_bridge.generate_profile(params, with_images=with_images)
+        except Exception as e:
+            return f"⚠️ فشل توليد الهوية: {e}"
+
+        if not result.get("success"):
+            return f"⚠️ فشل توليد الهوية: {result.get('error', 'خطأ غير معروف')}"
+
+        data = result.get("data", {})
+
+        # بناء الرد
+        lines = ["✅ **تم توليد هوية وهمية جديدة:**", ""]
+        if data.get("name"):
+            lines.append(f"👤 **الاسم:** {data['name']}")
+        if data.get("username"):
+            lines.append(f"🆔 **اليوزرنيم:** @{data['username']}")
+        if data.get("bio"):
+            lines.append(f"📝 **البايو:** {data['bio']}")
+        if data.get("location"):
+            lines.append(f"📍 **الموقع:** {data['location']}")
+        if data.get("website"):
+            lines.append(f"🔗 **الويبسايت:** {data['website']}")
+        if data.get("bornDate"):
+            lines.append(f"🎂 **تاريخ الميلاد:** {data['bornDate']}")
+        if data.get("joinDate"):
+            lines.append(f"📅 **تاريخ الانضمام:** {data['joinDate']}")
+
+        followers = data.get("followers")
+        following = data.get("following")
+        if followers is not None or following is not None:
+            lines.append(f"👥 **المتابعون:** {followers:,} | **يتابع:** {following:,}")
+
+        if data.get("profilePictureUrl"):
+            lines.append(f"🖼️ **الصورة الشخصية:** {data['profilePictureUrl']}")
+        if data.get("headerImageUrl"):
+            lines.append(f"🎨 **صورة الغلاف:** {data['headerImageUrl']}")
+
+        lines.append("")
+        lines.append("💡 لتطبيق هذه الهوية على حساب X مسجّل لديك، اكتب:")
+        if data.get("name") and data.get("bio"):
+            lines.append(
+                f"`غيّر الاسم إلى \"{data['name']}\" والبايو إلى \"{data['bio'][:60]}...\"`"
+            )
+
+        return "\n".join(lines)

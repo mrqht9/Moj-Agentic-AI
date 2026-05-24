@@ -7,13 +7,14 @@ API endpoints لإدارة منصة X (Twitter)
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from pathlib import Path
 import tempfile
 import os
+import json
+import time
 
-from app.x.modules.x_login import TwitterLoginAdvanced
 from app.x.modules.x_post import post_to_x
 from app.x.modules.x_profile import update_profile_on_x
 from app.x.modules.utils import download_to_temp, is_url, safe_label
@@ -28,21 +29,89 @@ COOKIES_DIR = BASE_DIR / "x" / "cookies"
 COOKIES_DIR.mkdir(exist_ok=True, parents=True)
 
 
-class XLoginRequest(BaseModel):
-    """طلب تسجيل دخول X"""
-    label: str = Field(..., description="اسم الحساب")
-    username: str = Field(..., description="اسم المستخدم")
-    password: str = Field(..., description="كلمة المرور")
-    headless: bool = Field(default=True, description="تشغيل المتصفح في الخلفية")
-
-
-class XLoginResponse(BaseModel):
-    """استجابة تسجيل دخول X"""
+class XUploadCookiesResponse(BaseModel):
+    """استجابة رفع كوكيز X"""
     success: bool
     message: str
     label: str
     filename: Optional[str] = None
     timestamp: str
+
+
+def _convert_to_playwright_format(cookies_data) -> dict:
+    """
+    تحويل الكوكيز إلى صيغة Playwright إذا لم تكن بالصيغة الصحيحة.
+    
+    يدعم:
+    - صيغة extension/browser: [{"name": ..., "value": ..., "domain": ..., "expirationDate": ...}, ...]
+    - صيغة Playwright: {"cookies": [...], "origins": []}
+    - صيغة dict بسيطة: {"auth_token": "...", "ct0": "..."}
+    """
+    HTTP_ONLY = {'auth_token', 'kdt', '_twitter_sess', '__cf_bm', 'auth_multi'}
+    LAX_COOKIES = {'ct0', 'auth_multi'}
+    
+    # إذا كانت بصيغة Playwright بالفعل
+    if isinstance(cookies_data, dict) and 'cookies' in cookies_data:
+        cookie_list = cookies_data['cookies']
+        # تحقق أن الكوكيز تحتوي على الحقول المطلوبة
+        if cookie_list and all(k in cookie_list[0] for k in ('name', 'value', 'domain')):
+            # تأكد من وجود حقل expires (بدل expirationDate)
+            needs_conversion = any('expirationDate' in c and 'expires' not in c for c in cookie_list)
+            if not needs_conversion:
+                return cookies_data
+    
+    # إذا كانت مصفوفة (صيغة extension)
+    if isinstance(cookies_data, list):
+        cookie_list = cookies_data
+    elif isinstance(cookies_data, dict) and 'cookies' in cookies_data:
+        cookie_list = cookies_data['cookies']
+    elif isinstance(cookies_data, dict):
+        # صيغة dict بسيطة {key: value}
+        cookie_list = []
+        for k, v in cookies_data.items():
+            cookie_list.append({
+                "name": k,
+                "value": str(v),
+                "domain": ".x.com",
+                "path": "/",
+                "expirationDate": time.time() + 365 * 24 * 3600,
+                "httpOnly": k in HTTP_ONLY,
+                "secure": True,
+            })
+    else:
+        raise ValueError("صيغة كوكيز غير معروفة")
+    
+    # تحويل إلى صيغة Playwright
+    playwright_cookies = []
+    for c in cookie_list:
+        name = c.get('name', '')
+        expires = c.get('expires') or c.get('expirationDate') or (time.time() + 365 * 24 * 3600)
+        
+        same_site_raw = c.get('sameSite', 'None')
+        if same_site_raw in ('no_restriction', None):
+            same_site = 'None'
+        elif same_site_raw == 'lax':
+            same_site = 'Lax'
+        elif same_site_raw == 'strict':
+            same_site = 'Strict'
+        else:
+            same_site = same_site_raw if same_site_raw in ('None', 'Lax', 'Strict') else 'None'
+        
+        if name in LAX_COOKIES:
+            same_site = 'Lax'
+        
+        playwright_cookies.append({
+            "name": name,
+            "value": c.get('value', ''),
+            "domain": c.get('domain', '.x.com'),
+            "path": c.get('path', '/'),
+            "expires": float(expires),
+            "httpOnly": c.get('httpOnly', name in HTTP_ONLY),
+            "secure": c.get('secure', True),
+            "sameSite": same_site,
+        })
+    
+    return {"cookies": playwright_cookies, "origins": []}
 
 
 class XPostRequest(BaseModel):
@@ -72,53 +141,78 @@ class XProfileUpdateRequest(BaseModel):
     headless: bool = Field(default=True, description="تشغيل المتصفح في الخلفية")
 
 
-@router.post("/login", response_model=XLoginResponse)
-async def x_login(
-    request: XLoginRequest,
+@router.post("/login")
+async def x_login_disabled(
     current_user: Optional[User] = Depends(get_current_user)
 ):
     """
-    تسجيل الدخول إلى حساب X وحفظ الكوكيز
+    تسجيل الدخول بالباسورد معطّل.
+    يجب رفع ملف كوكيز بدلاً من ذلك عبر /api/x/upload-cookies
+    """
+    raise HTTPException(
+        status_code=403,
+        detail="تسجيل الدخول بكلمة المرور معطّل. يرجى رفع ملف كوكيز الحساب عبر /api/x/upload-cookies"
+    )
+
+
+@router.post("/upload-cookies", response_model=XUploadCookiesResponse)
+async def x_upload_cookies(
+    cookie_file: UploadFile = File(..., description="ملف كوكيز الحساب (JSON)"),
+    label: Optional[str] = Form(None, description="اسم الحساب (اختياري — إذا لم يُحدد يُستخدم اسم الملف)"),
+    current_user: Optional[User] = Depends(get_current_user)
+):
+    """
+    رفع ملف كوكيز لحساب X وحفظه بصيغة Playwright.
     
-    Args:
-        request: بيانات تسجيل الدخول
-        current_user: المستخدم الحالي
-    
-    Returns:
-        نتيجة تسجيل الدخول
+    - إذا كان الملف بصيغة extension (مصفوفة) يتم تحويله تلقائياً لصيغة Playwright.
+    - اسم الحساب يُأخذ من label أو من اسم الملف المرفوع.
     """
     try:
-        label = safe_label(request.label)
-        
-        # تسجيل الدخول
-        engine = TwitterLoginAdvanced()
-        cookie_path = engine.login_twitter(
-            username=request.username,
-            password=request.password,
-            cookies_dir=str(COOKIES_DIR),
-            headless=request.headless
-        )
-        
-        # إعادة تسمية الملف
-        dst = COOKIES_DIR / f"{label}.json"
+        # قراءة الملف
+        content = await cookie_file.read()
         try:
-            if Path(cookie_path).name != dst.name:
-                Path(cookie_path).replace(dst)
-        except Exception:
-            pass
+            cookies_data = json.loads(content.decode('utf-8'))
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            raise HTTPException(status_code=400, detail=f"ملف الكوكيز غير صالح (ليس JSON): {str(e)}")
         
-        return XLoginResponse(
+        # تحديد اسم الحساب
+        if label:
+            account_name = safe_label(label.strip())
+        else:
+            # استخدم اسم الملف بدون امتداد
+            raw_name = cookie_file.filename or "account"
+            account_name = safe_label(Path(raw_name).stem)
+        
+        if not account_name:
+            raise HTTPException(status_code=400, detail="اسم الحساب فارغ")
+        
+        # تحويل إلى صيغة Playwright
+        playwright_data = _convert_to_playwright_format(cookies_data)
+        
+        # التحقق من وجود auth_token
+        cookie_names = {c['name'] for c in playwright_data.get('cookies', [])}
+        if 'auth_token' not in cookie_names:
+            raise HTTPException(status_code=400, detail="ملف الكوكيز لا يحتوي على auth_token — تأكد أن الكوكيز صالحة")
+        
+        # حفظ الملف
+        dst = COOKIES_DIR / f"{account_name}.json"
+        with open(dst, 'w', encoding='utf-8') as f:
+            json.dump(playwright_data, f, ensure_ascii=False, indent=2)
+        
+        return XUploadCookiesResponse(
             success=True,
-            message="تم تسجيل الدخول وحفظ الكوكيز بنجاح",
-            label=label,
+            message=f"تم حفظ كوكيز الحساب '{account_name}' بنجاح",
+            label=account_name,
             filename=dst.name,
             timestamp=datetime.now().isoformat()
         )
     
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"فشل تسجيل الدخول: {str(e)}"
+            detail=f"فشل حفظ الكوكيز: {str(e)}"
         )
 
 

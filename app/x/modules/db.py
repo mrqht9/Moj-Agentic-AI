@@ -10,6 +10,8 @@ def connect() -> sqlite3.Connection:
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
+    # Fix encoding for Arabic text
+    con.execute("PRAGMA encoding = 'UTF-8'")
     return con
 
 
@@ -48,6 +50,33 @@ def init_db() -> None:
                 created_at TEXT NOT NULL
             )
             """
+        )
+        con.execute(
+            """
+            CREATE TABLE IF NOT EXISTS scheduled_posts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_id TEXT UNIQUE NOT NULL,
+                cookie_label TEXT NOT NULL,
+                content TEXT NOT NULL,
+                media_url TEXT,
+                run_at TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'SCHEDULED',
+                attempts INTEGER NOT NULL DEFAULT 0,
+                max_attempts INTEGER NOT NULL DEFAULT 3,
+                tweet_url TEXT,
+                error_message TEXT,
+                callback_url TEXT,
+                callback_payload TEXT,
+                callback_status TEXT,
+                published_at TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+        con.execute(
+            "CREATE INDEX IF NOT EXISTS idx_scheduled_posts_status_run "
+            "ON scheduled_posts(status, run_at)"
         )
 
 
@@ -95,6 +124,10 @@ def delete_cookie(cookie_id: int) -> Optional[Dict[str, Any]]:
 
 
 def log_operation(action: str, cookie_label: Optional[str], status: str, message: str, meta_json: str = "") -> int:
+    import json
+    # Fix encoding issue for Arabic text
+    if meta_json and isinstance(meta_json, dict):
+        meta_json = json.dumps(meta_json, ensure_ascii=False)
     with connect() as con:
         con.execute(
             "INSERT INTO operations(action,cookie_label,status,message,meta_json,created_at) VALUES(?,?,?,?,?,?)",
@@ -160,4 +193,99 @@ def delete_tweet_from_db(tweet_id: int) -> Optional[Dict[str, Any]]:
         if not r:
             return None
         con.execute("DELETE FROM tweets WHERE id=?", (tweet_id,))
+        return dict(r)
+
+
+# ───────────────────────── Scheduled Posts ─────────────────────────
+def insert_scheduled_post(
+    event_id: str,
+    cookie_label: str,
+    content: str,
+    run_at: str,
+    media_url: Optional[str] = None,
+    callback_url: Optional[str] = None,
+    callback_payload: Optional[str] = None,
+    max_attempts: int = 3,
+) -> int:
+    """يدرج تغريدة مجدولة جديدة. run_at بصيغة ISO UTC (YYYY-MM-DD HH:MM:SS)."""
+    with connect() as con:
+        con.execute(
+            "INSERT INTO scheduled_posts("
+            "event_id, cookie_label, content, media_url, run_at, status, attempts, max_attempts, "
+            "callback_url, callback_payload, created_at, updated_at"
+            ") VALUES(?,?,?,?,?,'SCHEDULED',0,?,?,?,?,?)",
+            (event_id, cookie_label, content, media_url, run_at, max_attempts,
+             callback_url, callback_payload, now_iso(), now_iso()),
+        )
+        rid = con.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
+        return int(rid)
+
+
+def get_scheduled_post(event_id: str) -> Optional[Dict[str, Any]]:
+    with connect() as con:
+        r = con.execute("SELECT * FROM scheduled_posts WHERE event_id=?", (event_id,)).fetchone()
+        return dict(r) if r else None
+
+
+def list_scheduled_posts(status: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
+    with connect() as con:
+        if status:
+            rows = con.execute(
+                "SELECT * FROM scheduled_posts WHERE status=? ORDER BY run_at DESC LIMIT ?",
+                (status, limit)
+            ).fetchall()
+        else:
+            rows = con.execute(
+                "SELECT * FROM scheduled_posts ORDER BY run_at DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def get_due_scheduled_posts(now_iso_str: str, batch_size: int = 10) -> List[Dict[str, Any]]:
+    """يرجع التغريدات المُستحقة للنشر (SCHEDULED + run_at <= now)."""
+    with connect() as con:
+        rows = con.execute(
+            "SELECT * FROM scheduled_posts WHERE status='SCHEDULED' AND run_at <= ? "
+            "ORDER BY run_at ASC LIMIT ?",
+            (now_iso_str, batch_size)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def update_scheduled_post_status(
+    event_id: str,
+    status: str,
+    tweet_url: Optional[str] = None,
+    error_message: Optional[str] = None,
+    increment_attempts: bool = False,
+    mark_published: bool = False,
+    callback_status: Optional[str] = None,
+) -> bool:
+    with connect() as con:
+        sets = ["status=?", "updated_at=?"]
+        params: list = [status, now_iso()]
+        if tweet_url is not None:
+            sets.append("tweet_url=?"); params.append(tweet_url)
+        if error_message is not None:
+            sets.append("error_message=?"); params.append(error_message)
+        if increment_attempts:
+            sets.append("attempts=attempts+1")
+        if mark_published:
+            sets.append("published_at=?"); params.append(now_iso())
+        if callback_status is not None:
+            sets.append("callback_status=?"); params.append(callback_status)
+        params.append(event_id)
+        cur = con.execute(
+            f"UPDATE scheduled_posts SET {', '.join(sets)} WHERE event_id=?",
+            params
+        )
+        return cur.rowcount > 0
+
+
+def delete_scheduled_post(event_id: str) -> Optional[Dict[str, Any]]:
+    with connect() as con:
+        r = con.execute("SELECT * FROM scheduled_posts WHERE event_id=?", (event_id,)).fetchone()
+        if not r:
+            return None
+        con.execute("DELETE FROM scheduled_posts WHERE event_id=?", (event_id,))
         return dict(r)

@@ -66,4 +66,6 @@ frontend/build/
 
 # Debug artifacts
 debug_post.png
+debug_post.html
 check_status.py
+Copy.env

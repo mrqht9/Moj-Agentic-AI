@@ -115,10 +115,19 @@ def create_schedule_event(
     username: str,
     category: str,
     content: str,
+    run_at: Optional[datetime] = None,
+    conversation_id: Optional[int] = None,
+    user_id: Optional[int] = None,
 ) -> ScheduleEvent:
     intent_time = _detect_intent_time(content, category)
     mood = _detect_mood(content, category)
-    run_at = _pick_run_at(intent_time)
+    # لو المستخدم حدد وقت صريح، استخدمه بدلاً من الاختيار التلقائي
+    if run_at is None:
+        run_at = _pick_run_at(intent_time)
+    else:
+        # تأكد أنه naive UTC datetime (مطابق لما يخزنه DB)
+        if run_at.tzinfo is not None:
+            run_at = run_at.astimezone(UTC).replace(tzinfo=None)
     event_id = _generate_event_id()
 
     event = ScheduleEvent(
@@ -131,6 +140,8 @@ def create_schedule_event(
         intent_time=intent_time,
         mood=mood,
         status="SCHEDULED",
+        conversation_id=conversation_id,
+        user_id=user_id,
     )
     db.add(event)
     db.commit()

@@ -444,7 +444,7 @@ class TrendAgent:
                 hints.append(f"نشر مكثف ({density:.0f}/ساعة)")
 
         if status == "hot":
-            hints.append("🔥 حار الحين")
+            hints.append("🔥 نشط الحين")
 
         return " · ".join(hints[:4]) if hints else ""
 
@@ -472,7 +472,7 @@ class TrendAgent:
         msg = f"هلا! هذي آخر الترندات اللي رصدناها 👇\n\n"
 
         if hots:
-            msg += f"🔥 **ترندات حارة الحين ({len(hots)}):**\n"
+            msg += f"🔥 **ترندات نشطة الحين ({len(hots)}):**\n"
             for i, t in enumerate(hots[:5], 1):
                 msg += self._trend_line(t, i) + "\n"
                 ctx = self._generate_context(t)
@@ -494,7 +494,7 @@ class TrendAgent:
         msg += f"👁 {s['watchlist']} ترند تحت المراقبة\n\n"
         msg += "💡 تقدر تسألني:\n"
         msg += "• \"ترند السعودية\" — بحث محدد\n"
-        msg += "• \"ترندات حارة\" — الأكثر رواجاً\n"
+        msg += "• \"ترندات نشطة\" — الأكثر رواجاً\n"
         msg += "• انسخ أي ترند من القائمة وأرسله — أعطيك تفاصيل وتحليل"
         return msg
 
@@ -503,11 +503,11 @@ class TrendAgent:
         early = data.get("early_trends", [])
 
         if not hots and not early:
-            return "🔥 ما فيه ترندات حارة حالياً. النظام يراقب باستمرار — أعطيني دقايق وارجع اسألني."
+            return "🔥 ما فيه ترندات نشطة حالياً. النظام يراقب باستمرار — أعطيني دقايق وارجع اسألني."
 
         msg = ""
         if hots:
-            msg += f"🔥 **الترندات الحارة ({len(hots)}):**\n\n"
+            msg += f"🔥 **الترندات النشطة ({len(hots)}):**\n\n"
             for i, t in enumerate(hots, 1):
                 msg += self._trend_line(t, i) + "\n"
         else:
@@ -517,7 +517,7 @@ class TrendAgent:
             msg += f"\n⏳ **قريب توصل HOT:**\n"
             for i, t in enumerate(early, 1):
                 msg += self._trend_line(t, i) + "\n"
-            msg += "\n� هذي تحت المراقبة — لو زاد التفاعل عليها بتصير حارة"
+            msg += "\n💡 هذي تحت المراقبة — لو زاد التفاعل عليها بتصير نشطة"
 
         return msg
 
@@ -757,7 +757,7 @@ class TrendAgent:
                     how_lines.append(f"كثافة النشر: {density:.1f} تغريدة/ساعة — نشر منتظم.")
 
             if verdict == "HOT":
-                how_lines.append("حكم النظام: HOT 🔥 — وصل لكل معايير الترند الحار (تفاعل + تنوع كتّاب + كثافة نشر).")
+                how_lines.append("حكم النظام: HOT 🔥 — وصل لكل معايير الترند النشط (تفاعل + تنوع كتّاب + كثافة نشر).")
             elif verdict == "EARLY":
                 how_lines.append("حكم النظام: EARLY ⏳ — بوادر ترند لكن ما وصل بعد لمرحلة HOT.")
 
@@ -791,7 +791,7 @@ class TrendAgent:
         # ═══ Section 5: Recommendation ═══
         rec_lines = []
         if status == "hot":
-            rec_lines.append("هالترند حار الحين — لو تبي تكتب محتوى عنه أو تتفاعل معه، هذا أفضل وقت.")
+            rec_lines.append("هالترند نشط الحين — لو تبي تكتب محتوى عنه أو تتفاعل معه، هذا أفضل وقت.")
             if topic_type == "security":
                 rec_lines.append("بما إنه حدث أمني، ركّز على نقل المعلومة بدقة من مصادر رسمية.")
             elif topic_type == "official_statement":
@@ -824,7 +824,7 @@ class TrendAgent:
 
 📊 جمعنا {s['total_signals']:,} إشارة من {len(s['platforms'])} منصة
 🔍 سوينا {s['validations']:,} عملية تحقق على X
-🔥 {s['hot']} ترند حار — ⏳ {s['early']} مبكر
+🔥 {s['hot']} ترند نشط — ⏳ {s['early']} مبكر
 👁 {s['watchlist']} ترند تحت المراقبة
 📡 آخر جمع بيانات: {last or 'جاري...'}
 
