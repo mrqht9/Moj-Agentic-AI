@@ -93,6 +93,14 @@ def start_identity_server() -> bool:
     env["FLASK_RUN_PORT"] = str(IDENTITY_PORT)
     env["PORT"] = str(IDENTITY_PORT)
 
+    # تمرير مفتاح Gemini من .env الرئيسي إلى خدمة Identity
+    # نقبل أي من الاسمين: GEMINI_API_KEY (المفضّل) أو API_KEY (للتوافق)
+    gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("API_KEY")
+    if gemini_key:
+        env["API_KEY"] = gemini_key
+    else:
+        print("[Identity-Bridge] ⚠️ GEMINI_API_KEY غير موجود في .env — السيرفر لن يشتغل")
+
     try:
         _process = subprocess.Popen(
             [python_exe, "-m", "flask", "--app", "app", "run",

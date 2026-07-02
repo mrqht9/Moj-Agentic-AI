@@ -14,14 +14,8 @@ app.secret_key = "x_automation_2026"
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 COOKIES_FOLDER = os.path.join(os.path.dirname(__file__), "CookiesBackup")
-# مجلد الكوكيز الرئيسي لـ X Suite (للتفاعل مع المنصة)
-XSUITE_COOKIES_FOLDER = os.path.join(os.path.dirname(__file__), "..", "cookies")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(COOKIES_FOLDER, exist_ok=True)
-os.makedirs(XSUITE_COOKIES_FOLDER, exist_ok=True)
-
-# API Key for authentication
-LOGINX_API_KEY = os.environ.get("LOGINX_API_KEY", "sk-loginx-2026-secret")
 
 # Global state
 log_queues = {}  # session_id -> queue
@@ -34,99 +28,114 @@ def get_or_create_queue(session_id):
     return log_queues[session_id]
 
 
-def require_api_key(f):
-    """ديكوريتور للتحقق من API Key"""
-    from functools import wraps
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        api_key = request.headers.get("X-API-Key", "")
-        if api_key != LOGINX_API_KEY:
-            return jsonify({"success": False, "error": "Unauthorized - invalid API key"}), 401
-        return f(*args, **kwargs)
-    return decorated
+def _finalize_login_for_moj(username, user_id, log_fn):
+    """
+    بعد نجاح تسجيل الدخول عبر LDPlayer:
+    1) ينسخ ملف الكوكيز من CookiesBackup/ إلى app/x/cookies/ (المسار الذي يستخدمه موج)
+    2) يسجّل/يحدّث الحساب في قاعدة بيانات موج (social_accounts) إذا user_id موجود
 
-
-def copy_cookies_to_xsuite(username):
-    """نسخ ملف الكوكيز من CookiesBackup إلى مجلد app/x/cookies + تسجيله في DB"""
+    log_fn(message, level): دالة للتسجيل.
+    يرجع True إذا تمّت العمليتان أو إحداهما، False لو الكوكيز ما وُجدت.
+    """
     import shutil
-    
-    src = os.path.join(COOKIES_FOLDER, f"{username}.json")
-    if not os.path.exists(src):
-        return False, f"ملف الكوكيز غير موجود: {src}"
-    
-    # تأكد من وجود مجلد الوجهة
-    os.makedirs(XSUITE_COOKIES_FOLDER, exist_ok=True)
-    
-    # قراءة الملف للتحقق من الصيغة
-    with open(src, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    
-    # إذا بصيغة storage_state الصحيحة — انسخ مباشرة
-    if isinstance(data, dict) and 'cookies' in data:
-        # تحقق من وجود auth_token
-        cookie_names = [c.get('name') for c in data['cookies']]
-        if 'auth_token' not in cookie_names:
-            return False, f"الكوكيز لا تحتوي على auth_token — تسجيل الدخول لم يكتمل"
-        dst = os.path.join(XSUITE_COOKIES_FOLDER, f"{username}.json")
-        shutil.copy2(src, dst)
-        cookie_count = len(data.get('cookies', []))
-    else:
-        # صيغة قديمة (مصفوفة) — حوّلها
-        import time as _time
-        HTTP_ONLY = {'auth_token', 'kdt', '_twitter_sess', '__cf_bm', 'auth_multi'}
-        LAX_COOKIES = {'ct0', 'auth_multi'}
-        
-        cookie_list = data if isinstance(data, list) else []
-        playwright_cookies = []
-        for c in cookie_list:
-            name = c.get('name', '')
-            if not name or not c.get('value'):
-                continue
-            expires = c.get('expires') or c.get('expirationDate') or (_time.time() + 365 * 24 * 3600)
-            same_site = 'Lax' if name in LAX_COOKIES else 'None'
-            playwright_cookies.append({
-                "name": name,
-                "value": c.get('value', ''),
-                "domain": c.get('domain', '.x.com'),
-                "path": c.get('path', '/'),
-                "expires": float(expires),
-                "httpOnly": c.get('httpOnly', name in HTTP_ONLY),
-                "secure": c.get('secure', True),
-                "sameSite": same_site,
-            })
-        
-        if not playwright_cookies:
-            return False, "لا توجد كوكيز صالحة في الملف"
-        
-        storage_state = {"cookies": playwright_cookies, "origins": []}
-        dst = os.path.join(XSUITE_COOKIES_FOLDER, f"{username}.json")
-        with open(dst, "w", encoding="utf-8") as f:
-            json.dump(storage_state, f, ensure_ascii=False, indent=2)
-        cookie_count = len(playwright_cookies)
-    
-    print(f"[LoginX] ✅ تم نسخ كوكيز '{username}' لـ X Suite ({cookie_count} كوكيز)")
-    
-    # تسجيل الكوكيز في قاعدة بيانات X Suite
+    from pathlib import Path
+
     try:
-        import sys
-        modules_dir = os.path.join(os.path.dirname(__file__), "..", "modules")
-        if modules_dir not in sys.path:
-            sys.path.insert(0, modules_dir)
-        from db import upsert_cookie
-        upsert_cookie(username, f"{username}.json")
+        loginx_dir = Path(__file__).resolve().parent
+        source = loginx_dir / "CookiesBackup" / f"{username}.json"
+
+        if not source.exists():
+            log_fn(f"⚠️ ملف الكوكيز غير موجود في: {source}", "ERROR")
+            return False
+
+        # المسار الرئيسي لكوكيز موج (app/x/cookies/)
+        main_cookies_dir = loginx_dir.parent / "cookies"
+        main_cookies_dir.mkdir(parents=True, exist_ok=True)
+        dest = main_cookies_dir / f"{username}.json"
+
+        shutil.copy2(source, dest)
+        log_fn(f"✅ تم نسخ الكوكيز إلى موج: {dest.name}", "SUCCESS")
+
+        # ─── تسجيل الكوكي في قاعدة بيانات سيرفر app/x ───
+        # هذي قاعدة منفصلة يستخدمها سيرفر النشر (app/x/app.py).
+        # بدون تسجيل هنا، النشر يرجع "cookie not found".
+        try:
+            import sys
+            project_root = loginx_dir.parent.parent.parent
+            if str(project_root) not in sys.path:
+                sys.path.insert(0, str(project_root))
+            from app.x.modules.db import upsert_cookie
+            cookie_id = upsert_cookie(username, dest.name)
+            log_fn(f"✅ تم تسجيل الكوكي في قاعدة سيرفر X (id={cookie_id})", "SUCCESS")
+        except Exception as e:
+            import traceback
+            log_fn(f"⚠️ فشل تسجيل الكوكي في قاعدة سيرفر X: {e}", "ERROR")
+            print(f"[loginx upsert_cookie error] {traceback.format_exc()}")
+
+        # ─── تسجيل الحساب في قاعدة بيانات موج الرئيسية (social_accounts) ───
+        if user_id:
+            try:
+                import sys
+                project_root = loginx_dir.parent.parent.parent  # app/x/loginx → root
+                if str(project_root) not in sys.path:
+                    sys.path.insert(0, str(project_root))
+
+                from app.db.database import SessionLocal
+                from app.services.account_service import account_service
+                from datetime import datetime as _dt
+
+                db = SessionLocal()
+                try:
+                    existing = account_service.get_account_by_username(
+                        db=db, user_id=user_id, platform="x", username=username
+                    )
+                    if existing:
+                        account_service.update_account(
+                            db=db, account_id=existing.id,
+                            status="active", last_login=_dt.utcnow(),
+                            cookie_filename=f"{username}.json", error_message=None
+                        )
+                        log_fn(f"✅ تم تحديث الحساب في DB (user_id={user_id})", "SUCCESS")
+                    else:
+                        account_service.create_account(
+                            db=db, user_id=user_id, platform="x",
+                            username=username, display_name=username,
+                            account_label=username,
+                            cookie_filename=f"{username}.json"
+                        )
+                        log_fn(f"✅ تم تسجيل الحساب في DB (user_id={user_id})", "SUCCESS")
+                finally:
+                    db.close()
+            except Exception as e:
+                import traceback
+                log_fn(f"⚠️ فشل تسجيل الحساب في DB: {e}", "ERROR")
+                print(f"[loginx finalize DB error] {traceback.format_exc()}")
+        else:
+            log_fn("ℹ️ لا يوجد user_id — تم نسخ الكوكيز فقط بدون تسجيل في DB", "INFO")
+
+        return True
     except Exception as e:
-        print(f"[LoginX] Warning: Could not register cookie in DB: {e}")
-    
-    return True, dst
+        log_fn(f"⚠️ خطأ في finalize_login: {e}", "ERROR")
+        return False
 
 
-def run_automation(session_id, accounts, headless=False):
+def _notify_callback(callback_url, payload):
+    """يرسل إشعار اكتمال إلى موج (POST). يفشل بصمت — لأن الإشعار اختياري."""
+    if not callback_url:
+        return
+    try:
+        import requests
+        requests.post(callback_url, json=payload, timeout=5)
+    except Exception as e:
+        print(f"[loginx callback error] {e}")
+
+
+def run_automation(session_id, accounts, user_id=None, callback_url=None):
     q = get_or_create_queue(session_id)
     tasks[session_id]["status"] = "running"
     tasks[session_id]["results"] = []
 
     total = len(accounts)
-    print(f"[LoginX] 🚀 بدء تسجيل دخول {total} حساب (headless={headless})")
 
     for i, acc in enumerate(accounts):
         username = acc["username"]
@@ -140,73 +149,172 @@ def run_automation(session_id, accounts, headless=False):
             "total": total,
         }))
 
-        success = False
-        cookie_path = None
+        def log_callback(message, level, account):
+            q.put(json.dumps({
+                "type": "log",
+                "message": message,
+                "level": level,
+                "account": account,
+                "time": datetime.now().strftime("%H:%M:%S"),
+            }))
 
+        automation = LDPlayerChromeAutomation(log_callback=log_callback)
         try:
-            def log_callback(message, level, account):
-                q.put(json.dumps({
-                    "type": "log",
-                    "message": message,
-                    "level": level,
-                    "account": account,
-                    "time": datetime.now().strftime("%H:%M:%S"),
-                }))
-
-            automation = LDPlayerChromeAutomation(log_callback=log_callback, headless=headless)
             success = automation.run_automation_with_chrome_focus(username, password, email)
-
-            # إذا نجح التسجيل، انسخ الكوكيز لمجلد X Suite
-            if success:
-                try:
-                    ok, path_or_err = copy_cookies_to_xsuite(username)
-                    if ok:
-                        cookie_path = path_or_err
-                        print(f"[LoginX] ✅ تم نسخ كوكيز {username} لـ X Suite")
-                    else:
-                        print(f"[LoginX] ⚠️ فشل نسخ كوكيز {username}: {path_or_err}")
-                except Exception as e:
-                    print(f"[LoginX] ⚠️ خطأ نسخ كوكيز {username}: {e}")
-
+            error_msg = ""
         except Exception as e:
-            print(f"[LoginX] ❌ خطأ غير متوقع في حساب {username}: {e}")
-            import traceback
-            traceback.print_exc()
-            # تأكد من إغلاق المحاكي حتى لو حصل خطأ
-            try:
-                automation.close_emulator()
-            except Exception:
-                pass
+            success = False
+            error_msg = str(e)
 
-        result = {"username": username, "success": success, "cookie_path": cookie_path}
+        # ── بعد نجاح الدخول: انسخ الكوكيز لموج + سجّل الحساب في DB ──
+        finalized = False
+        if success:
+            def _flog(msg, lvl):
+                log_callback(msg, lvl, username)
+            finalized = _finalize_login_for_moj(username, user_id, _flog)
+
+        result = {
+            "username": username,
+            "success": success,
+            "finalized": finalized,
+        }
+        if error_msg:
+            result["error"] = error_msg
         tasks[session_id]["results"].append(result)
 
         q.put(json.dumps({
             "type": "account_done",
             "account": username,
             "success": success,
-            "cookie_path": cookie_path,
+            "finalized": finalized,
             "index": i + 1,
             "total": total,
         }))
 
-        # انتظار بين الحسابات ليتعافى النظام
-        if i < total - 1:
-            wait_sec = 10
-            print(f"[LoginX] ⏳ انتظار {wait_sec} ثواني قبل الحساب التالي...")
-            q.put(json.dumps({
-                "type": "log",
-                "message": f"انتظار {wait_sec} ثواني قبل الحساب التالي...",
-                "level": "PROGRESS",
-                "account": username,
-                "time": datetime.now().strftime("%H:%M:%S"),
-            }))
-            time.sleep(wait_sec)
+        # ── إشعار موج بنتيجة هذا الحساب (لإظهارها في الشات) ──
+        _notify_callback(callback_url, {
+            "user_id": user_id,
+            "account": username,
+            "username": username,
+            "success": success,
+            "finalized": finalized,
+            "error": error_msg,
+            "session_id": session_id,
+        })
 
     tasks[session_id]["status"] = "done"
-    successful = sum(1 for r in tasks[session_id]["results"] if r["success"])
-    print(f"[LoginX] 🏁 انتهت العملية: {successful}/{total} حساب نجح")
     q.put(json.dumps({"type": "done", "results": tasks[session_id]["results"]}))
+
+
+@app.route("/api/health")
+def health_check():
+    """Endpoint للتحقق من أن سيرفر loginx شغّال (يستخدمه x_bridge)."""
+    return jsonify({"status": "ok", "service": "loginx", "port": 5000}), 200
+
+
+# ─── API endpoints يستخدمها موج (app/agents/tools.py + app/main.py) ───
+# تقبل JSON وترجع {success, session_id, error}
+
+@app.route("/api/login", methods=["POST"])
+def api_login_single():
+    """
+    تسجيل دخول حساب واحد (JSON API).
+    Body: {"username": "...", "password": "...", "email": "...", "headless": false, "user_id": 123}
+    Returns: {"success": True, "session_id": "..."} أو {"success": False, "error": "..."}
+    user_id (اختياري): يُستخدم لتسجيل الحساب في قاعدة بيانات موج بعد الدخول.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        username = (data.get("username") or "").strip()
+        password = (data.get("password") or "").strip()
+        email = (data.get("email") or "").strip()
+        user_id = data.get("user_id")  # int أو None
+        callback_url = (data.get("callback_url") or "").strip() or None
+
+        if not username or not password:
+            return jsonify({"success": False, "error": "اسم المستخدم وكلمة المرور مطلوبان"}), 400
+
+        session_id = f"s_{int(time.time() * 1000)}"
+        accounts = [{"username": username, "password": password, "email": email}]
+
+        tasks[session_id] = {
+            "status": "starting", "accounts": accounts, "results": [],
+            "user_id": user_id, "callback_url": callback_url,
+        }
+        get_or_create_queue(session_id)
+
+        t = threading.Thread(
+            target=run_automation,
+            args=(session_id, accounts, user_id, callback_url),
+            daemon=True,
+        )
+        t.start()
+
+        return jsonify({"success": True, "session_id": session_id})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/login/bulk", methods=["POST"])
+def api_login_bulk():
+    """
+    تسجيل دخول جماعي (JSON API).
+    Body: {"accounts": [{"username": "...", "password": "...", "email": "..."}, ...], "user_id": 123}
+    Returns: {"success": True, "session_id": "...", "count": N}
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        accounts = data.get("accounts") or []
+        user_id = data.get("user_id")
+        callback_url = (data.get("callback_url") or "").strip() or None
+
+        if not accounts or not isinstance(accounts, list):
+            return jsonify({"success": False, "error": "قائمة الحسابات فارغة أو غير صالحة"}), 400
+
+        # تنظيف وتحقق
+        clean_accounts = []
+        for acc in accounts:
+            u = (acc.get("username") or "").strip()
+            p = (acc.get("password") or "").strip()
+            e = (acc.get("email") or "").strip()
+            if u and p:
+                clean_accounts.append({"username": u, "password": p, "email": e})
+
+        if not clean_accounts:
+            return jsonify({"success": False, "error": "لا يوجد حسابات صالحة"}), 400
+
+        session_id = f"s_{int(time.time() * 1000)}"
+        tasks[session_id] = {
+            "status": "starting", "accounts": clean_accounts, "results": [],
+            "user_id": user_id, "callback_url": callback_url,
+        }
+        get_or_create_queue(session_id)
+
+        t = threading.Thread(
+            target=run_automation,
+            args=(session_id, clean_accounts, user_id, callback_url),
+            daemon=True,
+        )
+        t.start()
+
+        return jsonify({"success": True, "session_id": session_id, "count": len(clean_accounts)})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/status/<session_id>", methods=["GET"])
+def api_status(session_id):
+    """استعلام عن حالة جلسة تسجيل دخول معينة."""
+    task = tasks.get(session_id)
+    if not task:
+        return jsonify({"success": False, "error": "جلسة غير معروفة"}), 404
+    return jsonify({
+        "success": True,
+        "session_id": session_id,
+        "status": task["status"],
+        "results": task.get("results", []),
+        "total": len(task.get("accounts", [])),
+    })
 
 
 @app.route("/")
@@ -323,135 +431,6 @@ def task_status(session_id):
     if session_id not in tasks:
         return jsonify({"error": "الجلسة غير موجودة"}), 404
     return jsonify(tasks[session_id])
-
-
-# =====================
-# API Endpoints (for external integration)
-# =====================
-
-@app.route("/api/login", methods=["POST"])
-@require_api_key
-def api_login():
-    """
-    تسجيل دخول حساب واحد عبر API.
-    
-    Headers:
-        X-API-Key: sk-loginx-2026-secret
-    
-    Body (JSON):
-        {
-            "username": "...",
-            "password": "...",
-            "email": "..." (optional)
-        }
-    
-    Returns:
-        {"success": true, "session_id": "...", "message": "..."}
-    """
-    data = request.get_json(force=True, silent=True) or {}
-    username = (data.get("username") or "").strip()
-    password = (data.get("password") or "").strip()
-    email = (data.get("email") or "").strip()
-    headless = data.get("headless", False)  # افتراضياً ظاهر
-
-    if not username or not password:
-        return jsonify({"success": False, "error": "username و password مطلوبين"}), 400
-
-    session_id = f"api_{int(time.time()*1000)}"
-    accounts = [{"username": username, "password": password, "email": email}]
-
-    tasks[session_id] = {"status": "starting", "accounts": accounts, "results": []}
-    get_or_create_queue(session_id)
-
-    t = threading.Thread(target=run_automation, args=(session_id, accounts, headless), daemon=True)
-    t.start()
-
-    return jsonify({
-        "success": True,
-        "session_id": session_id,
-        "message": f"بدأت عملية تسجيل الدخول للحساب {username}"
-    })
-
-
-@app.route("/api/login/bulk", methods=["POST"])
-@require_api_key
-def api_login_bulk():
-    """
-    تسجيل دخول جماعي عبر API.
-    
-    Body (JSON):
-        {
-            "accounts": [
-                {"username": "...", "password": "...", "email": "..."},
-                ...
-            ]
-        }
-    """
-    data = request.get_json(force=True, silent=True) or {}
-    accounts = data.get("accounts", [])
-    headless = data.get("headless", False)  # افتراضياً ظاهر
-
-    if not accounts:
-        return jsonify({"success": False, "error": "لا توجد حسابات"}), 400
-
-    # تحقق من صحة البيانات
-    for acc in accounts:
-        if not acc.get("username") or not acc.get("password"):
-            return jsonify({"success": False, "error": f"حساب بدون username أو password"}), 400
-
-    session_id = f"api_bulk_{int(time.time()*1000)}"
-    tasks[session_id] = {"status": "starting", "accounts": accounts, "results": []}
-    get_or_create_queue(session_id)
-
-    t = threading.Thread(target=run_automation, args=(session_id, accounts, headless), daemon=True)
-    t.start()
-
-    return jsonify({
-        "success": True,
-        "session_id": session_id,
-        "count": len(accounts),
-        "message": f"بدأت عملية تسجيل الدخول لـ {len(accounts)} حساب"
-    })
-
-
-@app.route("/api/status/<session_id>", methods=["GET"])
-@require_api_key
-def api_task_status(session_id):
-    """معرفة حالة عملية تسجيل الدخول"""
-    if session_id not in tasks:
-        return jsonify({"success": False, "error": "الجلسة غير موجودة"}), 404
-    
-    task = tasks[session_id]
-    return jsonify({
-        "success": True,
-        "session_id": session_id,
-        "status": task["status"],
-        "results": task.get("results", [])
-    })
-
-
-@app.route("/api/cookies", methods=["GET"])
-@require_api_key
-def api_list_cookies():
-    """عرض جميع ملفات الكوكيز المحفوظة"""
-    cookies_files = []
-    if os.path.exists(COOKIES_FOLDER):
-        for f in os.listdir(COOKIES_FOLDER):
-            if f.endswith(".json"):
-                fpath = os.path.join(COOKIES_FOLDER, f)
-                cookies_files.append({
-                    "filename": f,
-                    "account": f.replace(".json", ""),
-                    "size": os.path.getsize(fpath),
-                    "date": datetime.fromtimestamp(os.path.getmtime(fpath)).strftime("%Y-%m-%d %H:%M"),
-                })
-    return jsonify({"success": True, "cookies": cookies_files})
-
-
-@app.route("/api/health", methods=["GET"])
-def api_health():
-    """فحص صحة السيرفر"""
-    return jsonify({"status": "healthy", "service": "LoginX", "port": 5000})
 
 
 if __name__ == "__main__":

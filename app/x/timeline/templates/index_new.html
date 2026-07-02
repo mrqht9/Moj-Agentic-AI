@@ -1,0 +1,126 @@
+{% extends "base_new.html" %}
+{% block title %}الرئيسية - سحب التغريدات{% endblock %}
+{% block page_title %}لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon blue"><i class="fas fa-comment-dots"></i></div>
+                <div>
+                    <div class="stat-value">{{ total_tweets }}</div>
+                    <div class="stat-label">اجمالي التغريدات</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon green"><i class="fas fa-users"></i></div>
+                <div>
+                    <div class="stat-value">{{ total_users }}</div>
+                    <div class="stat-label">الحسابات</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon purple"><i class="fas fa-tasks"></i></div>
+                <div>
+                    <div class="stat-value">{{ total_jobs }}</div>
+                    <div class="stat-label">عمليات السحب</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h3><i class="fas fa-history" style="color:var(--primary);margin-left:8px;"></i> اخر العمليات</h3>
+                <a href="{{ url_for('scrape') }}" class="btn-outline-custom" style="font-size:13px;padding:8px 16px;">
+                    <i class="fas fa-plus"></i> سحب جديد
+                </a>
+            </div>
+            <div class="card-body-custom p-0">
+                {% if recent_jobs %}
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>الحساب</th>
+                            <th>المطلوب</th>
+                            <th>المحفوظ</th>
+                            <th>الحالة</th>
+                            <th>التاريخ</th>
+                            <th>اجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for job in recent_jobs %}
+                        <tr>
+                            <td><strong>@{{ job.username }}</strong></td>
+                            <td>{{ job.requested_count }}</td>
+                            <td>{{ job.actual_count }}</td>
+                            <td>
+                                {% if job.status == 'running' %}
+                                    <span class="badge-status badge-running"><i class="fas fa-spinner fa-spin"></i> جاري</span>
+                                {% elif job.status == 'done' %}
+                                    <span class="badge-status badge-done"><i class="fas fa-check"></i> مكتمل</span>
+                                {% else %}
+                                    <span class="badge-status badge-error"><i class="fas fa-times"></i> خطا</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-size:13px;color:var(--text-muted);">{{ job.started_at[:16] if job.started_at else '' }}</td>
+                            <td>
+                                <a href="{{ url_for('tweets_list', job_id=job.id) }}" style="color:var(--primary);font-size:13px;" title="عرض التغريدات">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox d-block"></i>
+                    <p>لا توجد عمليات بعد</p>
+                    <a href="{{ url_for('scrape') }}" class="btn-primary-custom" style="display:inline-block;margin-top:12px;">
+                        <i class="fas fa-download"></i> ابدا السحب
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h3><i class="fas fa-bolt" style="color:var(--warning);margin-left:8px;"></i> بدء سريع</h3>
+            </div>
+            <div class="card-body-custom">
+                <form method="POST" action="{{ url_for('scrape') }}">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size:14px;">اسم المستخدم</label>
+                        <input type="text" name="username" class="form-control form-control-custom" placeholder="مثال: elaborty" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size:14px;">عدد التغريدات</label>
+                        <input type="number" name="count" class="form-control form-control-custom" value="100" min="1" max="5000">
+                    </div>
+                    <button type="submit" class="btn-primary-custom w-100">
+                        <i class="fas fa-download"></i> سحب الان
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,3 +1,8 @@
+# تحميل .env الرئيسي إلى متغيرات البيئة (يخدم جميع الخدمات الفرعية)
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent.parent / ".env")
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
@@ -9,7 +14,6 @@ import json
 from datetime import datetime
 from typing import List
 import asyncio
-from pathlib import Path
 import uuid
 from io import BytesIO
 
@@ -18,7 +22,7 @@ try:
 except Exception:
     Image = None
 
-from app.services.ai_service import AIService
+from app.services.ai_service import AIService, ai_service
 from app.services.webhook_service import WebhookService
 from app.core.config import settings
 from app.db.database import init_db, get_db
@@ -156,22 +160,73 @@ app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 uploads_path = static_path / "uploads"
 uploads_path.mkdir(parents=True, exist_ok=True)
 
+# ─── واجهة React المبنية (frontend/dist) ───
+FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
+if FRONTEND_DIST.exists() and (FRONTEND_DIST / "assets").exists():
+    app.mount(
+        "/assets",
+        StaticFiles(directory=str(FRONTEND_DIST / "assets")),
+        name="react_assets",
+    )
+
 ai_service = AIService()
 webhook_service = WebhookService()
 
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
+        # mapping من user_id إلى قائمة WebSockets للإشعارات (تسجيل دخول، إلخ)
+        self.user_websockets: Dict[int, List[WebSocket]] = {}
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+        # إزالة من mapping المستخدمين
+        for uid in list(self.user_websockets.keys()):
+            if websocket in self.user_websockets[uid]:
+                self.user_websockets[uid].remove(websocket)
+                if not self.user_websockets[uid]:
+                    del self.user_websockets[uid]
+
+    def register_user(self, user_id, websocket: WebSocket):
+        """ربط user_id بـ WebSocket لإرسال إشعارات لاحقة."""
+        if user_id is None:
+            return
+        try:
+            uid = int(user_id)
+        except (ValueError, TypeError):
+            return
+        self.user_websockets.setdefault(uid, [])
+        if websocket not in self.user_websockets[uid]:
+            self.user_websockets[uid].append(websocket)
 
     async def send_message(self, message: dict, websocket: WebSocket):
         await websocket.send_json(message)
+
+    async def send_to_user(self, user_id, message: dict) -> int:
+        """يرسل رسالة لكل WebSockets الخاصة بمستخدم. يرجع عدد الرسائل المرسلة."""
+        if user_id is None:
+            return 0
+        try:
+            uid = int(user_id)
+        except (ValueError, TypeError):
+            return 0
+        sent = 0
+        for ws in list(self.user_websockets.get(uid, [])):
+            try:
+                await ws.send_json(message)
+                sent += 1
+            except Exception:
+                # WebSocket مقطوع — نشيله
+                try:
+                    self.user_websockets[uid].remove(ws)
+                except Exception:
+                    pass
+        return sent
 
 manager = ConnectionManager()
 
@@ -183,11 +238,22 @@ class MessageRequest(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
 
 @app.get("/", response_class=HTMLResponse)
-async def get_chat_interface():
-    html_file = Path(__file__).parent.parent / "templates" / "chat.html"
-    if html_file.exists():
-        return FileResponse(html_file)
-    return HTMLResponse(content="<h1>Chat interface not found</h1>", status_code=404)
+async def get_react_app():
+    """يخدّم تطبيق React المبني — هو الواجهة الرئيسية للنظام."""
+    react_index = FRONTEND_DIST / "index.html"
+    if react_index.exists():
+        return FileResponse(react_index)
+    # احتياطي: لو React لم يُبنَ بعد، نخدّم الواجهة القديمة كـ fallback
+    legacy_html = Path(__file__).parent.parent / "templates" / "chat.html"
+    if legacy_html.exists():
+        return FileResponse(legacy_html)
+    return HTMLResponse(
+        content=(
+            "<h1>تطبيق React غير مبني</h1>"
+            "<p>شغّل: <code>cd frontend && npm install && npm run build</code></p>"
+        ),
+        status_code=503,
+    )
 
 @app.websocket("/ws/chat")
 async def websocket_endpoint(websocket: WebSocket):
@@ -203,6 +269,10 @@ async def websocket_endpoint(websocket: WebSocket):
             user_email = message_data.get("user_email", None)
             attachment = message_data.get("attachment", None)
             file_upload = message_data.get("file_upload", None)
+
+            # ربط هذا الـ WebSocket بـ user_id لإرسال إشعارات تسجيل الدخول لاحقاً
+            if user_id:
+                manager.register_user(user_id, websocket)
 
             await manager.send_message({
                 "type": "user_message",
@@ -421,10 +491,37 @@ async def websocket_endpoint(websocket: WebSocket):
                         "timestamp": datetime.now().isoformat()
                     }, websocket)
                 else:
-                    # لا يوجد رد من الوكيل - رد افتراضي ذكي
+                    # الوكيل ما لقى نية مطابقة → النظام بوت خدمات، مو شات عام
+                    out_of_scope_message = (
+                        "🤖 أنا **موج**، بوت متخصص لإدارة حساباتك على منصات التواصل — لست شاتاً عاماً.\n\n"
+                        "🎯 **خدماتي الرئيسية:**\n"
+                        "• 📝 نشر التغريدات\n"
+                        "• ❤️ التفاعل (لايك، إعادة نشر، رد، بوكمارك)\n"
+                        "• 📊 متابعة الترندات وتحليلها\n"
+                        "• 🆔 توليد هويات وهمية بالصور\n"
+                        "• 👤 إدارة الحسابات (إضافة، حذف، عرض)\n"
+                        "• ⏰ جدولة المنشورات\n"
+                        "• 🎨 تحديث البروفايل\n\n"
+                        "💡 اكتب **مساعدة** لعرض كل الأوامر بأمثلة."
+                    )
+
+                    conversation_id = agent_result.get("conversation_id")
+                    if db and conversation_id:
+                        try:
+                            memory_service.add_message(
+                                db=db,
+                                conversation_id=conversation_id,
+                                role="assistant",
+                                content=out_of_scope_message,
+                                agent="Scope_Guard",
+                            )
+                        except Exception as e:
+                            print(f"[ScopeGuard] Failed to persist message: {str(e)[:200]}")
+
                     await manager.send_message({
                         "type": "assistant_message",
-                        "message": "مرحباً! أنا موج، مساعدك الذكي لإدارة حساباتك على منصات التواصل الاجتماعي. كيف يمكنني مساعدتك؟\n\nيمكنك:\n📎 رفع ملف كوكيز لإضافة حساب\n✍️ النشر والتفاعل مع التغريدات\n📊 متابعة الترندات\n\nاكتب 'مساعدة' لعرض جميع الأوامر.",
+                        "message": out_of_scope_message,
+                        "metadata": {"agent": "Scope_Guard"},
                         "attachment": attachment,
                         "timestamp": datetime.now().isoformat()
                     }, websocket)
@@ -536,6 +633,79 @@ async def send_message_to_n8n(request: MessageRequest):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# Callback داخلي يستدعيه سيرفر loginx عند اكتمال تسجيل دخول حساب X.
+# يرسل إشعار في الشات للمستخدم عبر WebSocket.
+# ليس مكشوفًا للعموم — يقبل اتصال محلي فقط (127.0.0.1).
+# ────────────────────────────────────────────────────────────────────────────
+@app.post("/api/internal/login-callback", include_in_schema=False)
+async def login_callback(payload: Dict[str, Any], request):
+    # حماية: يقبل فقط من localhost (loginx يشتغل محلياً)
+    client_host = (request.client.host if request.client else "") if hasattr(request, "client") else ""
+    if client_host not in ("127.0.0.1", "localhost", "::1", ""):
+        raise HTTPException(status_code=403, detail="callback مسموح محلياً فقط")
+
+    user_id = payload.get("user_id")
+    if not user_id:
+        return {"ok": True, "note": "no user_id, nothing to notify"}
+
+    account = payload.get("account") or payload.get("username") or "حساب"
+    success = bool(payload.get("success"))
+    finalized = bool(payload.get("finalized"))
+    error = payload.get("error", "")
+
+    if success and finalized:
+        msg = (
+            f"✅ **تم تسجيل دخول الحساب '{account}' بنجاح!**\n\n"
+            f"🎉 الحساب أصبح متاحاً للنشر والتفاعل.\n"
+            f"💡 جرّب: `الحساب {account} انشر [النص]`"
+        )
+    elif success and not finalized:
+        msg = (
+            f"⚠️ **تسجيل دخول '{account}' اكتمل لكن فيه مشكلة في حفظ الكوكيز.**\n\n"
+            f"حاول مرة ثانية أو ارفع ملف الكوكيز يدوياً."
+        )
+    else:
+        msg = (
+            f"❌ **فشل تسجيل دخول الحساب '{account}'**\n\n"
+            + (f"📋 السبب: {error}\n\n" if error else "")
+            + "💡 تأكد من اسم المستخدم وكلمة المرور وأعد المحاولة."
+        )
+
+    sent = await manager.send_to_user(user_id, {
+        "type": "assistant_message",
+        "message": msg,
+        "metadata": {"agent": "X_Login_Notification"},
+        "timestamp": datetime.now().isoformat(),
+    })
+
+    return {"ok": True, "notified": sent}
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Catch-all لدعم React Router (يجب أن يبقى آخر route — لا تضف شيئاً بعده!)
+# يلتقط أي مسار غير معروف ويخدّم index.html لتتولاه React.
+# ════════════════════════════════════════════════════════════════════════════
+@app.get("/{full_path:path}", include_in_schema=False)
+async def serve_react_spa(full_path: str):
+    # لا نلتقط مسارات الـ API أو WebSocket (هذي مسجلة قبل، الـ catch-all
+    # يلتقط فقط ما لم يُطابق قبله، لكن نضيف حماية إضافية).
+    if full_path.startswith(("api/", "ws/", "static/", "assets/")):
+        raise HTTPException(status_code=404)
+
+    if not FRONTEND_DIST.exists():
+        raise HTTPException(status_code=404, detail="React build not found")
+
+    # لو الملف موجود فعلياً في dist (favicon, robots.txt, ...) → نخدمه مباشرة
+    file_path = FRONTEND_DIST / full_path
+    if file_path.is_file():
+        return FileResponse(file_path)
+
+    # خلاف ذلك → نرجع index.html و React Router يتولى التوجيه
+    return FileResponse(FRONTEND_DIST / "index.html")
+
 
 if __name__ == "__main__":
     uvicorn.run(

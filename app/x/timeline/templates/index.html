@@ -1,0 +1,593 @@
+{% extends "base.html" %}
+
+{% block title %}الصفحة الرئيسية{% endblock %}
+
+{% block content %}
+<!-- ترحيب -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card stats-box text-center">
+            <div class="card-body">
+                <h2 class="mb-3">🟦 مرحباً بك في نظام سحب تغريدات تويتر المطور</h2>
+                <p class="mb-0">نظام شامل لسحب ومراقبة التغريدات مع API متكامل ومراقبة تلقائية متقدمة</p>
+                <small class="d-block mt-2 opacity-75">نسخة 2.0 | آخر تحديث: أكتوبر 2025</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- إحصائيات سريعة -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stat-card">
+            <div class="stat-value text-primary" id="tweets-count">{{ stats.tweets_count | format_number }}</div>
+            <div class="stat-label">إجمالي التغريدات</div>
+            <small class="text-muted">المحفوظة في النظام</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stat-card">
+            <div class="stat-value text-success" id="users-count">{{ stats.users_count | format_number }}</div>
+            <div class="stat-label">عدد المستخدمين</div>
+            <small class="text-muted">المختلفين</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stat-card">
+            <div class="stat-value text-info" id="media-count">{{ stats.media_count | format_number }}</div>
+            <div class="stat-label">ملفات الوسائط</div>
+            <small class="text-muted">صور ومقاطع</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stat-card">
+            <div class="stat-value text-warning" id="active-jobs">{{ stats.active_jobs }}</div>
+            <div class="stat-label">مهام المراقبة النشطة</div>
+            <small class="text-muted">تعمل الآن</small>
+        </div>
+    </div>
+</div>
+
+<!-- إضافة مراقبة سريعة -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>🚀 إضافة مراقبة سريعة</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('start_monitoring') }}" method="POST" class="row g-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text">@</span>
+                            <input type="text" class="form-control" name="username" 
+                                   placeholder="اسم المستخدم" style="direction: ltr; text-align: left;" required>
+                        </div>
+                        <small class="text-muted">مثال: elonmusk، openai</small>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-control" name="interval">
+                            <option value="10">10 ثوان ⚡ (سريع جداً)</option>
+                            <option value="30">30 ثانية 🔥 (سريع)</option>
+                            <option value="60" selected>دقيقة واحدة ⭐ (مُوصى)</option>
+                            <option value="300">5 دقائق 📅 (عادي)</option>
+                            <option value="600">10 دقائق (بطيء)</option>
+                            <option value="1800">30 دقيقة (بطيء جداً)</option>
+                            <option value="3600">ساعة واحدة ⏰ (نادر)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-success w-100">
+                            🤖 بدء المراقبة
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-3">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <small class="text-success">⚡ سريع: 10-30 ثانية</small><br>
+                            <small class="text-muted">للحسابات النشطة جداً</small>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-info">⭐ عادي: 1-10 دقائق</small><br>
+                            <small class="text-muted">للاستخدام اليومي</small>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-warning">⏰ بطيء: 30+ دقيقة</small><br>
+                            <small class="text-muted">لتوفير الحصة</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- حالة النظام السريعة -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>📊 حالة النظام</h5>
+                <div>
+                    <span class="badge bg-success" id="system-status">🟢 يعمل</span>
+                    <span class="badge bg-info arabic-time" data-timestamp="{{ current_datetime()}}">
+                        آخر تحديث: الآن
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="p-2">
+                            <div class="h4 text-primary">🔄</div>
+                            <small>المراقبة التلقائية</small><br>
+                            <span class="badge bg-success">نشطة</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-2">
+                            <div class="h4 text-info">📡</div>
+                            <small>واجهة API</small><br>
+                            <span class="badge bg-success">متاحة</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-2">
+                            <div class="h4 text-warning">💾</div>
+                            <small>قاعدة البيانات</small><br>
+                            <span class="badge bg-success">متصلة</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-2">
+                            <div class="h4 text-success">🔐</div>
+                            <small>الأمان</small><br>
+                            <span class="badge bg-success">محمي</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- آخر التغريدات -->
+{% if recent_tweets %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>📱 آخر التغريدات المحفوظة</h5>
+                <div>
+                    <button class="btn btn-outline-primary btn-sm me-2" onclick="refreshTweets()">
+                        🔄 تحديث
+                    </button>
+                    <a href="{{ url_for('all_tweets') }}" class="btn btn-primary btn-sm">
+                        👁️ عرض الكل
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="recent-tweets-container">
+                    {% for tweet in recent_tweets %}
+                    <div class="tweet-card card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start mb-2">
+                                {% if tweet.user_profile_image_url %}
+                                <img src="{{ tweet.user_profile_image_url }}" 
+                                     alt="Profile" class="rounded-circle me-3" 
+                                     width="50" height="50" loading="lazy">
+                                {% else %}
+                                <div class="rounded-circle me-3 bg-primary text-white d-flex align-items-center justify-content-center" 
+                                     style="width: 50px; height: 50px;">
+                                    {{ tweet.user_name[0] if tweet.user_name else '@' }}
+                                </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        {{ tweet.user_name }}
+                                        <small class="text-muted">@{{ tweet.screen_name }}</small>
+                                        {% if tweet.user_verified %}
+                                            <span class="badge bg-primary">✅</span>
+                                        {% endif %}
+                                    </h6>
+                                    <small class="text-muted arabic-time" data-timestamp="{{ tweet.created_at }}">
+                                        {{ tweet.created_at | format_date }}
+                                    </small>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                        ⚙️
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ url_for('user_tweets', username=tweet.screen_name) }}">
+                                            📄 عرض تغريدات المستخدم
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="/api/tweet/{{ tweet.tweet_id }}" target="_blank">
+                                            🔗 عرض في API
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#" onclick="copyTweetText('{{ tweet.tweet_id }}')">
+                                            📋 نسخ النص
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <p class="tweet-text" id="tweet-{{ tweet.tweet_id }}">{{ tweet.full_text | truncate_text(200) }}</p>
+                            
+                            {% if tweet.has_media %}
+                            <div class="mb-2">
+                                <span class="badge bg-info">📷 {{ tweet.media_count }} وسائط</span>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="tweet-meta d-flex justify-content-between align-items-center">
+                                <div class="d-flex gap-3">
+                                    <span class="badge bg-light text-dark">
+                                        👁️ {{ tweet.views_count | format_number }}
+                                    </span>
+                                    <span class="badge bg-light text-dark">
+                                        ❤️ {{ tweet.favorite_count | format_number }}
+                                    </span>
+                                    <span class="badge bg-light text-dark">
+                                        🔄 {{ tweet.retweet_count | format_number }}
+                                    </span>
+                                    <span class="badge bg-light text-dark">
+                                        💬 {{ tweet.reply_count | format_number }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-secondary">{{ tweet.lang.upper() if tweet.lang else 'N/A' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- مهام المراقبة النشطة -->
+{% if monitoring_jobs %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>🤖 مهام المراقبة النشطة</h5>
+                <a href="{{ url_for('monitoring') }}" class="btn btn-success btn-sm">
+                    ⚙️ إدارة المراقبة
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for job in monitoring_jobs[:6] %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card {{ 'border-success' if job.is_active else 'border-secondary' }} h-100">
+                            <div class="card-body text-center">
+                                <div class="status-indicator {{ 'status-online' if job.is_active else 'status-offline' }} mx-auto mb-3"></div>
+                                <h6 class="card-title">@{{ job.username }}</h6>
+                                
+                                {% set interval = job.interval_seconds %}
+                                {% if interval < 60 %}
+                                    <p class="text-danger mb-2">كل {{ interval }} ثانية ⚡</p>
+                                {% elif interval < 300 %}
+                                    <p class="text-warning mb-2">كل {{ (interval/60)|int }} دقيقة 🔥</p>
+                                {% elif interval < 1800 %}
+                                    <p class="text-info mb-2">كل {{ (interval/60)|int }} دقيقة 📅</p>
+                                {% else %}
+                                    <p class="text-primary mb-2">كل {{ (interval/3600)|int }} ساعة ⏰</p>
+                                {% endif %}
+                                
+                                <span class="badge {{ 'bg-success' if job.is_active else 'bg-secondary' }} mb-2">
+                                    {{ 'نشط' if job.is_active else 'متوقف' }}
+                                </span>
+                                
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">{{ job.total_fetched }} تغريدة محفوظة</small>
+                                    {% if job.last_checked %}
+                                        <small class="text-muted d-block arabic-time" data-timestamp="{{ job.last_checked }}">
+                                            آخر فحص: {{ job.last_checked | format_date }}
+                                        </small>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="btn-group mt-3" role="group">
+                                    <a href="{{ url_for('user_tweets', username=job.username) }}" 
+                                       class="btn btn-sm btn-outline-primary" title="عرض التغريدات">
+                                        📄
+                                    </a>
+                                    {% if job.is_active %}
+                                        <a href="{{ url_for('stop_monitoring_route', username=job.username) }}" 
+                                           class="btn btn-sm btn-outline-danger" title="إيقاف المراقبة">
+                                            ⏸️
+                                        </a>
+                                    {% else %}
+                                        <button class="btn btn-sm btn-outline-success" title="إعادة تشغيل المراقبة"
+                                                onclick="quickRestart('{{ job.username }}', {{ job.interval_seconds }})">
+                                            ▶️
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if monitoring_jobs|length > 6 %}
+                    <div class="col-12 text-center mt-3">
+                        <a href="{{ url_for('monitoring') }}" class="btn btn-outline-primary">
+                            👁️ عرض جميع المهام ({{ monitoring_jobs|length }})
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- روابط سريعة -->
+<div class="row">
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="icon-lg mb-3">🔍</div>
+                <h6>البحث المتقدم</h6>
+                <p class="text-muted small">البحث عن تغريدات مستخدم معين أو بكلمات مفتاحية</p>
+                <a href="{{ url_for('search') }}" class="btn btn-primary btn-sm">دخول</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="icon-lg mb-3">📱</div>
+                <h6>جميع التغريدات</h6>
+                <p class="text-muted small">عرض وفلترة جميع التغريدات المحفوظة في النظام</p>
+                <a href="{{ url_for('all_tweets') }}" class="btn btn-info btn-sm">دخول</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="icon-lg mb-3">🤖</div>
+                <h6>المراقبة التلقائية</h6>
+                <p class="text-muted small">إدارة وتتبع مهام المراقبة التلقائية للمستخدمين</p>
+                <a href="{{ url_for('monitoring') }}" class="btn btn-success btn-sm">دخول</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="icon-lg mb-3">📚</div>
+                <h6>واجهة API</h6>
+                <p class="text-muted small">توثيق واختبار واجهات برمجة التطبيقات المتاحة</p>
+                <a href="{{ url_for('api_docs') }}" class="btn btn-purple btn-sm">دخول</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- تحديثات سريعة -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6>🚀 التحديثات الجديدة في النسخة 2.0</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <ul class="list-unstyled">
+                            <li>✅ مراقبة من 10 ثوان إلى ساعة</li>
+                            <li>✅ واجهة مستخدم محدثة</li>
+                            <li>✅ إحصائيات مفصلة</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <ul class="list-unstyled">
+                            <li>✅ API شامل ومحدث</li>
+                            <li>✅ تشخيص النظام</li>
+                            <li>✅ حفظ تلقائي محسن</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <ul class="list-unstyled">
+                            <li>✅ تصدير البيانات</li>
+                            <li>✅ عرض الوسائط</li>
+                            <li>✅ مزامنة الوقت</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// تحديث الإحصائيات كل 30 ثانية
+setInterval(updateStats, 30000);
+
+// إعادة تشغيل سريعة للمهام
+function quickRestart(username, interval) {
+    if (confirm(`هل تريد إعادة تشغيل مراقبة @${username}؟`)) {
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('interval', interval);
+        
+        fetch('/start_monitoring', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                showNotification(`تم إعادة تشغيل مراقبة @${username}`, 'success');
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                showNotification('خطأ في إعادة التشغيل', 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('خطأ في الاتصال', 'error');
+        });
+    }
+}
+
+// تحديث التغريدات الأخيرة
+function refreshTweets() {
+    showNotification('جاري تحديث التغريدات...', 'info');
+    
+    fetch('/api/tweets/latest?limit=5')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification(`تم تحديث ${data.data.tweets.length} تغريدة`, 'success');
+                // يمكن تحديث المحتوى هنا دون إعادة تحميل
+                setTimeout(() => location.reload(), 1000);
+            }
+        })
+        .catch(error => {
+            showNotification('خطأ في تحديث التغريدات', 'error');
+        });
+}
+
+// نسخ نص التغريدة
+function copyTweetText(tweetId) {
+    const tweetElement = document.getElementById(`tweet-${tweetId}`);
+    if (tweetElement) {
+        const text = tweetElement.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification('تم نسخ النص بنجاح', 'success');
+        }).catch(() => {
+            showNotification('فشل في نسخ النص', 'error');
+        });
+    }
+}
+
+// تحديث الإحصائيات
+function updateStats() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                updateCounters(data.data.overview);
+                updateSystemStatus();
+            }
+        })
+        .catch(error => console.log('خطأ في تحديث الإحصائيات:', error));
+}
+
+// تحديث العدادات
+function updateCounters(stats) {
+    const elements = {
+        'tweets-count': stats.tweets_count,
+        'users-count': stats.users_count,
+        'media-count': stats.media_count,
+        'active-jobs': stats.active_jobs
+    };
+    
+    Object.keys(elements).forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = formatNumber(elements[id]);
+        }
+    });
+}
+
+// تحديث حالة النظام
+function updateSystemStatus() {
+    const statusElement = document.getElementById('system-status');
+    const timeElement = document.querySelector('.badge.arabic-time');
+    
+    if (statusElement) {
+        statusElement.textContent = '🟢 يعمل';
+        statusElement.className = 'badge bg-success';
+    }
+    
+    if (timeElement) {
+        timeElement.textContent = `آخر تحديث: ${new Date().toLocaleTimeString('ar-SA')}`;
+    }
+}
+
+// تنسيق الأرقام
+function formatNumber(num) {
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + 'م';
+    } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'ك';
+    }
+    return num.toString();
+}
+
+// إضافات تفاعلية عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثيرات للكروت
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // تحديث الأوقات العربية
+    updateArabicTimes();
+    setInterval(updateArabicTimes, 60000); // كل دقيقة
+    
+    // عرض نصائح للمستخدمين الجدد
+    if ({{ stats.tweets_count }} === 0) {
+        setTimeout(() => {
+            showNotification('مرحباً! ابدأ بإضافة مراقبة لمستخدم تويتر لتجميع تغريداته تلقائياً', 'info', 10000);
+        }, 2000);
+    }
+});
+
+// تحديث الأوقات العربية
+function updateArabicTimes() {
+    const timeElements = document.querySelectorAll('.arabic-time[data-timestamp]');
+    timeElements.forEach(element => {
+        const timestamp = element.getAttribute('data-timestamp');
+        if (timestamp) {
+            try {
+                const date = new Date(timestamp);
+                element.textContent = date.toLocaleString('ar-SA');
+            } catch (e) {
+                console.log('خطأ في تحويل التاريخ:', timestamp);
+            }
+        }
+    });
+}
+
+// مراقبة حالة الشبكة
+window.addEventListener('online', function() {
+    showNotification('تم استعادة الاتصال بالإنترنت', 'success');
+    updateStats();
+});
+
+window.addEventListener('offline', function() {
+    showNotification('انقطع الاتصال بالإنترنت', 'warning');
+});
+
+// تحديث فوري عند النقر على الصفحة (إذا لم يتم التحديث لأكثر من 5 دقائق)
+let lastUpdate = Date.now();
+document.addEventListener('click', function() {
+    if (Date.now() - lastUpdate > 300000) { // 5 دقائق
+        updateStats();
+        lastUpdate = Date.now();
+    }
+});
+</script>
+{% endblock %}

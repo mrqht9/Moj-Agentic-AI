@@ -1,0 +1,168 @@
+{% extends "base_new.html" %}
+{% block title %}التغريدات المحفوظة - سحب التغريدات{% endblock %}
+{% block page_title %}التغريدات المحفوظة{% endblock %}
+
+{% block content %}
+<!-- فلاتر -->
+<div class="card-custom mb-4">
+    <div class="card-body-custom" style="padding:16px 24px;">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-bold" style="font-size:13px;">الحساب</label>
+                <select name="username" class="form-select form-control-custom" style="padding:10px 14px;">
+                    <option value="">الكل</option>
+                    {% for u in users %}
+                    <option value="{{ u.screen_name }}" {% if username == u.screen_name %}selected{% endif %}>@{{ u.screen_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold" style="font-size:13px;">عملية السحب</label>
+                <select name="job_id" class="form-select form-control-custom" style="padding:10px 14px;">
+                    <option value="">الكل</option>
+                    {% for j in jobs %}
+                    <option value="{{ j.id }}" {% if job_id == j.id %}selected{% endif %}>@{{ j.username }} ({{ j.actual_count }}) - {{ j.started_at[:10] if j.started_at else '' }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn-primary-custom w-100" style="padding:10px;">
+                    <i class="fas fa-filter"></i> فلترة
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ url_for('export_csv', username=username or '', job_id=job_id or '') }}" class="btn-outline-custom w-100 d-block text-center" style="padding:10px;">
+                    <i class="fas fa-file-csv"></i> تصدير CSV
+                </a>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ url_for('tweets_list') }}" class="btn-outline-custom w-100 d-block text-center" style="padding:10px;border-color:#6b7280;color:#6b7280;">
+                    <i class="fas fa-redo"></i> اعادة ضبط
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- معلومات -->
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div style="font-size:14px;color:var(--text-muted);">
+        <i class="fas fa-database"></i> اجمالي: <strong style="color:var(--text);">{{ total }}</strong> تغريدة
+        {% if username %} | الحساب: <strong>@{{ username }}</strong>{% endif %}
+    </div>
+    <div style="font-size:13px;color:var(--text-muted);">
+        صفحة {{ page }} من {{ total_pages }}
+    </div>
+</div>
+
+<!-- الجدول -->
+<div class="card-custom">
+    <div class="card-body-custom p-0" style="overflow-x:auto;">
+        {% if tweets %}
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th style="width:50px;">#</th>
+                    <th>الحساب</th>
+                    <th style="min-width:300px;">النص</th>
+                    <th>التفاعل</th>
+                    <th>الوسائط</th>
+                    <th>التاريخ</th>
+                    <th>اجراء</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for t in tweets %}
+                <tr>
+                    <td style="color:var(--text-muted);font-size:12px;">{{ (page - 1) * 50 + loop.index }}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            {% if t.user_profile_image_url %}
+                            <img src="{{ t.user_profile_image_url }}" style="width:32px;height:32px;border-radius:50%;" onerror="this.style.display='none'">
+                            {% endif %}
+                            <div>
+                                <div style="font-weight:600;font-size:13px;">{{ t.user_name[:20] }}</div>
+                                <div style="font-size:12px;color:var(--text-muted);">@{{ t.screen_name }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="tweet-text" style="white-space:normal;max-width:350px;font-size:13px;line-height:1.6;">
+                            {{ t.full_text[:150] }}{% if t.full_text|length > 150 %}...{% endif %}
+                        </div>
+                        {% if t.is_retweet %}
+                        <span style="background:#dcfce7;color:#16a34a;font-size:11px;padding:2px 8px;border-radius:10px;margin-top:4px;display:inline-block;">RT</span>
+                        {% endif %}
+                        {% if t.is_reply %}
+                        <span style="background:#dbeafe;color:#2563eb;font-size:11px;padding:2px 8px;border-radius:10px;margin-top:4px;display:inline-block;">رد</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:12px;white-space:nowrap;">
+                        <span title="اعجاب" style="color:#ef4444;"><i class="fas fa-heart"></i> {{ t.favorite_count }}</span><br>
+                        <span title="ريتويت" style="color:#22c55e;"><i class="fas fa-retweet"></i> {{ t.retweet_count }}</span><br>
+                        <span title="مشاهدات" style="color:#6b7280;"><i class="fas fa-eye"></i> {{ t.views_count }}</span>
+                    </td>
+                    <td>
+                        {% if t.has_media %}
+                        <span style="background:#e8f0fe;color:var(--primary);font-size:11px;padding:4px 10px;border-radius:10px;">
+                            <i class="fas fa-image"></i> {{ t.media_count }}
+                        </span>
+                        {% else %}
+                        <span style="color:#d1d5db;">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:12px;color:var(--text-muted);white-space:nowrap;">
+                        {{ t.created_at[:16] if t.created_at else '' }}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('tweet_detail', tweet_id=t.tweet_id) }}" style="color:var(--primary);font-size:13px;" title="تفاصيل">
+                            <i class="fas fa-expand-alt"></i>
+                        </a>
+                        &nbsp;
+                        <a href="{{ t.tweet_url }}" target="_blank" style="color:var(--text-muted);font-size:13px;" title="فتح في تويتر">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox d-block"></i>
+            <p>لا توجد تغريدات محفوظة</p>
+            <a href="{{ url_for('scrape') }}" class="btn-primary-custom" style="display:inline-block;margin-top:12px;">
+                <i class="fas fa-download"></i> ابدا السحب
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ترقيم الصفحات -->
+{% if total_pages > 1 %}
+<div style="display:flex;justify-content:center;gap:6px;margin-top:20px;">
+    {% if page > 1 %}
+    <a href="?page={{ page-1 }}&username={{ username }}&job_id={{ job_id }}" style="padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:14px;">
+        <i class="fas fa-chevron-right"></i> السابق
+    </a>
+    {% endif %}
+
+    {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+        <span style="padding:8px 14px;background:var(--primary);color:#fff;border-radius:8px;font-size:14px;font-weight:600;">{{ p }}</span>
+        {% elif p <= 3 or p >= total_pages - 2 or (p >= page - 1 and p <= page + 1) %}
+        <a href="?page={{ p }}&username={{ username }}&job_id={{ job_id }}" style="padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:14px;">{{ p }}</a>
+        {% elif p == 4 or p == total_pages - 3 %}
+        <span style="padding:8px 6px;color:var(--text-muted);">...</span>
+        {% endif %}
+    {% endfor %}
+
+    {% if page < total_pages %}
+    <a href="?page={{ page+1 }}&username={{ username }}&job_id={{ job_id }}" style="padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:14px;">
+        التالي <i class="fas fa-chevron-left"></i>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

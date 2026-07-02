@@ -5,7 +5,8 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
-    API_KEY = os.environ.get('API_KEY')
+    # يقبل أي من الاسمين: GEMINI_API_KEY (المفضّل من .env الرئيسي) أو API_KEY (للتوافق)
+    API_KEY = os.environ.get('GEMINI_API_KEY') or os.environ.get('API_KEY')
     
     # Gemini Models
     TEXT_MODEL = "gemini-2.5-flash"

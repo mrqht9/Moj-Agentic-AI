@@ -45,7 +45,7 @@ class XAccount(Base):
 class SocialAccount(Base):
     """حسابات وسائل التواصل الاجتماعي - دعم منصات متعددة"""
     __tablename__ = "social_accounts"
-    
+
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     platform = Column(String(50), nullable=False, index=True)  # x, instagram, facebook, linkedin, tiktok
@@ -54,15 +54,18 @@ class SocialAccount(Base):
     account_label = Column(String(255), nullable=True)  # اسم مخصص للحساب
     cookie_filename = Column(String(255), nullable=True)  # اسم ملف الكوكيز
     status = Column(String(50), default="active")  # active, inactive, expired, error
+    # تصنيف الحساب: social, political, sports, tech, religious,
+    # entertainment, news, literary, business, general
+    category = Column(String(50), nullable=True, index=True)
     last_login = Column(DateTime, nullable=True)
     last_used = Column(DateTime, nullable=True)
     error_message = Column(Text, nullable=True)
     extra_metadata = Column(Text, nullable=True)  # JSON لمعلومات إضافية
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     def __repr__(self):
-        return f"<SocialAccount(id={self.id}, platform={self.platform}, username={self.username}, status={self.status})>"
+        return f"<SocialAccount(id={self.id}, platform={self.platform}, username={self.username}, category={self.category}, status={self.status})>"
 
 
 class Conversation(Base):

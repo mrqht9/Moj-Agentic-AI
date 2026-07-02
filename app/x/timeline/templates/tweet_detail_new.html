@@ -1,0 +1,192 @@
+{% extends "base_new.html" %}
+{% block title %}تفاصيل التغريدة - سحب التغريدات{% endblock %}
+{% block page_title %}تفاصيل التغريدة{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- التغريدة -->
+    <div class="col-lg-8">
+        <div class="card-custom mb-4">
+            <div class="card-header-custom">
+                <h3><i class="fas fa-comment-dots" style="color:var(--primary);margin-left:8px;"></i> محتوى التغريدة</h3>
+                <a href="{{ tweet.tweet_url }}" target="_blank" class="btn-outline-custom" style="font-size:12px;padding:6px 14px;">
+                    <i class="fas fa-external-link-alt"></i> فتح في تويتر
+                </a>
+            </div>
+            <div class="card-body-custom">
+                <!-- المستخدم -->
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                    {% if tweet.user_profile_image_url %}
+                    <img src="{{ tweet.user_profile_image_url }}" style="width:48px;height:48px;border-radius:50%;border:2px solid var(--border);" onerror="this.style.display='none'">
+                    {% endif %}
+                    <div>
+                        <div style="font-weight:700;font-size:16px;">
+                            {{ tweet.user_name }}
+                            {% if tweet.user_is_blue_verified %}
+                            <i class="fas fa-check-circle" style="color:var(--primary);font-size:14px;"></i>
+                            {% endif %}
+                        </div>
+                        <div style="color:var(--text-muted);font-size:14px;">@{{ tweet.screen_name }}</div>
+                    </div>
+                </div>
+
+                <!-- النص -->
+                <div style="font-size:17px;line-height:1.9;margin-bottom:20px;white-space:pre-wrap;word-break:break-word;">{{ tweet.full_text }}</div>
+
+                {% if tweet.note_text %}
+                <div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:20px;border-right:4px solid var(--primary);">
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">نص طويل (Note Tweet)</div>
+                    <div style="font-size:15px;line-height:1.8;">{{ tweet.note_text }}</div>
+                </div>
+                {% endif %}
+
+                <!-- الوسائط -->
+                {% if tweet.has_media %}
+                <div style="margin-bottom:20px;">
+                    {% set media_list = tweet.media_urls | default('[]', true) %}
+                    {% if media_list and media_list != '[]' %}
+                    <div class="row g-2">
+                        {% for url in media_list | from_json if media_list != '[]' %}
+                        <div class="col-6">
+                            <img src="{{ url }}" style="width:100%;border-radius:10px;border:1px solid var(--border);" onerror="this.style.display='none'">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- التاريخ -->
+                <div style="color:var(--text-muted);font-size:13px;padding-top:16px;border-top:1px solid var(--border);">
+                    <i class="fas fa-clock"></i> {{ tweet.created_at }}
+                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <i class="fas fa-language"></i> {{ tweet.lang }}
+                </div>
+            </div>
+        </div>
+
+        <!-- اقتباس -->
+        {% if tweet.quoted_tweet_text %}
+        <div class="card-custom mb-4">
+            <div class="card-header-custom">
+                <h3><i class="fas fa-quote-right" style="color:var(--warning);margin-left:8px;"></i> تغريدة مقتبسة</h3>
+            </div>
+            <div class="card-body-custom">
+                <div style="font-weight:600;margin-bottom:8px;color:var(--primary);">@{{ tweet.quoted_tweet_user }}</div>
+                <div style="font-size:14px;line-height:1.8;">{{ tweet.quoted_tweet_text }}</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- الجانب -->
+    <div class="col-lg-4">
+        <!-- التفاعل -->
+        <div class="card-custom mb-4">
+            <div class="card-header-custom">
+                <h3><i class="fas fa-chart-bar" style="color:var(--primary);margin-left:8px;"></i> التفاعل</h3>
+            </div>
+            <div class="card-body-custom">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div style="text-align:center;padding:14px 8px;background:#fef2f2;border-radius:10px;">
+                            <div style="font-size:22px;font-weight:800;color:#ef4444;">{{ tweet.favorite_count }}</div>
+                            <div style="font-size:12px;color:#6b7280;">اعجاب</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="text-align:center;padding:14px 8px;background:#f0fdf4;border-radius:10px;">
+                            <div style="font-size:22px;font-weight:800;color:#22c55e;">{{ tweet.retweet_count }}</div>
+                            <div style="font-size:12px;color:#6b7280;">ريتويت</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="text-align:center;padding:14px 8px;background:#dbeafe;border-radius:10px;">
+                            <div style="font-size:22px;font-weight:800;color:#2563eb;">{{ tweet.reply_count }}</div>
+                            <div style="font-size:12px;color:#6b7280;">رد</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="text-align:center;padding:14px 8px;background:#f8fafc;border-radius:10px;">
+                            <div style="font-size:22px;font-weight:800;color:#6b7280;">{{ tweet.views_count }}</div>
+                            <div style="font-size:12px;color:#6b7280;">مشاهدة</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="text-align:center;padding:14px 8px;background:#f3e8ff;border-radius:10px;">
+                            <div style="font-size:22px;font-weight:800;color:#9333ea;">{{ tweet.quote_count }}</div>
+                            <div style="font-size:12px;color:#6b7280;">اقتباس</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="text-align:center;padding:14px 8px;background:#fef3c7;border-radius:10px;">
+                            <div style="font-size:22px;font-weight:800;color:#d97706;">{{ tweet.bookmark_count }}</div>
+                            <div style="font-size:12px;color:#6b7280;">حفظ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بيانات الحساب -->
+        <div class="card-custom mb-4">
+            <div class="card-header-custom">
+                <h3><i class="fas fa-user" style="color:var(--primary);margin-left:8px;"></i> بيانات الحساب</h3>
+            </div>
+            <div class="card-body-custom" style="font-size:14px;">
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                    <span style="color:var(--text-muted);">المتابعون</span>
+                    <strong>{{ "{:,}".format(tweet.user_followers_count) }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                    <span style="color:var(--text-muted);">يتابع</span>
+                    <strong>{{ "{:,}".format(tweet.user_following_count) }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                    <span style="color:var(--text-muted);">التغريدات</span>
+                    <strong>{{ "{:,}".format(tweet.user_statuses_count) }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f3f4f6;">
+                    <span style="color:var(--text-muted);">الموقع</span>
+                    <strong>{{ tweet.user_location or '-' }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                    <span style="color:var(--text-muted);">تاريخ الانشاء</span>
+                    <strong style="font-size:12px;">{{ tweet.user_created_at[:16] if tweet.user_created_at else '-' }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- معلومات اضافية -->
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h3><i class="fas fa-info-circle" style="color:var(--text-muted);margin-left:8px;"></i> معلومات اضافية</h3>
+            </div>
+            <div class="card-body-custom" style="font-size:13px;">
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;">
+                    <span style="color:var(--text-muted);">Tweet ID</span>
+                    <code style="font-size:11px;">{{ tweet.tweet_id }}</code>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;">
+                    <span style="color:var(--text-muted);">Conversation ID</span>
+                    <code style="font-size:11px;">{{ tweet.conversation_id }}</code>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;">
+                    <span style="color:var(--text-muted);">وسائط</span>
+                    <span>{{ tweet.media_count }} {% if tweet.has_media %}<i class="fas fa-check" style="color:#22c55e;"></i>{% endif %}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                    <span style="color:var(--text-muted);">تم الاستخراج</span>
+                    <span>{{ tweet.extracted_at[:19] if tweet.extracted_at else '' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top:20px;">
+    <a href="javascript:history.back()" class="btn-outline-custom">
+        <i class="fas fa-arrow-right"></i> رجوع
+    </a>
+</div>
+{% endblock %}

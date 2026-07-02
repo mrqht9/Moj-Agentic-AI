@@ -631,21 +631,32 @@ LOGINX_BASE_URL = "http://127.0.0.1:5000"
 LOGINX_API_KEY = "sk-loginx-2026-secret"
 
 
-def x_login_account(username: str, password: str, email: str = "", headless: bool = False) -> Dict[str, Any]:
-    """تسجيل دخول حساب X عبر LDPlayer + Chrome automation (غير متزامن — لا يعلّق المحادثة)"""
+def x_login_account(username: str, password: str, email: str = "", headless: bool = False, user_id: Optional[int] = None) -> Dict[str, Any]:
+    """تسجيل دخول حساب X عبر LDPlayer + Chrome automation (غير متزامن — لا يعلّق المحادثة).
+
+    Args:
+        user_id: معرّف مستخدم موج — لو موجود راح يُسجَّل الحساب في DB تلقائياً
+                 بعد نجاح الدخول، ويظهر في "حساباتي".
+    """
     import requests
-    
+
     try:
         username = username.strip()
         password = password.strip()
-        
+
         if not username or not password:
             return {"success": False, "message": "⚠️ اسم المستخدم وكلمة المرور مطلوبين"}
-        
-        # إرسال طلب التسجيل
+
+        # إرسال طلب التسجيل + callback_url لاستلام إشعار اكتمال في الشات
         headers = {"X-API-Key": LOGINX_API_KEY, "Content-Type": "application/json"}
-        payload = {"username": username, "password": password, "email": email, "headless": headless}
-        
+        # موج يشتغل افتراضياً على 8000 — يقبل callback من localhost فقط
+        callback_url = "http://127.0.0.1:8000/api/internal/login-callback"
+        payload = {
+            "username": username, "password": password, "email": email,
+            "headless": headless, "user_id": user_id,
+            "callback_url": callback_url,
+        }
+
         resp = requests.post(f"{LOGINX_BASE_URL}/api/login", json=payload, headers=headers, timeout=10)
         data = resp.json()
         
@@ -712,3 +723,458 @@ def x_login_status(session_id: str = "") -> Dict[str, Any]:
         return {"success": False, "message": "❌ سيرفر LoginX غير متصل"}
     except Exception as e:
         return {"success": False, "message": f"❌ خطأ: {str(e)}"}
+
+
+# ────────────────────────────────────────────────────────────────────
+# سحب/عرض التايم لاين الشخصي لحسابات X المسجّلة
+# ────────────────────────────────────────────────────────────────────
+
+def x_fetch_timeline(account_name: str, count: int = 50, user_id: Optional[int] = None) -> Dict[str, Any]:
+    """
+    يسحب Home Timeline للحساب باستخدام كوكيزه (auth_token + ct0) ويحفظ
+    التغريدات في قاعدة بيانات موج (data/x_timeline.db).
+
+    Args:
+        account_name: اسم الحساب المسجّل في موج (يوزرنيم)
+        count: عدد التغريدات المطلوب سحبها (افتراضي 50)
+        user_id: معرف مستخدم موج (اختياري - لربط التغريدات بمستخدم)
+    """
+    try:
+        from app.services.x_timeline_service import fetch_and_save_timeline
+        safe_account = safe_label(account_name)
+        if not safe_account:
+            return {"success": False, "message": "⚠️ اسم الحساب فارغ"}
+
+        try:
+            count = int(count)
+        except (ValueError, TypeError):
+            count = 50
+        # حد أعلى لمنع الإفراط
+        count = max(1, min(count, 500))
+
+        result = fetch_and_save_timeline(
+            account_username=safe_account,
+            count=count,
+            user_id=user_id,
+        )
+
+        if not result.get("success"):
+            return {"success": False, "message": result.get("message", "❌ فشل سحب التايم لاين")}
+
+        return {
+            "success": True,
+            "message": (
+                f"🎉 **تم سحب التايم لاين لحساب '{safe_account}'**\n\n"
+                f"📥 عدد التغريدات المسحوبة: **{result['total_fetched']}**\n"
+                f"💾 عدد المحفوظة في قاعدة البيانات: **{result['saved']}**\n\n"
+                f"💡 لعرضها اكتب: `اعرض تغريدات {safe_account}` "
+                f"أو `اعرض التايم لاين حساب {safe_account}`"
+            ),
+        }
+    except Exception as e:
+        import traceback
+        print(f"[x_fetch_timeline] error: {traceback.format_exc()}")
+        return {"success": False, "message": f"❌ خطأ أثناء سحب التايم لاين: {str(e)}"}
+
+
+# ────────────────────────────────────────────────────────────────────
+# تصنيفات الحسابات
+# ────────────────────────────────────────────────────────────────────
+
+# التصنيفات المدعومة + تسمياتها العربية للعرض
+CATEGORY_LABELS = {
+    "social": ("اجتماعي", "👥"),
+    "political": ("سياسي", "🏛️"),
+    "sports": ("رياضي", "⚽"),
+    "tech": ("تقني", "💻"),
+    "religious": ("ديني", "🕌"),
+    "entertainment": ("ترفيهي", "🎬"),
+    "news": ("إخباري", "📰"),
+    "literary": ("أدبي", "📚"),
+    "business": ("تجاري", "💼"),
+    "general": ("عام", "🌐"),
+}
+
+
+def _cat_label(code: Optional[str]) -> str:
+    """يرجع التسمية العربية + إيموجي للتصنيف."""
+    if not code:
+        return "غير مصنف"
+    if code in CATEGORY_LABELS:
+        ar, emoji = CATEGORY_LABELS[code]
+        return f"{emoji} {ar}"
+    return code
+
+
+def x_set_account_category(account_name: str, category: str, user_id: Optional[int] = None) -> Dict[str, Any]:
+    """
+    يحدّد/يغيّر تصنيف حساب معيّن.
+
+    Args:
+        account_name: اسم الحساب
+        category: التصنيف (social/political/sports/tech/...)
+        user_id: معرّف المستخدم
+    """
+    try:
+        if not user_id:
+            return {"success": False, "message": "⚠️ لتحديد التصنيف يجب تسجيل الدخول"}
+
+        safe_account = safe_label(account_name)
+        if not safe_account:
+            return {"success": False, "message": "⚠️ اسم الحساب فارغ"}
+
+        cat = (category or "").strip().lower()
+        if cat not in CATEGORY_LABELS:
+            valid = ", ".join(CATEGORY_LABELS.keys())
+            return {
+                "success": False,
+                "message": (
+                    f"⚠️ التصنيف '{category}' غير معروف.\n\n"
+                    f"**التصنيفات المتاحة:**\n"
+                    + "\n".join(f"• {code} — {ar} {emoji}"
+                                for code, (ar, emoji) in CATEGORY_LABELS.items())
+                ),
+            }
+
+        from app.db.database import SessionLocal
+        from app.services.account_service import account_service
+
+        db = SessionLocal()
+        try:
+            account = account_service.set_account_category(
+                db=db, user_id=user_id, username=safe_account,
+                category=cat, platform="x",
+            )
+            if not account:
+                return {
+                    "success": False,
+                    "message": (
+                        f"⚠️ ما لقيت حساب باسم '{safe_account}' في حساباتك.\n\n"
+                        f"💡 اكتب 'اعرض حساباتي' للتأكد من اسم الحساب."
+                    ),
+                }
+
+            ar, emoji = CATEGORY_LABELS[cat]
+            return {
+                "success": True,
+                "message": (
+                    f"✅ **تم تحديث تصنيف الحساب '{safe_account}'**\n\n"
+                    f"📌 التصنيف الجديد: {emoji} **{ar}** ({cat})\n\n"
+                    f"💡 لعرض الحسابات {ar}ة اكتب: `اعرض حساباتي ال{ar}ة`"
+                ),
+            }
+        finally:
+            db.close()
+    except Exception as e:
+        import traceback
+        print(f"[x_set_account_category] {traceback.format_exc()}")
+        return {"success": False, "message": f"❌ خطأ: {str(e)}"}
+
+
+def x_list_accounts_by_category(category: str, user_id: Optional[int] = None) -> Dict[str, Any]:
+    """يعرض حسابات المستخدم حسب التصنيف."""
+    try:
+        if not user_id:
+            return {"success": False, "message": "⚠️ يجب تسجيل الدخول أولاً"}
+
+        cat = (category or "").strip().lower()
+        if cat and cat not in CATEGORY_LABELS:
+            return {"success": False, "message": f"⚠️ تصنيف غير معروف: {category}"}
+
+        from app.db.database import SessionLocal
+        from app.services.account_service import account_service
+
+        db = SessionLocal()
+        try:
+            accounts = account_service.get_user_accounts(
+                db=db, user_id=user_id, platform="x",
+                status="active", category=cat if cat else None,
+            )
+
+            if not accounts:
+                if cat:
+                    ar = CATEGORY_LABELS[cat][0]
+                    return {
+                        "success": True,
+                        "message": (
+                            f"📭 ما فيه حسابات مصنفة **{ar}** حالياً.\n\n"
+                            f"💡 لتصنيف حساب اكتب: `غيّر تصنيف [اسم_الحساب] إلى {ar}`"
+                        ),
+                    }
+                return {"success": True, "message": "📭 ما فيه حسابات نشطة"}
+
+            ar_label = CATEGORY_LABELS[cat][0] if cat else "الكل"
+            emoji = CATEGORY_LABELS[cat][1] if cat else "📋"
+
+            lines = [f"{emoji} **حساباتك {ar_label}ة على X:**\n"]
+            for i, acc in enumerate(accounts, 1):
+                cat_display = _cat_label(acc.category)
+                last_used = ""
+                if acc.last_used:
+                    last_used = f" (آخر استخدام: {acc.last_used.strftime('%Y-%m-%d')})"
+                lines.append(f"{i}. 👤 **@{acc.username}** — {cat_display}{last_used}")
+
+            lines.append(f"\n✅ **المجموع:** {len(accounts)} حساب")
+            return {"success": True, "message": "\n".join(lines)}
+        finally:
+            db.close()
+    except Exception as e:
+        import traceback
+        print(f"[x_list_accounts_by_category] {traceback.format_exc()}")
+        return {"success": False, "message": f"❌ خطأ: {str(e)}"}
+
+
+def _rewrite_content_for_account(content: str, account: Any) -> str:
+    """
+    يعيد صياغة المحتوى ليناسب أسلوب حساب معيّن (باستخدام OpenAI).
+    يرجع النص الأصلي لو OpenAI مو متوفر.
+    """
+    try:
+        from app.services.ai_service import ai_service
+        import asyncio
+
+        cat_display = _cat_label(account.category)
+        account_desc = f"@{account.username}"
+        if account.display_name and account.display_name != account.username:
+            account_desc += f" ({account.display_name})"
+        account_desc += f" — تصنيفه: {cat_display}"
+
+        system_prompt = (
+            "أنت مساعد إعادة صياغة تغريدات. تأخذ محتوى موحّد وتعيد صياغته "
+            "ليناسب أسلوب وشخصية حساب معيّن، مع الحفاظ على المعنى الأصلي. "
+            "اجعل النتيجة تغريدة واحدة قصيرة (تحت 280 حرف)، بدون علامات "
+            "اقتباس ولا أي مقدمة."
+        )
+        user_prompt = (
+            f"الحساب: {account_desc}\n\n"
+            f"المحتوى الأصلي:\n{content}\n\n"
+            f"أعد صياغته بأسلوب يناسب تصنيف الحساب:"
+        )
+
+        # نستدعي بشكل sync (نغلف الـ async)
+        loop = None
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            pass
+
+        if loop and loop.is_running():
+            # داخل حلقة نشطة — نستخدم run_coroutine_threadsafe مو ممكن هنا،
+            # فنرجع النص الأصلي كـ fallback
+            return content
+
+        result = asyncio.run(
+            ai_service.get_chat_response_with_history(
+                user_message=user_prompt,
+                history=[],
+                system_prompt=system_prompt,
+            )
+        )
+        if result:
+            return result.strip().strip('"').strip("'").strip("«»")
+        return content
+    except Exception as e:
+        print(f"[_rewrite_content_for_account] {e}")
+        return content
+
+
+def x_post_to_category(category: str, content: str, user_id: Optional[int] = None, rewrite: bool = True) -> Dict[str, Any]:
+    """
+    ينشر محتوى موحّد على جميع حسابات المستخدم اللي في تصنيف معيّن.
+    كل حساب يحصل على نسخة معاد صياغتها بأسلوبه (اختياري عبر OpenAI).
+    """
+    try:
+        if not user_id:
+            return {"success": False, "message": "⚠️ يجب تسجيل الدخول أولاً"}
+
+        cat = (category or "").strip().lower()
+        if cat not in CATEGORY_LABELS:
+            return {"success": False, "message": f"⚠️ تصنيف غير معروف: {category}"}
+
+        content = (content or "").strip()
+        if not content:
+            return {"success": False, "message": "⚠️ المحتوى فارغ"}
+
+        from app.db.database import SessionLocal
+        from app.services.account_service import account_service
+
+        db = SessionLocal()
+        try:
+            accounts = account_service.get_user_accounts(
+                db=db, user_id=user_id, platform="x",
+                status="active", category=cat,
+            )
+        finally:
+            db.close()
+
+        ar = CATEGORY_LABELS[cat][0]
+        if not accounts:
+            return {
+                "success": False,
+                "message": (
+                    f"📭 ما فيه حسابات مصنفة **{ar}** لنشر عليها.\n\n"
+                    f"💡 صنّف حساب أولاً: `غيّر تصنيف [اسم_الحساب] إلى {ar}`"
+                ),
+            }
+
+        # ننشر على كل حساب
+        results = []
+        for acc in accounts:
+            try:
+                # نعيد صياغة المحتوى (لو مطلوب)
+                if rewrite:
+                    tailored = _rewrite_content_for_account(content, acc)
+                else:
+                    tailored = content
+
+                post_result = x_post(acc.username, tailored)
+                results.append({
+                    "account": acc.username,
+                    "success": post_result.get("success", False),
+                    "content": tailored[:100] + "..." if len(tailored) > 100 else tailored,
+                    "message": post_result.get("message", ""),
+                })
+            except Exception as e:
+                results.append({
+                    "account": acc.username,
+                    "success": False,
+                    "content": content[:50],
+                    "message": f"استثناء: {e}",
+                })
+
+        # نبني ردّ منظّم
+        success_count = sum(1 for r in results if r["success"])
+        total = len(results)
+
+        lines = [
+            f"📢 **نتيجة النشر على الحسابات {ar}ة:**",
+            f"✅ نجح: **{success_count}** / **{total}**",
+            "",
+        ]
+        for r in results:
+            icon = "✅" if r["success"] else "❌"
+            lines.append(f"{icon} **@{r['account']}**")
+            lines.append(f"   📝 {r['content']}")
+            if not r["success"]:
+                lines.append(f"   ⚠️ {r['message']}")
+            lines.append("")
+
+        return {
+            "success": success_count > 0,
+            "message": "\n".join(lines),
+            "results": results,
+        }
+    except Exception as e:
+        import traceback
+        print(f"[x_post_to_category] {traceback.format_exc()}")
+        return {"success": False, "message": f"❌ خطأ: {str(e)}"}
+
+
+def x_view_timeline(account_name: str, limit: int = 10, offset: int = 0, user_id: Optional[int] = None) -> Dict[str, Any]:
+    """
+    يعرض التغريدات المحفوظة من التايم لاين لحساب معين مرتّبة (الأحدث أولاً).
+
+    Args:
+        account_name: اسم الحساب
+        limit: عدد التغريدات المعروضة (افتراضي 10)
+        offset: تخطي عدد معين للتصفح (افتراضي 0)
+    """
+    try:
+        from app.services.x_timeline_service import get_saved_tweets, count_saved_tweets
+        safe_account = safe_label(account_name)
+        if not safe_account:
+            return {"success": False, "message": "⚠️ اسم الحساب فارغ"}
+
+        try:
+            limit = int(limit)
+        except (ValueError, TypeError):
+            limit = 10
+        try:
+            offset = int(offset)
+        except (ValueError, TypeError):
+            offset = 0
+        limit = max(1, min(limit, 50))
+        offset = max(0, offset)
+
+        total = count_saved_tweets(safe_account, user_id=user_id)
+        if total == 0:
+            return {
+                "success": True,
+                "message": (
+                    f"📭 ما فيه تغريدات محفوظة للحساب '{safe_account}' بعد.\n\n"
+                    f"💡 لسحب التايم لاين اكتب: `اسحب التايم لاين حساب {safe_account}`"
+                ),
+            }
+
+        tweets = get_saved_tweets(safe_account, limit=limit, offset=offset, user_id=user_id)
+        if not tweets:
+            return {
+                "success": True,
+                "message": f"📭 لا توجد تغريدات في هذه الصفحة (offset={offset}, total={total})",
+            }
+
+        # تنسيق العرض
+        header = (
+            f"📋 **تايم لاين الحساب '{safe_account}'** "
+            f"(عرض {len(tweets)} من أصل {total})\n"
+            f"{'─' * 40}\n"
+        )
+        lines = [header]
+
+        for i, t in enumerate(tweets, start=offset + 1):
+            text = (t.get("full_text") or "").strip()
+            if len(text) > 280:
+                text = text[:277] + "..."
+
+            author = t.get("author_screen_name") or "?"
+            author_name = t.get("author_name") or ""
+            created = t.get("created_at") or ""
+            likes = t.get("favorite_count", 0)
+            rts = t.get("retweet_count", 0)
+            replies = t.get("reply_count", 0)
+            views = t.get("views_count", "0")
+            url = t.get("tweet_url", "")
+
+            # علامات النوع
+            marks = []
+            if t.get("is_retweet"):
+                marks.append("🔁 RT")
+            if t.get("is_reply"):
+                marks.append("💬 رد")
+            if t.get("is_quote"):
+                marks.append("📌 اقتباس")
+            if t.get("media_urls"):
+                marks.append(f"📷 {len(t['media_urls'])} ميديا")
+
+            marks_str = f" [{' · '.join(marks)}]" if marks else ""
+
+            block = (
+                f"\n**{i}. @{author}** {author_name}{marks_str}\n"
+                f"{text}\n"
+                f"📊 ❤️ {likes:,} · 🔁 {rts:,} · 💬 {replies:,} · 👁️ {views}\n"
+                f"🕐 {created}\n"
+            )
+            if url:
+                block += f"🔗 {url}\n"
+            block += "─" * 40 + "\n"
+
+            lines.append(block)
+
+        # فوتر للتصفح
+        if offset + len(tweets) < total:
+            next_offset = offset + limit
+            lines.append(
+                f"\n📄 لعرض الأقدم اكتب: "
+                f"`اعرض تغريدات {safe_account} تصفح {next_offset}`"
+            )
+
+        return {
+            "success": True,
+            "message": "".join(lines),
+            "count": len(tweets),
+            "total": total,
+        }
+    except Exception as e:
+        import traceback
+        print(f"[x_view_timeline] error: {traceback.format_exc()}")
+        return {"success": False, "message": f"❌ خطأ أثناء عرض التغريدات: {str(e)}"}

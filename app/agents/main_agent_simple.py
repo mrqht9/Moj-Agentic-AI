@@ -64,8 +64,14 @@ class MainAgent:
             
             if confidence < 0.5:
                 print(f"[DEBUG MainAgent] LOW confidence ({confidence}) — falling back to AI")
-                # لا ترجع رد تلقائي - دع الوكيل يتعامل مع الطلب
-                return None
+                # main.py سيمرر الرسالة لـ OpenAI كـ fallback
+                return {
+                    "success": False,
+                    "message": None,
+                    "intent_result": intent_result,
+                    "conversation_id": conversation_id,
+                    "fallback": "llm",
+                }
             
             # توجيه للوكيل المناسب
             if intent in self.TREND_INTENTS:
@@ -112,7 +118,7 @@ class MainAgent:
                     "conversation_id": conversation_id
                 }
 
-            elif platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post", "delete_post", "remove_account", "update_profile", "like_post", "repost", "share_post", "follow_user", "unfollow_user", "reply_to_comment", "bookmark_post"]:
+            elif platform in ["twitter", "x"] or intent in ["add_account", "create_post", "schedule_post", "delete_post", "remove_account", "update_profile", "like_post", "repost", "share_post", "follow_user", "unfollow_user", "reply_to_comment", "bookmark_post", "fetch_timeline", "view_timeline", "set_account_category", "list_accounts_by_category", "post_to_category"]:
                 context = {
                     "intent": intent,
                     "entities": entities,
@@ -128,8 +134,10 @@ class MainAgent:
                     print(f"[DEBUG] X_Agent returned no response for intent: {intent}")
                     return {
                         "success": False,
-                        "message": None,  # لا رد تلقائي
-                        "intent_result": intent_result
+                        "message": None,
+                        "intent_result": intent_result,
+                        "conversation_id": conversation_id,
+                        "fallback": "llm",
                     }
                 
                 # حفظ الرد
@@ -413,14 +421,16 @@ class MainAgent:
                 }
             
             else:
-                # ميزة غير متاحة
+                # ميزة غير متاحة → fallback لـ LLM
                 print(f"[DEBUG] Feature not available: {intent}")
                 return {
                     "success": False,
-                    "message": None,  # لا رد تلقائي
-                    "intent_result": intent_result
+                    "message": None,
+                    "intent_result": intent_result,
+                    "conversation_id": conversation_id,
+                    "fallback": "llm",
                 }
-        
+
         except Exception as e:
             # في حالة الخطأ، سجل الخطأ
             print(f"[ERROR] Main Agent error: {str(e)}")
@@ -428,8 +438,10 @@ class MainAgent:
             print(f"[ERROR] Traceback: {traceback.format_exc()}")
             return {
                 "success": False,
-                "message": None,  # لا رد تلقائي
-                "error": str(e)
+                "message": None,
+                "error": str(e),
+                "conversation_id": conversation_id,
+                "fallback": "llm",
             }
 
     # ─────────────────── توليد الهوية الوهمية ───────────────────

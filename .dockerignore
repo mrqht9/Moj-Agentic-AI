@@ -1,0 +1,79 @@
+# ─── ملفات لا تُنسخ للحاوية (لتسريع البناء وتصغير الحجم) ───
+
+# مجلدات بايثون
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.eggs
+.pytest_cache
+
+# البيئة الافتراضية
+venv/
+env/
+.venv/
+ENV/
+
+# عقد الفرونت
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# ملفات البيئة (يجب توفيرها وقت التشغيل عبر env_file)
+.env
+.env.local
+.env.agents
+.env.security
+Copy.env
+
+# الكوكيز الحساسة (تُحمَّل في المجلد المشترك volumes)
+app/x/cookies/*.json
+app/x/loginx2026/cookies/
+app/x/loginx/uploads/
+
+# قاعدة البيانات المحلية (تُنشأ تلقائياً داخل الحاوية)
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# مخرجات التطوير وأرتفاكتس debug
+*.log
+logs/
+debug_post.html
+debug_post.png
+debug_delete.png
+*.zip
+**/htmlcov/
+**/.coverage
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# مستندات (لا حاجة لها في الحاوية)
+*.md
+docs/
+
+# سكربتات تشغيل خاصة بـ Windows
+QUICK_START.bat
+run - Copy.py
+
+# أرتفاكتس Playwright القديمة
+playwright-report/
+test-results/
+
+# الدوكر نفسه
+Dockerfile*
+docker-compose*.yml
+.dockerignore

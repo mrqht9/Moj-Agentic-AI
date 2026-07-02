@@ -74,29 +74,56 @@ class AccountService:
         db: Session,
         user_id: int,
         platform: Optional[str] = None,
-        status: Optional[str] = None
+        status: Optional[str] = None,
+        category: Optional[str] = None,
     ) -> List[SocialAccount]:
         """
         الحصول على حسابات المستخدم
-        
+
         Args:
             db: جلسة قاعدة البيانات
             user_id: معرف المستخدم
             platform: تصفية حسب المنصة (اختياري)
             status: تصفية حسب الحالة (اختياري)
-            
+            category: تصفية حسب التصنيف (اختياري) —
+                      social, political, sports, tech, religious,
+                      entertainment, news, literary, business, general
+
         Returns:
             قائمة الحسابات
         """
         query = db.query(SocialAccount).filter(SocialAccount.user_id == user_id)
-        
+
         if platform:
             query = query.filter(SocialAccount.platform == platform.lower())
-        
+
         if status:
             query = query.filter(SocialAccount.status == status)
-        
+
+        if category:
+            query = query.filter(SocialAccount.category == category.lower())
+
         return query.order_by(desc(SocialAccount.created_at)).all()
+
+    @staticmethod
+    def set_account_category(
+        db: Session,
+        user_id: int,
+        username: str,
+        category: str,
+        platform: str = "x",
+    ) -> Optional[SocialAccount]:
+        """يحدّث تصنيف حساب محدد."""
+        account = AccountService.get_account_by_username(
+            db=db, user_id=user_id, platform=platform, username=username
+        )
+        if not account:
+            return None
+        account.category = category.lower()
+        account.updated_at = datetime.utcnow()
+        db.commit()
+        db.refresh(account)
+        return account
     
     @staticmethod
     def get_account_by_username(

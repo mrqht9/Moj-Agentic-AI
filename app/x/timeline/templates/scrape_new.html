@@ -1,0 +1,89 @@
+{% extends "base_new.html" %}
+{% block title %}سحب التايم لاين - سحب التغريدات{% endblock %}
+{% block page_title %}سحب التايم لاين الرئيسي{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h3><i class="fas fa-stream" style="color:var(--primary);margin-left:8px;"></i> سحب التايم لاين الرئيسي للحساب</h3>
+            </div>
+            <div class="card-body-custom">
+                <form method="POST" action="{{ url_for('scrape') }}" id="scrapeForm">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- عدد التغريدات -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-hashtag" style="color:var(--primary);"></i> عدد التغريدات المطلوبة
+                        </label>
+                        <input type="number" name="count" class="form-control form-control-custom" value="100" min="1" max="5000" required>
+                        <div class="form-text" style="font-size:12px;color:var(--text-muted);margin-top:6px;">
+                            الحد الاقصى 5000 تغريدة - يتوقف عند الوصول لهذا العدد
+                        </div>
+                    </div>
+
+                    <!-- خيارات الفلترة -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold mb-3">
+                            <i class="fas fa-filter" style="color:var(--primary);"></i> خيارات الفلترة
+                        </label>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div style="background:#f8fafc;border:2px solid #e5e7eb;border-radius:12px;padding:16px;transition:border-color 0.2s;" id="rtBox">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="include_rt" id="includeRT" style="width:44px;height:22px;">
+                                        <label class="form-check-label fw-bold" for="includeRT" style="margin-right:8px;">
+                                            <i class="fas fa-retweet" style="color:#22c55e;"></i> تضمين الريتويت
+                                        </label>
+                                    </div>
+                                    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;margin-right:52px;">
+                                        اعادة التغريد من حسابات اخرى
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div style="background:#f8fafc;border:2px solid #e5e7eb;border-radius:12px;padding:16px;transition:border-color 0.2s;" id="replyBox">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="include_replies" id="includeReplies" style="width:44px;height:22px;">
+                                        <label class="form-check-label fw-bold" for="includeReplies" style="margin-right:8px;">
+                                            <i class="fas fa-reply" style="color:#4285f4;"></i> تضمين الردود
+                                        </label>
+                                    </div>
+                                    <div style="font-size:12px;color:var(--text-muted);margin-top:6px;margin-right:52px;">
+                                        الردود على تغريدات الاخرين
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr style="border-color:var(--border);margin:24px 0;">
+
+                    <!-- معلومة -->
+                    <div style="background:#e8f0fe;border-radius:10px;padding:14px 18px;margin-bottom:24px;display:flex;align-items:flex-start;gap:10px;">
+                        <i class="fas fa-info-circle" style="color:var(--primary);margin-top:2px;"></i>
+                        <div style="font-size:13px;color:#1e3a5f;">
+                            <strong>ملاحظة:</strong> يتم سحب التايم لاين الرئيسي (الصفحة الرئيسية) للحساب المرتبط بالكوكيز، ويُحفظ تلقائيا في قاعدة البيانات. يمكنك تصديره لاحقا كملف CSV يدعم العربية.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary-custom w-100" style="padding:16px;font-size:16px;">
+                        <i class="fas fa-rocket"></i> بدء السحب
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('includeRT').addEventListener('change', function() {
+    document.getElementById('rtBox').style.borderColor = this.checked ? '#22c55e' : '#e5e7eb';
+});
+document.getElementById('includeReplies').addEventListener('change', function() {
+    document.getElementById('replyBox').style.borderColor = this.checked ? '#4285f4' : '#e5e7eb';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,544 @@
+{% extends "base.html" %}
+
+{% block title %}توثيق API{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>📚 توثيق API</h2>
+            <span class="badge bg-primary fs-6">REST API v1.0</span>
+        </div>
+    </div>
+</div>
+
+<!-- مقدمة -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card api-card">
+            <div class="card-body">
+                <h5>📖 مقدمة</h5>
+                <p>يوفر هذا النظام مجموعة شاملة من واجهات برمجة التطبيقات (APIs) للوصول إلى بيانات التغريدات المحفوظة وإدارة المراقبة التلقائية.</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h6>📱 التغريدات</h6>
+                            <p class="text-muted mb-0">الوصول إلى التغريدات المحفوظة</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h6>📊 الإحصائيات</h6>
+                            <p class="text-muted mb-0">إحصائيات شاملة للنظام</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h6>🤖 المراقبة</h6>
+                            <p class="text-muted mb-0">إدارة المراقبة التلقائية</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- APIs التغريدات -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>📱 واجهات برمجة التطبيقات للتغريدات</h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="tweetsAccordion">
+                    <!-- آخر التغريدات -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#latestTweets">
+                                <code class="me-2">GET /api/tweets/latest</code>
+                                <span class="badge bg-success me-2">GET</span>
+                                آخر التغريدات
+                            </button>
+                        </h2>
+                        <div id="latestTweets" class="accordion-collapse collapse show" data-bs-parent="#tweetsAccordion">
+                            <div class="accordion-body">
+                                <p><strong>الوصف:</strong> جلب آخر التغريدات المحفوظة في قاعدة البيانات</p>
+                                
+                                <h6>المعاملات الاختيارية:</h6>
+                                <ul>
+                                    <li><code>limit</code> (integer): عدد التغريدات (1-100، افتراضي: 10)</li>
+                                    <li><code>username</code> (string): فلترة حسب اسم مستخدم معين</li>
+                                </ul>
+                                
+                                <h6>أمثلة:</h6>
+                                <div class="bg-light p-3 rounded">
+                                    <code>GET /api/tweets/latest?limit=5</code><br>
+                                    <code>GET /api/tweets/latest?username=elonmusk&amp;limit=3</code>
+                                </div>
+                                
+                                <button class="btn btn-primary btn-sm mt-2" onclick="testAPI('/api/tweets/latest?limit=3')">
+                                    🧪 اختبار
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تغريدات مستخدم -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#userTweets">
+                                <code class="me-2">GET /api/tweets/user/{username}</code>
+                                <span class="badge bg-success me-2">GET</span>
+                                تغريدات مستخدم محدد
+                            </button>
+                        </h2>
+                        <div id="userTweets" class="accordion-collapse collapse" data-bs-parent="#tweetsAccordion">
+                            <div class="accordion-body">
+                                <p><strong>الوصف:</strong> جلب جميع التغريدات المحفوظة لمستخدم معين</p>
+                                
+                                <h6>المعاملات:</h6>
+                                <ul>
+                                    <li><code>username</code> (مطلوب في الرابط): اسم المستخدم</li>
+                                    <li><code>limit</code> (اختياري): عدد التغريدات (افتراضي: 20)</li>
+                                </ul>
+                                
+                                <h6>مثال:</h6>
+                                <div class="bg-light p-3 rounded">
+                                    <code>GET /api/tweets/user/example_user?limit=10</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تغريدة واحدة -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#singleTweet">
+                                <code class="me-2">GET /api/tweet/{tweet_id}</code>
+                                <span class="badge bg-success me-2">GET</span>
+                                تغريدة واحدة
+                            </button>
+                        </h2>
+                        <div id="singleTweet" class="accordion-collapse collapse" data-bs-parent="#tweetsAccordion">
+                            <div class="accordion-body">
+                                <p><strong>الوصف:</strong> جلب تفاصيل تغريدة محددة باستخدام معرفها</p>
+                                
+                                <h6>المعاملات:</h6>
+                                <ul>
+                                    <li><code>tweet_id</code> (مطلوب في الرابط): معرف التغريدة</li>
+                                </ul>
+                                
+                                <h6>مثال:</h6>
+                                <div class="bg-light p-3 rounded">
+                                    <code>GET /api/tweet/1234567890123456789</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- APIs الإحصائيات -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>📊 واجهات برمجة التطبيقات للإحصائيات</h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="statsAccordion">
+                    <!-- إحصائيات قاعدة البيانات -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#databaseStats">
+                                <code class="me-2">GET /api/stats</code>
+                                <span class="badge bg-success me-2">GET</span>
+                                إحصائيات شاملة
+                            </button>
+                        </h2>
+                        <div id="databaseStats" class="accordion-collapse collapse show" data-bs-parent="#statsAccordion">
+                            <div class="accordion-body">
+                                <p><strong>الوصف:</strong> إحصائيات مفصلة عن قاعدة البيانات والمحتوى</p>
+                                
+                                <h6>البيانات المُعادة:</h6>
+                                <ul>
+                                    <li>إجمالي التغريدات والمستخدمين</li>
+                                    <li>أكثر المستخدمين نشاطاً</li>
+                                    <li>اللغات الأكثر استخداماً</li>
+                                    <li>آخر التحديثات</li>
+                                </ul>
+                                
+                                <button class="btn btn-primary btn-sm" onclick="testAPI('/api/stats')">
+                                    🧪 اختبار الإحصائيات
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- APIs المراقبة -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>🤖 واجهات برمجة التطبيقات للمراقبة</h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="monitoringAccordion">
+                    <!-- حالة المراقبة -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#monitoringStatus">
+                                <code class="me-2">GET /api/monitoring</code>
+                                <span class="badge bg-success me-2">GET</span>
+                                حالة المراقبة
+                            </button>
+                        </h2>
+                        <div id="monitoringStatus" class="accordion-collapse collapse show" data-bs-parent="#monitoringAccordion">
+                            <div class="accordion-body">
+                                <p><strong>الوصف:</strong> معلومات عن مهام المراقبة التلقائية وسجلاتها</p>
+                                
+                                <h6>البيانات المُعادة:</h6>
+                                <ul>
+                                    <li>قائمة جميع مهام المراقبة</li>
+                                    <li>آخر السجلات والأنشطة</li>
+                                    <li>إحصائيات المراقبة</li>
+                                </ul>
+                                
+                                <button class="btn btn-primary btn-sm" onclick="testAPI('/api/monitoring')">
+                                    🧪 اختبار المراقبة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تشخيص النظام -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#systemDiagnose">
+                                <code class="me-2">GET /api/diagnose</code>
+                                <span class="badge bg-warning me-2">GET</span>
+                                تشخيص النظام
+                            </button>
+                        </h2>
+                        <div id="systemDiagnose" class="accordion-collapse collapse" data-bs-parent="#monitoringAccordion">
+                            <div class="accordion-body">
+                                <p><strong>الوصف:</strong> تشخيص مشاكل النظام والمراقبة</p>
+                                <p><strong>ملاحظة:</strong> يظهر التشخيص في الكونسول</p>
+                                
+                                <button class="btn btn-warning btn-sm" onclick="testAPI('/api/diagnose')">
+                                    🔍 تشغيل التشخيص
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مثال على الاستجابة -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>📋 مثال على الاستجابة</h5>
+            </div>
+            <div class="card-body">
+                <h6>مثال على استجابة API للتغريدات:</h6>
+                <pre><code>{
+  "status": "success",
+  "data": {
+    "tweets": [
+      {
+        "id": "1234567890123456789",
+        "user": {
+          "username": "example_user",
+          "display_name": "مستخدم تجريبي",
+          "verified": true,
+          "followers_count": 1000,
+          "profile_image_url": "https://example.com/avatar.jpg"
+        },
+        "content": {
+          "text": "هذا مثال على تغريدة",
+          "language": "ar",
+          "created_at": "Wed Oct 01 12:00:00 +0000 2025"
+        },
+        "engagement": {
+          "views_count": 1500,
+          "likes_count": 25,
+          "retweets_count": 5,
+          "replies_count": 2
+        },
+        "media": {
+          "has_media": false,
+          "media_count": 0,
+          "media_details": []
+        }
+      }
+    ],
+    "count": 1,
+    "limit": 10
+  },
+  "timestamp": "2025-10-01T12:00:00Z"
+}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- رموز الاستجابة -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>🔢 رموز الاستجابة</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>رموز النجاح:</h6>
+                        <ul>
+                            <li><span class="badge bg-success">200</span> نجح الطلب</li>
+                            <li><span class="badge bg-info">201</span> تم إنشاء المورد</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>رموز الخطأ:</h6>
+                        <ul>
+                            <li><span class="badge bg-warning">400</span> طلب غير صحيح</li>
+                            <li><span class="badge bg-danger">404</span> المورد غير موجود</li>
+                            <li><span class="badge bg-danger">500</span> خطأ في الخادم</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- أمثلة على الاستخدام -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>💻 أمثلة على الاستخدام</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>JavaScript (Fetch):</h6>
+                        <pre><code>fetch('/api/tweets/latest?limit=5')
+  .then(response => response.json())
+  .then(data => {
+    console.log(data.data.tweets);
+  });</code></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Python (Requests):</h6>
+                        <pre><code>import requests
+
+response = requests.get(
+  'http://localhost:5000/api/tweets/latest?limit=5'
+)
+data = response.json()
+print(data['data']['tweets'])</code></pre>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>cURL:</h6>
+                        <pre><code>curl -X GET \
+  "http://localhost:5000/api/tweets/latest?limit=5" \
+  -H "Content-Type: application/json"</code></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>PHP:</h6>
+                        <pre><code>$response = file_get_contents(
+  'http://localhost:5000/api/tweets/latest?limit=5'
+);
+$data = json_decode($response, true);
+print_r($data['data']['tweets']);</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- منطقة اختبار API -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>🧪 منطقة اختبار API</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="apiEndpoint" class="form-label">رابط API للاختبار:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="apiEndpoint" value="/api/tweets/latest?limit=3" placeholder="أدخل رابط API">
+                        <button class="btn btn-primary" onclick="testCustomAPI()">🚀 اختبار</button>
+                    </div>
+                </div>
+                
+                <div id="api-test-result" class="mt-3" style="display: none;">
+                    <h6>🔍 النتيجة:</h6>
+                    <div class="bg-light p-3 rounded">
+                        <pre id="api-result-content" style="max-height: 400px; overflow-y: auto;"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// اختبار API مع رابط محدد
+async function testAPI(endpoint) {
+    const resultDiv = document.getElementById('api-test-result');
+    const resultContent = document.getElementById('api-result-content');
+    
+    try {
+        resultDiv.style.display = 'block';
+        resultContent.textContent = 'جاري التحميل...';
+        
+        const response = await fetch(endpoint);
+        const data = await response.json();
+        
+        // تنسيق JSON بشكل جميل
+        resultContent.textContent = JSON.stringify(data, null, 2);
+        
+        // إضافة معلومات الاستجابة
+        const statusColor = response.ok ? 'success' : 'danger';
+        const statusText = response.ok ? 'نجح' : 'فشل';
+        
+        const statusInfo = document.createElement('div');
+        statusInfo.innerHTML = `
+            <div class="alert alert-${statusColor} mb-2">
+                <strong>حالة الطلب:</strong> ${response.status} - ${statusText}
+                <br><strong>الرابط:</strong> ${endpoint}
+                <br><strong>الوقت:</strong> ${new Date().toLocaleString('ar-SA')}
+            </div>
+        `;
+        
+        resultDiv.insertBefore(statusInfo, resultDiv.querySelector('.bg-light'));
+        
+    } catch (error) {
+        resultContent.textContent = `خطأ: ${error.message}`;
+        
+        const errorInfo = document.createElement('div');
+        errorInfo.innerHTML = `
+            <div class="alert alert-danger mb-2">
+                <strong>خطأ في الشبكة:</strong> ${error.message}
+                <br><strong>الرابط:</strong> ${endpoint}
+            </div>
+        `;
+        
+        resultDiv.insertBefore(errorInfo, resultDiv.querySelector('.bg-light'));
+    }
+}
+
+// اختبار API مخصص
+function testCustomAPI() {
+    const endpoint = document.getElementById('apiEndpoint').value;
+    if (endpoint) {
+        testAPI(endpoint);
+    } else {
+        alert('الرجاء إدخال رابط API');
+    }
+}
+
+// معالج Enter في مربع النص
+document.getElementById('apiEndpoint').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        testCustomAPI();
+    }
+});
+
+// إضافة أمثلة سريعة
+document.addEventListener('DOMContentLoaded', function() {
+    const quickExamples = [
+        '/api/tweets/latest?limit=1',
+        '/api/stats',
+        '/api/monitoring',
+        '/api/diagnose'
+    ];
+    
+    const examplesContainer = document.createElement('div');
+    examplesContainer.className = 'mt-2';
+    examplesContainer.innerHTML = '<small class="text-muted">أمثلة سريعة: </small>';
+    
+    quickExamples.forEach(example => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-outline-secondary btn-sm me-1 mb-1';
+        btn.textContent = example;
+        btn.onclick = () => {
+            document.getElementById('apiEndpoint').value = example;
+            testAPI(example);
+        };
+        examplesContainer.appendChild(btn);
+    });
+    
+    document.getElementById('apiEndpoint').parentNode.parentNode.appendChild(examplesContainer);
+});
+
+// تحسين عرض JSON
+function formatJSON(json) {
+    return JSON.stringify(json, null, 2)
+        .replace(/(".*?"):/g, '<span style="color: #d73a49;">$1</span>:')
+        .replace(/: (".*?")/g, ': <span style="color: #032f62;">$1</span>')
+        .replace(/: (true|false)/g, ': <span style="color: #e36209;">$1</span>')
+        .replace(/: (\d+)/g, ': <span style="color: #005cc5;">$1</span>');
+}
+
+// تنظيف النتائج السابقة
+function clearResults() {
+    const resultDiv = document.getElementById('api-test-result');
+    const alerts = resultDiv.querySelectorAll('.alert');
+    alerts.forEach(alert => alert.remove());
+}
+
+// تحسين تجربة المستخدم
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة مؤشر التحميل للأزرار
+    const testButtons = document.querySelectorAll('button[onclick*="testAPI"]');
+    
+    testButtons.forEach(button => {
+        const originalOnClick = button.onclick;
+        button.onclick = function() {
+            clearResults();
+            
+            const originalText = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>جاري الاختبار...';
+            this.disabled = true;
+            
+            // استعادة النص الأصلي بعد ثانيتين
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }, 2000);
+            
+            if (originalOnClick) {
+                originalOnClick.call(this);
+            }
+        };
+    });
+});
+</script>
+{% endblock %}

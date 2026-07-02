@@ -29,7 +29,39 @@ def get_db():
 
 
 def init_db():
-    """Initialize database tables"""
+    """Initialize database tables + apply lightweight in-place migrations."""
     from app.db.models import User, XAccount, SocialAccount, Conversation, Message, ScheduleEvent, TelegramIntegration
     Base.metadata.create_all(bind=engine)
     print("Database tables created successfully")
+
+    # ─── Lightweight migrations (SQLite ALTER TABLE) ───
+    # نضيف أعمدة جديدة على جداول موجودة بدون كسر البيانات
+    _apply_lightweight_migrations()
+
+
+def _apply_lightweight_migrations():
+    """يطبّق ALTER TABLE بسيطة لإضافة أعمدة جديدة على جداول موجودة."""
+    migrations = [
+        # (table_name, column_name, column_definition)
+        ("social_accounts", "category", "VARCHAR(50)"),
+    ]
+
+    with engine.connect() as con:
+        for table, column, definition in migrations:
+            try:
+                # نتحقق هل العمود موجود
+                cols = con.exec_driver_sql(f"PRAGMA table_info({table})").fetchall()
+                col_names = [c[1] for c in cols]
+                if column in col_names:
+                    continue
+
+                con.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+                # نضيف index لو ينفع
+                if column == "category":
+                    con.exec_driver_sql(
+                        f"CREATE INDEX IF NOT EXISTS ix_{table}_{column} ON {table}({column})"
+                    )
+                con.commit()
+                print(f"[Migration] ✅ أضفت العمود {column} إلى {table}")
+            except Exception as e:
+                print(f"[Migration] ⚠️ فشل ترقية {table}.{column}: {e}")

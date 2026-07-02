@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}البحث{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="mb-0">🔍 البحث عن حساب</h4>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('search') }}" class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label">اسم المستخدم (بدون @)</label>
+              <input type="text" class="form-control" name="username" id="username" placeholder="مثال: saudinews50" required>
+              <div class="form-text">سيتم فتح صفحة تغريدات الحساب من قاعدة البيانات.</div>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary w-100">بحث</button>
+            </div>
+          </form>
+
+          <hr>
+
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('all_tweets') }}">عرض كل التغريدات</a>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('monitoring') }}">قائمة المراقبة</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // تركيز تلقائي
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('username');
+    if (el) el.focus();
+  });
+</script>
+{% endblock %}

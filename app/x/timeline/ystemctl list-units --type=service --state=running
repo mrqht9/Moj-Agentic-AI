@@ -1,0 +1,241 @@
+[0m[0;4mUNIT FILE                                 [0m[0m[0;4m STATE          [0m[0m[0;4m PRESET  [0m
+aibolit-resident.service                   [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+apache_php_fpm.service                     static          [0;38;5;245m-       [0m
+arp-ethers.service                         [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+atd.service                                [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+auditd.service                             [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+auth-rpcgss-module.service                 static          [0;38;5;245m-       [0m
+autovt@.service                            [0;1;32malias          [0m[0;1;32m [0m[0;38;5;245m-       [0m
+canberra-system-bootup.service             [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+canberra-system-shutdown-reboot.service    [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+canberra-system-shutdown.service           [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+chrony-wait.service                        [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+chronyd-restricted.service                 [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+chronyd.service                            [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+cloud-config.service                       [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+cloud-final.service                        [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+cloud-init-hotplugd.service                static          [0;38;5;245m-       [0m
+cloud-init-local.service                   [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+cloud-init.service                         [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+console-getty.service                      [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+container-getty@.service                   static          [0;38;5;245m-       [0m
+cpanel-onboot.service                      [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+cpanel.service                             [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+cpanel_php_fpm.service                     [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+cpanellogd.service                         [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+cpanelquotaonboot.service                  [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+cpcleartaskqueue.service                   static          [0;38;5;245m-       [0m
+cpdavd.service                             [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+cpgreylistd.service                        [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+cphulkd.service                            [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+cpipv6.service                             [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+cpupower.service                           [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+crond.service                              [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+dbus-broker.service                        [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+dbus-org.freedesktop.hostname1.service     [0;1;32malias          [0m[0;1;32m [0m[0;38;5;245m-       [0m
+dbus-org.freedesktop.locale1.service       [0;1;32malias          [0m[0;1;32m [0m[0;38;5;245m-       [0m
+dbus-org.freedesktop.login1.service        [0;1;32malias          [0m[0;1;32m [0m[0;38;5;245m-       [0m
+dbus-org.freedesktop.nm-dispatcher.service [0;1;32malias          [0m[0;1;32m [0m[0;38;5;245m-       [0m
+dbus-org.freedesktop.timedate1.service     [0;1;32malias          [0m[0;1;32m [0m[0;38;5;245m-       [0m
+dbus.service                               [0;1;32malias          [0m[0;1;32m [0m[0;38;5;245m-       [0m
+debug-shell.service                        [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+django_tw.service                          [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+dnf-makecache.service                      static          [0;38;5;245m-       [0m
+dnf-system-upgrade-cleanup.service         static          [0;38;5;245m-       [0m
+dnf-system-upgrade.service                 [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+dnsadmin.service                           [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+dovecot.service                            [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+dracut-cmdline.service                     static          [0;38;5;245m-       [0m
+dracut-initqueue.service                   static          [0;38;5;245m-       [0m
+dracut-mount.service                       static          [0;38;5;245m-       [0m
+dracut-pre-mount.service                   static          [0;38;5;245m-       [0m
+dracut-pre-pivot.service                   static          [0;38;5;245m-       [0m
+dracut-pre-trigger.service                 static          [0;38;5;245m-       [0m
+dracut-pre-udev.service                    static          [0;38;5;245m-       [0m
+dracut-shutdown-onfailure.service          static          [0;38;5;245m-       [0m
+dracut-shutdown.service                    static          [0;38;5;245m-       [0m
+ea-php81-php-fpm.service                   [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+ea-php82-php-fpm.service                   [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+emergency.service                          static          [0;38;5;245m-       [0m
+exim.service                               [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+fastmail.service                           [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+flatpak-system-helper.service              static          [0;38;5;245m-       [0m
+fstrim.service                             static          [0;38;5;245m-       [0m
+fwupd-offline-update.service               static          [0;38;5;245m-       [0m
+fwupd-refresh.service                      static          [0;38;5;245m-       [0m
+fwupd.service                              static          [0;38;5;245m-       [0m
+garb.service                               [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+geoclue.service                            static          [0;38;5;245m-       [0m
+getty@.service                             [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+grub-boot-indeterminate.service            static          [0;38;5;245m-       [0m
+grub2-systemd-integration.service          static          [0;38;5;245m-       [0m
+gssproxy.service                           [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+htcacheclean.service                       static          [0;38;5;245m-       [0m
+httpd.service                              [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+import-state.service                       [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+imunify-agent-proxy.service                [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+imunify-antivirus.service                  [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+imunify-notifier.service                   [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+initialize_monitoring_plugin.service       static          [0;38;5;245m-       [0m
+initialize_socialbee_plugin.service        static          [0;38;5;245m-       [0m
+initialize_xovi_plugin.service             static          [0;38;5;245m-       [0m
+initrd-cleanup.service                     static          [0;38;5;245m-       [0m
+initrd-parse-etc.service                   static          [0;38;5;245m-       [0m
+initrd-switch-root.service                 static          [0;38;5;245m-       [0m
+initrd-udevadm-cleanup-db.service          static          [0;38;5;245m-       [0m
+ipaliases.service                          [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+irqbalance.service                         [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+jac.service                                [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+kdump.service                              [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+kmod-static-nodes.service                  static          [0;38;5;245m-       [0m
+kvm_stat.service                           [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+ldconfig.service                           static          [0;38;5;245m-       [0m
+loadmodules.service                        [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+logrotate.service                          static          [0;38;5;245m-       [0m
+low-memory-monitor.service                 [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+mailman.service                            [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+man-db-cache-update.service                static          [0;38;5;245m-       [0m
+man-db-restart-cache-update.service        [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+mariadb.service                            [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+mariadb@.service                           [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+microcode.service                          [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+modprobe@.service                          static          [0;38;5;245m-       [0m
+monarx-agent.service                       [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+mysql.service                              [0;1;32malias          [0m[0;1;32m [0m[0;38;5;245m-       [0m
+mysqld.service                             [0;1;32malias          [0m[0;1;32m [0m[0;38;5;245m-       [0m
+named-setup-rndc.service                   static          [0;38;5;245m-       [0m
+named.service                              [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+NetworkManager-dispatcher.service          [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+NetworkManager-wait-online.service         [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+NetworkManager.service                     [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+nfod.service                               [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+nfs-blkmap.service                         [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+nfs-idmapd.service                         static          [0;38;5;245m-       [0m
+nfs-mountd.service                         static          [0;38;5;245m-       [0m
+nfs-server.service                         [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+nfs-utils.service                          static          [0;38;5;245m-       [0m
+nfsdcld.service                            static          [0;38;5;245m-       [0m
+nftables.service                           [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+nis-domainname.service                     [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+nm-priv-helper.service                     static          [0;38;5;245m-       [0m
+nscd.service                               [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+p0f.service                                [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+pam_namespace.service                      static          [0;38;5;245m-       [0m
+pdns.service                               [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+pdns@.service                              [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+polkit.service                             static          [0;38;5;245m-       [0m
+qemu-guest-agent.service                   [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+queueprocd.service                         [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+quotaon.service                            static          [0;38;5;245m-       [0m
+rc-local.service                           static          [0;38;5;245m-       [0m
+rdisc.service                              [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+rescue.service                             static          [0;38;5;245m-       [0m
+rpc-gssd.service                           static          [0;38;5;245m-       [0m
+rpc-statd-notify.service                   static          [0;38;5;245m-       [0m
+rpc-statd.service                          static          [0;38;5;245m-       [0m
+rpcbind.service                            [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+rpmdb-rebuild.service                      [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+rsyslog.service                            [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+rtkit-daemon.service                       [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+selinux-autorelabel-mark.service           [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+selinux-autorelabel.service                static          [0;38;5;245m-       [0m
+selinux-check-proper-disable.service       [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+serial-getty@.service                      indirect        [0;1;31mdisabled[0m
+smartd.service                             [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+smtpmailgidonly.service                    [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+spamd.service                              [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+sshd-keygen@.service                       [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+sshd.service                               [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+sshd@.service                              static          [0;38;5;245m-       [0m
+sssd-autofs.service                        indirect        [0;1;31mdisabled[0m
+sssd-kcm.service                           indirect        [0;1;31mdisabled[0m
+sssd-nss.service                           indirect        [0;1;31mdisabled[0m
+sssd-pac.service                           indirect        [0;1;31mdisabled[0m
+sssd-pam.service                           indirect        [0;1;31mdisabled[0m
+sssd-ssh.service                           indirect        [0;1;31mdisabled[0m
+sssd-sudo.service                          indirect        [0;1;31mdisabled[0m
+sssd.service                               [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+streamlit-we.service                       [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+sw-engine.service                          [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+sysstat-collect.service                    static          [0;38;5;245m-       [0m
+sysstat-summary.service                    static          [0;38;5;245m-       [0m
+sysstat.service                            [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+system-update-cleanup.service              static          [0;38;5;245m-       [0m
+systemd-ask-password-console.service       static          [0;38;5;245m-       [0m
+systemd-ask-password-wall.service          static          [0;38;5;245m-       [0m
+systemd-backlight@.service                 static          [0;38;5;245m-       [0m
+systemd-binfmt.service                     static          [0;38;5;245m-       [0m
+systemd-bless-boot.service                 static          [0;38;5;245m-       [0m
+systemd-boot-check-no-failures.service     [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+systemd-boot-random-seed.service           static          [0;38;5;245m-       [0m
+systemd-boot-update.service                [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+systemd-coredump@.service                  static          [0;38;5;245m-       [0m
+systemd-exit.service                       static          [0;38;5;245m-       [0m
+systemd-firstboot.service                  static          [0;38;5;245m-       [0m
+systemd-fsck-root.service                  static          [0;38;5;245m-       [0m
+systemd-fsck@.service                      static          [0;38;5;245m-       [0m
+systemd-growfs-root.service                static          [0;38;5;245m-       [0m
+systemd-growfs@.service                    static          [0;38;5;245m-       [0m
+systemd-halt.service                       static          [0;38;5;245m-       [0m
+systemd-hibernate-resume@.service          static          [0;38;5;245m-       [0m
+systemd-hibernate.service                  static          [0;38;5;245m-       [0m
+systemd-hostnamed.service                  static          [0;38;5;245m-       [0m
+systemd-hwdb-update.service                static          [0;38;5;245m-       [0m
+systemd-hybrid-sleep.service               static          [0;38;5;245m-       [0m
+systemd-initctl.service                    static          [0;38;5;245m-       [0m
+systemd-journal-catalog-update.service     static          [0;38;5;245m-       [0m
+systemd-journal-flush.service              static          [0;38;5;245m-       [0m
+systemd-journald.service                   static          [0;38;5;245m-       [0m
+systemd-journald@.service                  static          [0;38;5;245m-       [0m
+systemd-kexec.service                      static          [0;38;5;245m-       [0m
+systemd-localed.service                    static          [0;38;5;245m-       [0m
+systemd-logind.service                     static          [0;38;5;245m-       [0m
+systemd-machine-id-commit.service          static          [0;38;5;245m-       [0m
+systemd-modules-load.service               static          [0;38;5;245m-       [0m
+systemd-network-generator.service          [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+systemd-pcrfs-root.service                 static          [0;38;5;245m-       [0m
+systemd-pcrfs@.service                     static          [0;38;5;245m-       [0m
+systemd-pcrmachine.service                 static          [0;38;5;245m-       [0m
+systemd-pcrphase-initrd.service            static          [0;38;5;245m-       [0m
+systemd-pcrphase-sysinit.service           static          [0;38;5;245m-       [0m
+systemd-pcrphase.service                   static          [0;38;5;245m-       [0m
+systemd-poweroff.service                   static          [0;38;5;245m-       [0m
+systemd-pstore.service                     [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+systemd-quotacheck.service                 static          [0;38;5;245m-       [0m
+systemd-random-seed.service                static          [0;38;5;245m-       [0m
+systemd-reboot.service                     static          [0;38;5;245m-       [0m
+systemd-remount-fs.service                 enabled-runtime [0;1;31mdisabled[0m
+systemd-repart.service                     static          [0;38;5;245m-       [0m
+systemd-rfkill.service                     static          [0;38;5;245m-       [0m
+systemd-suspend-then-hibernate.service     static          [0;38;5;245m-       [0m
+systemd-suspend.service                    static          [0;38;5;245m-       [0m
+systemd-sysctl.service                     static          [0;38;5;245m-       [0m
+systemd-sysext.service                     [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+systemd-sysupdate-reboot.service           indirect        [0;1;31mdisabled[0m
+systemd-sysupdate.service                  indirect        [0;1;31mdisabled[0m
+systemd-sysusers.service                   static          [0;38;5;245m-       [0m
+systemd-timedated.service                  static          [0;38;5;245m-       [0m
+systemd-tmpfiles-clean.service             static          [0;38;5;245m-       [0m
+systemd-tmpfiles-setup-dev.service         static          [0;38;5;245m-       [0m
+systemd-tmpfiles-setup.service             static          [0;38;5;245m-       [0m
+systemd-udev-settle.service                static          [0;38;5;245m-       [0m
+systemd-udev-trigger.service               static          [0;38;5;245m-       [0m
+systemd-udevd.service                      static          [0;38;5;245m-       [0m
+systemd-update-done.service                static          [0;38;5;245m-       [0m
+systemd-update-utmp-runlevel.service       static          [0;38;5;245m-       [0m
+systemd-update-utmp.service                static          [0;38;5;245m-       [0m
+systemd-user-sessions.service              static          [0;38;5;245m-       [0m
+systemd-vconsole-setup.service             static          [0;38;5;245m-       [0m
+systemd-volatile-root.service              static          [0;38;5;245m-       [0m
+tailwatchd.service                         [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+teamd@.service                             static          [0;38;5;245m-       [0m
+tuned.service                              [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+tw_analyzer.service                        [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+upower.service                             [0;1;32menabled        [0m[0;1;32m [0m[0;1;32menabled [0m
+user-runtime-dir@.service                  static          [0;38;5;245m-       [0m
+user@.service                              static          [0;38;5;245m-       [0m
+wp-toolkit-background-tasks.service        [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+wp-toolkit-scheduled-tasks.service         [0;1;32menabled        [0m[0;1;32m [0m[0;1;31mdisabled[0m
+zvbid.service                              [0;1;31mdisabled       [0m[0;1;31m [0m[0;1;31mdisabled[0m
+
+238 unit files listed.

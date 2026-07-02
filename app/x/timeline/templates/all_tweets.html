@@ -1,0 +1,603 @@
+{% extends "base.html" %}
+
+{% block title %}جميع التغريدات{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>📱 جميع التغريدات المحفوظة</h2>
+            <div>
+                <span class="badge bg-info fs-6">{{ tweets|length }} تغريدة</span>
+                <button class="btn btn-outline-primary btn-sm ms-2" onclick="refreshAllTweets()">
+                    🔄 تحديث
+                </button>
+                <div class="dropdown d-inline">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle ms-1" data-bs-toggle="dropdown">
+                        📤 تصدير
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="exportAllTweets('json')">📄 تصدير JSON</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportAllTweets('csv')">📊 تصدير CSV</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportAllTweets('txt')">📝 تصدير نص</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportFilteredTweets()">🔍 تصدير المفلترة فقط</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- إحصائيات سريعة -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary" id="total-tweets">{{ tweets|length }}</h4>
+                <p>إجمالي التغريدات</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success" id="unique-users">{{ tweets|pluck('screen_name')|unique|list|length }}</h4>
+                <p>المستخدمون المختلفون</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info" id="media-tweets">{{ tweets|selectattr('has_media')|list|length }}</h4>
+                <p>تغريدات بوسائط</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning" id="filtered-count">{{ tweets|length }}</h4>
+                <p>المعروضة حالياً</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- فلاتر متقدمة -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>🔍 فلاتر البحث المتقدم</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- الصف الأول -->
+                    <div class="col-md-3">
+                        <label for="userFilter" class="form-label">اختر مستخدم</label>
+                        <select class="form-control" id="userFilter" onchange="applyFilters()">
+                            <option value="">جميع المستخدمين</option>
+                            {% for user in tweets|map(attribute='screen_name')|unique|sort %}
+                            <option value="{{ user }}">@{{ user }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="languageFilter" class="form-label">اللغة</label>
+                        <select class="form-control" id="languageFilter" onchange="applyFilters()">
+                            <option value="">جميع اللغات</option>
+                            {% for lang in tweets|map(attribute='lang')|unique|sort %}
+                            {% if lang %}
+                            <option value="{{ lang }}">{{ lang.upper() }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="mediaFilter" class="form-label">نوع المحتوى</label>
+                        <select class="form-control" id="mediaFilter" onchange="applyFilters()">
+                            <option value="">جميع الأنواع</option>
+                            <option value="media">مع وسائط فقط</option>
+                            <option value="text">نصوص فقط</option>
+                            <option value="verified">من حسابات موثقة</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="sortFilter" class="form-label">ترتيب حسب</label>
+                        <select class="form-control" id="sortFilter" onchange="applyFilters()">
+                            <option value="date_desc">الأحدث أولاً</option>
+                            <option value="date_asc">الأقدم أولاً</option>
+                            <option value="likes_desc">الأكثر إعجاباً</option>
+                            <option value="retweets_desc">الأكثر إعادة تغريد</option>
+                            <option value="views_desc">الأكثر مشاهدة</option>
+                            <option value="user_asc">حسب اسم المستخدم (أ-ي)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- الصف الثاني -->
+                    <div class="col-md-4">
+                        <label for="searchText" class="form-label">البحث في النص</label>
+                        <input type="text" class="form-control" id="searchText" 
+                               placeholder="أدخل كلمة أو عبارة للبحث..." 
+                               oninput="applyFilters()">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label for="minLikes" class="form-label">حد أدنى إعجابات</label>
+                        <input type="number" class="form-control" id="minLikes" 
+                               placeholder="0" min="0" onchange="applyFilters()">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label for="minRetweets" class="form-label">حد أدنى إعادة تغريد</label>
+                        <input type="number" class="form-control" id="minRetweets" 
+                               placeholder="0" min="0" onchange="applyFilters()">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label for="minViews" class="form-label">حد أدنى مشاهدات</label>
+                        <input type="number" class="form-control" id="minViews" 
+                               placeholder="0" min="0" onchange="applyFilters()">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label for="dateFilter" class="form-label">فترة زمنية</label>
+                        <select class="form-control" id="dateFilter" onchange="applyFilters()">
+                            <option value="">جميع الأوقات</option>
+                            <option value="today">اليوم</option>
+                            <option value="week">آخر أسبوع</option>
+                            <option value="month">آخر شهر</option>
+                            <option value="3months">آخر 3 أشهر</option>
+                            <option value="year">آخر سنة</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12 text-center">
+                        <button class="btn btn-outline-secondary btn-sm me-2" onclick="clearAllFilters()">
+                            🗑️ مسح جميع الفلاتر
+                        </button>
+                        <button class="btn btn-outline-info btn-sm me-2" onclick="saveCurrentFilters()">
+                            💾 حفظ الفلاتر
+                        </button>
+                        <button class="btn btn-outline-success btn-sm me-2" onclick="loadSavedFilters()">
+                            📂 تحميل فلاتر محفوظة
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="showAdvancedStats()">
+                            📊 إحصائيات متقدمة
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if tweets %}
+<!-- قائمة التغريدات -->
+<div class="row">
+    <div class="col-12">
+        <div id="tweetsContainer">
+            {% for tweet in tweets %}
+            <div class="tweet-card card mb-3" 
+                 data-user="{{ tweet.screen_name }}"
+                 data-date="{{ tweet.created_at }}" 
+                 data-likes="{{ tweet.favorite_count }}"
+                 data-retweets="{{ tweet.retweet_count }}"
+                 data-views="{{ tweet.views_count }}"
+                 data-lang="{{ tweet.lang }}"
+                 data-media="{{ tweet.has_media }}"
+                 data-verified="{{ tweet.user_verified }}"
+                 data-text="{{ tweet.full_text | lower }}"
+                 data-timestamp="{{ tweet.created_timestamp }}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="d-flex align-items-center">
+                            {% if tweet.user_profile_image_url %}
+                            <img src="{{ tweet.user_profile_image_url }}" 
+                                 alt="Profile" class="rounded-circle me-3" 
+                                 width="50" height="50" loading="lazy">
+                            {% else %}
+                            <div class="rounded-circle me-3 bg-primary text-white d-flex align-items-center justify-content-center" 
+                                 style="width: 50px; height: 50px;">
+                                {{ tweet.user_name[0] if tweet.user_name else '@' }}
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-1">
+                                    {{ tweet.user_name }}
+                                    {% if tweet.user_verified %}
+                                        <span class="badge bg-primary">✅</span>
+                                    {% endif %}
+                                </h6>
+                                <div>
+                                    <a href="{{ url_for('user_tweets', username=tweet.screen_name) }}" 
+                                       class="text-muted text-decoration-none">@{{ tweet.screen_name }}</a>
+                                    <span class="text-muted mx-2">•</span>
+                                    <small class="text-muted arabic-time" data-timestamp="{{ tweet.created_at }}">
+                                        {{ tweet.created_at | format_date }}
+                                    </small>
+                                </div>
+                                {% if tweet.user_followers_count %}
+                                <small class="text-muted">{{ tweet.user_followers_count | format_number }} متابِع</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                ⚙️
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('user_tweets', username=tweet.screen_name) }}">
+                                    👤 عرض جميع تغريدات المستخدم
+                                </a></li>
+                                <li><a class="dropdown-item" href="/api/tweet/{{ tweet.tweet_id }}" target="_blank">
+                                    🔗 عرض في API
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" onclick="copyTweetLink('{{ tweet.tweet_id }}')">
+                                    📋 نسخ الرابط
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" onclick="copyTweetText('{{ loop.index }}')">
+                                    📄 نسخ النص
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" onclick="shareTweet('{{ tweet.tweet_id }}')">
+                                    📤 مشاركة
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="tweet-text mb-3" id="tweet-text-{{ loop.index }}">
+                        {{ tweet.full_text }}
+                    </div>
+                    
+                    <!-- عرض الوسائط والهاشتاغات -->
+                    <div class="mb-3">
+                        {% if tweet.has_media %}
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            {% set media_types = tweet.media_types | from_json %}
+                            {% for media_type in media_types[:3] %}
+                            {% if media_type == 'photo' %}
+                                <span class="badge bg-info">📷</span>
+                            {% elif media_type == 'video' %}
+                                <span class="badge bg-danger">🎥</span>
+                            {% elif media_type == 'animated_gif' %}
+                                <span class="badge bg-warning">🎭</span>
+                            {% endif %}
+                            {% endfor %}
+                            {% if media_types|length > 3 %}
+                            <span class="badge bg-secondary">+{{ media_types|length - 3 }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- الهاشتاغات -->
+                        {% set hashtags = tweet.hashtags | from_json %}
+                        {% if hashtags %}
+                        <div class="mb-2">
+                            {% for hashtag in hashtags[:5] %}
+                            <span class="badge bg-primary me-1">#{{ hashtag }}</span>
+                            {% endfor %}
+                            {% if hashtags|length > 5 %}
+                            <span class="badge bg-light text-dark">+{{ hashtags|length - 5 }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- الإشارات -->
+                        {% set user_mentions = tweet.user_mentions | from_json %}
+                        {% if user_mentions %}
+                        <div class="mb-2">
+                            {% for mention in user_mentions[:3] %}
+                            <a href="{{ url_for('user_tweets', username=mention.screen_name if mention.screen_name else mention) }}" 
+                               class="badge bg-success text-decoration-none me-1">
+                                @{{ mention.screen_name if mention.screen_name else mention }}
+                            </a>
+                            {% endfor %}
+                            {% if user_mentions|length > 3 %}
+                            <span class="badge bg-light text-dark">+{{ user_mentions|length - 3 }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="tweet-meta d-flex justify-content-between align-items-center">
+                        <div class="d-flex gap-3">
+                            <span class="badge bg-light text-dark" title="المشاهدات">
+                                👁️ {{ tweet.views_count | format_number }}
+                            </span>
+                            <span class="badge bg-light text-dark" title="الإعجابات">
+                                ❤️ {{ tweet.favorite_count | format_number }}
+                            </span>
+                            <span class="badge bg-light text-dark" title="إعادة التغريد">
+                                🔄 {{ tweet.retweet_count | format_number }}
+                            </span>
+                            <span class="badge bg-light text-dark" title="الردود">
+                                💬 {{ tweet.reply_count | format_number }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="badge bg-secondary">{{ tweet.lang.upper() if tweet.lang else 'N/A' }}</span>
+                            <small class="text-muted ms-2">{{ tweet.tweet_id[:10] }}...</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- مؤشر التحميل وزر تحميل المزيد -->
+        <div class="text-center mt-4" id="loadingIndicator" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">جاري التحميل...</span>
+            </div>
+            <p class="text-muted mt-2">جاري تحميل المزيد من التغريدات...</p>
+        </div>
+        
+        <div class="text-center mt-4" id="loadMoreContainer">
+            <button class="btn btn-outline-primary" onclick="loadMoreTweets()" id="loadMoreBtn">
+                📜 عرض المزيد (50 تغريدة)
+            </button>
+            <p class="text-muted mt-2">عرض <span id="displayedCount">{{ tweets|length }}</span> من إجمالي التغريدات</p>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- لا توجد تغريدات -->
+<div class="row">
+    <div class="col-12">
+        <div class="no-data">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <h4>😔 لا توجد تغريدات محفوظة</h4>
+                    <p class="text-muted">لم يتم العثور على أي تغريدات في النظام بعد</p>
+                    <div class="mt-4">
+                        <a href="{{ url_for('search') }}" class="btn btn-primary me-2">
+                            🔍 البحث عن مستخدمين
+                        </a>
+                        <a href="{{ url_for('monitoring') }}" class="btn btn-success">
+                            🤖 إعداد المراقبة التلقائية
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentlyDisplayed = {{ tweets|length }};
+
+// تطبيق الفلاتر
+function applyFilters() {
+    const userFilter = document.getElementById('userFilter').value;
+    const languageFilter = document.getElementById('languageFilter').value;
+    const mediaFilter = document.getElementById('mediaFilter').value;
+    const sortFilter = document.getElementById('sortFilter').value;
+    const searchText = document.getElementById('searchText').value.toLowerCase();
+    const minLikes = parseInt(document.getElementById('minLikes').value) || 0;
+    const minRetweets = parseInt(document.getElementById('minRetweets').value) || 0;
+    const minViews = parseInt(document.getElementById('minViews').value) || 0;
+    const dateFilter = document.getElementById('dateFilter').value;
+    
+    const tweets = Array.from(document.querySelectorAll('.tweet-card'));
+    let filteredTweets = tweets;
+    
+    // تطبيق الفلاتر
+    filteredTweets = tweets.filter(tweet => {
+        // فلتر المستخدم
+        if (userFilter && tweet.dataset.user !== userFilter) return false;
+        
+        // فلتر اللغة
+        if (languageFilter && tweet.dataset.lang !== languageFilter) return false;
+        
+        // فلتر الوسائط
+        if (mediaFilter === 'media' && tweet.dataset.media !== 'True') return false;
+        if (mediaFilter === 'text' && tweet.dataset.media === 'True') return false;
+        if (mediaFilter === 'verified' && tweet.dataset.verified !== 'True') return false;
+        
+        // فلتر البحث النصي
+        if (searchText && !tweet.dataset.text.includes(searchText)) return false;
+        
+        // فلتر الإعجابات
+        if (parseInt(tweet.dataset.likes) < minLikes) return false;
+        
+        // فلتر إعادة التغريد
+        if (parseInt(tweet.dataset.retweets) < minRetweets) return false;
+        
+        // فلتر المشاهدات
+        if (parseInt(tweet.dataset.views) < minViews) return false;
+        
+        // فلتر التاريخ
+        if (dateFilter) {
+            const tweetDate = new Date(tweet.dataset.timestamp);
+            const now = new Date();
+            const diffTime = now - tweetDate;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            switch (dateFilter) {
+                case 'today':
+                    if (diffDays > 1) return false;
+                    break;
+                case 'week':
+                    if (diffDays > 7) return false;
+                    break;
+                case 'month':
+                    if (diffDays > 30) return false;
+                    break;
+                case '3months':
+                    if (diffDays > 90) return false;
+                    break;
+                case 'year':
+                    if (diffDays > 365) return false;
+                    break;
+            }
+        }
+        
+        return true;
+    });
+    
+    // إخفاء/إظهار التغريدات
+    tweets.forEach(tweet => tweet.style.display = 'none');
+    filteredTweets.forEach(tweet => tweet.style.display = 'block');
+    
+    // تحديث العدادات
+    updateFilteredCount(filteredTweets.length);
+    
+    showNotification(`تم العثور على ${filteredTweets.length} تغريدة`, 'info');
+}
+
+// مسح جميع الفلاتر
+function clearAllFilters() {
+    document.getElementById('userFilter').value = '';
+    document.getElementById('languageFilter').value = '';
+    document.getElementById('mediaFilter').value = '';
+    document.getElementById('sortFilter').value = 'date_desc';
+    document.getElementById('searchText').value = '';
+    document.getElementById('minLikes').value = '';
+    document.getElementById('minRetweets').value = '';
+    document.getElementById('minViews').value = '';
+    document.getElementById('dateFilter').value = '';
+    
+    // إظهار جميع التغريدات
+    const tweets = document.querySelectorAll('.tweet-card');
+    tweets.forEach(tweet => tweet.style.display = 'block');
+    
+    updateFilteredCount(tweets.length);
+    showNotification('تم مسح جميع الفلاتر', 'success');
+}
+
+// تحديث عداد التغريدات المفلترة
+function updateFilteredCount(count) {
+    document.getElementById('filtered-count').textContent = count;
+    document.getElementById('displayedCount').textContent = count;
+}
+
+// تحديث جميع التغريدات
+function refreshAllTweets() {
+    showNotification('جاري تحديث التغريدات...', 'info');
+    setTimeout(() => location.reload(), 1000);
+}
+
+// تصدير جميع التغريدات
+function exportAllTweets(format) {
+    const tweets = Array.from(document.querySelectorAll('.tweet-card'));
+    const data = tweets.map((tweet, index) => ({
+        id: tweet.querySelector('.text-muted:last-child').textContent.replace('...', ''),
+        user: tweet.dataset.user,
+        text: tweet.querySelector('.tweet-text').textContent.trim(),
+        date: tweet.dataset.timestamp,
+        likes: parseInt(tweet.dataset.likes),
+        retweets: parseInt(tweet.dataset.retweets),
+        views: parseInt(tweet.dataset.views),
+        language: tweet.dataset.lang,
+        hasMedia: tweet.dataset.media === 'True',
+        verified: tweet.dataset.verified === 'True'
+    }));
+    
+    let content, filename, mimeType;
+    
+    switch (format) {
+        case 'json':
+            content = JSON.stringify(data, null, 2);
+            filename = `all_tweets_${new Date().toISOString().split('T')[0]}.json`;
+            mimeType = 'application/json';
+            break;
+        case 'csv':
+            const headers = Object.keys(data[0]).join(',');
+            const rows = data.map(row => Object.values(row).map(val => `"${val}"`).join(','));
+            content = headers + '\n' + rows.join('\n');
+            filename = `all_tweets_${new Date().toISOString().split('T')[0]}.csv`;
+            mimeType = 'text/csv';
+            break;
+        case 'txt':
+            content = data.map(tweet => 
+                `@${tweet.user} (${tweet.date})\n${tweet.text}\n` +
+                `❤️${tweet.likes} 🔄${tweet.retweets} 👁️${tweet.views}\n${'='.repeat(50)}\n`
+            ).join('\n');
+            filename = `all_tweets_${new Date().toISOString().split('T')[0]}.txt`;
+            mimeType = 'text/plain';
+            break;
+    }
+    
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const downloadLink = document.createElement('a');
+    downloadLink.href = url;
+    downloadLink.download = filename;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(url);
+    
+    showNotification(`تم تصدير ${data.length} تغريدة بتنسيق ${format.toUpperCase()}`, 'success');
+}
+
+// دوال أخرى
+function saveCurrentFilters() {
+    showNotification('ميزة حفظ الفلاتر ستتم إضافتها قريباً', 'info');
+}
+
+function loadSavedFilters() {
+    showNotification('ميزة تحميل الفلاتر ستتم إضافتها قريباً', 'info');
+}
+
+function showAdvancedStats() {
+    showNotification('ميزة الإحصائيات المتقدمة ستتم إضافتها قريباً', 'info');
+}
+
+function copyTweetLink(tweetId) {
+    const link = `${window.location.origin}/api/tweet/${tweetId}`;
+    navigator.clipboard.writeText(link).then(() => {
+        showNotification('تم نسخ رابط التغريدة', 'success');
+    }).catch(() => {
+        showNotification('فشل في نسخ الرابط', 'error');
+    });
+}
+
+function copyTweetText(index) {
+    const tweetElement = document.getElementById(`tweet-text-${index}`);
+    if (tweetElement) {
+        const text = tweetElement.textContent.trim();
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification('تم نسخ نص التغريدة', 'success');
+        }).catch(() => {
+            showNotification('فشل في نسخ النص', 'error');
+        });
+    }
+}
+
+function shareTweet(tweetId) {
+    const link = `${window.location.origin}/api/tweet/${tweetId}`;
+    if (navigator.share) {
+        navigator.share({
+            title: 'تغريدة من نظام سحب تويتر',
+            url: link
+        });
+    } else {
+        copyTweetLink(tweetId);
+    }
+}
+
+function loadMoreTweets() {
+    showNotification('ميزة تحميل المزيد ستتم إضافتها قريباً', 'info');
+}
+
+// تشغيل عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('تم تحميل صفحة جميع التغريدات بنجاح');
+});
+</script>
+{% endblock %}

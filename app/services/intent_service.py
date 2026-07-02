@@ -58,7 +58,16 @@ class IntentType(str, Enum):
     SEARCH_TRENDS = "search_trends"
     RUN_TRENDS = "run_trends"
     TREND_DETAIL = "trend_detail"
-    
+
+    # التايم لاين الشخصي
+    FETCH_TIMELINE = "fetch_timeline"
+    VIEW_TIMELINE = "view_timeline"
+
+    # تصنيفات الحسابات
+    SET_ACCOUNT_CATEGORY = "set_account_category"
+    LIST_ACCOUNTS_BY_CATEGORY = "list_accounts_by_category"
+    POST_TO_CATEGORY = "post_to_category"
+
     # عام
     HELP = "help"
     GREETING = "greeting"
@@ -579,7 +588,75 @@ class IntentService:
                 r"update.*trend",
                 r"اجمع ترندات",
             ],
-            
+
+            # ─── سحب التايم لاين ───
+            IntentType.FETCH_TIMELINE: [
+                r"اسحب.*تايم\s*لاين",
+                r"اسحب.*تغريدات",
+                r"اسحب.*ت(ا|و)يم",
+                r"سحب.*تايم\s*لاين",
+                r"سحب.*تغريدات",
+                r"حدّ?ث.*تايم\s*لاين",
+                r"جيب.*تغريدات",
+                r"جلب.*تغريدات",
+                r"احضر.*تغريدات",
+                r"نزّل.*تغريدات",
+                r"حمّل.*تغريدات",
+                r"fetch.*timeline",
+                r"scrape.*timeline",
+                r"download.*tweets",
+                r"pull.*timeline",
+            ],
+
+            # ─── عرض التايم لاين المحفوظ ───
+            IntentType.VIEW_TIMELINE: [
+                r"اعرض.*تايم\s*لاين",
+                r"اعرض.*تغريدات",
+                r"اعرض.*تغريدات\s*حساب",
+                r"اظهر.*تغريدات",
+                r"اظهر.*تايم\s*لاين",
+                r"ورّني.*تغريدات",
+                r"شوف.*تغريدات",
+                r"شوفلي.*تغريدات",
+                r"وش\s*تغريدات",
+                r"ايش.*تغريدات",
+                r"تغريدات\s+الحساب",
+                r"التايم\s*لاين\s+حساب",
+                r"تايم\s*لاين\s+حساب",
+                r"show.*timeline",
+                r"show.*tweets",
+                r"list.*tweets",
+                r"display.*tweets",
+                r"view.*timeline",
+            ],
+
+            # ─── تحديد تصنيف حساب معين ───
+            IntentType.SET_ACCOUNT_CATEGORY: [
+                r"(?:غيّ?ر|بدّ?ل|عدّ?ل)\s+(?:تصنيف|فئة|صنف)\s+(?:الحساب\s+)?(\S+)",
+                r"(?:اجعل|خلّ?ي)\s+(?:الحساب\s+)?(\S+)\s+(?:من\s+)?(?:نوع|تصنيف|فئة|صنف)",
+                r"صنّ?ف\s+(?:الحساب\s+)?(\S+)",
+                r"(?:تصنيف|فئة|صنف)\s+(?:الحساب\s+)?(\S+)\s+(?:هو|هي|إلى|الى)",
+                r"set\s+(?:account\s+)?(\S+)\s+category",
+                r"categorize\s+(?:account\s+)?(\S+)",
+            ],
+
+            # ─── عرض الحسابات حسب التصنيف ───
+            IntentType.LIST_ACCOUNTS_BY_CATEGORY: [
+                r"(?:اعرض|اظهر|ورّني|شوف|شوفلي|هات|جيب)\s+(?:كل\s+|جميع\s+)?(?:حساباتي\s+|الحسابات\s+)(?:الاجتماعي|السياسي|الرياضي|التقني|الديني|الترفيهي|الاخباري|الإخباري|الأدبي|الادبي|التجاري|العام)",
+                r"(?:حساباتي|الحسابات)\s+(?:الاجتماعي|السياسي|الرياضي|التقني|الديني|الترفيهي|الاخباري|الإخباري|الأدبي|الادبي|التجاري|العام)",
+                r"وش\s+(?:الحسابات|حساباتي)\s+(?:الاجتماعي|السياسي|الرياضي|التقني|الديني|الترفيهي|الأدبي|الادبي)",
+                r"list\s+(?:my\s+)?(?:social|political|sports|tech|religious|entertainment|news|literary|business|general)\s+accounts",
+                r"show\s+(?:my\s+)?(?:social|political|sports|tech|religious|entertainment|news|literary|business|general)\s+accounts",
+            ],
+
+            # ─── النشر الجماعي على تصنيف ───
+            IntentType.POST_TO_CATEGORY: [
+                r"(?:انشر|غرّ?د|ابعث|ارسل)\s+(?:في|على|ب)\s*(?:كل\s+|جميع\s+)?(?:ال)?حسابات(?:ي)?\s+(?:ال)?(?:اجتماعي|سياسي|رياضي|تقني|ديني|ترفيهي|اخباري|إخباري|أدبي|ادبي|تجاري|عام)",
+                r"نشر\s+(?:جماعي|بالجملة)\s+(?:في|على)?\s*(?:ال)?(?:اجتماعي|سياسي|رياضي|تقني|ديني|ترفيهي|اخباري|إخباري|أدبي|ادبي)",
+                r"post\s+to\s+(?:my\s+)?(?:social|political|sports|tech|religious|entertainment|news|literary|business|general)\s+accounts",
+                r"tweet\s+on\s+(?:my\s+)?(?:social|political|sports|tech|religious|entertainment|news|literary|business|general)\s+accounts",
+            ],
+
             # عام
             IntentType.HELP: [
                 r"مساعدة",
@@ -672,6 +749,45 @@ class IntentService:
                     detected_intent = IntentType.SCHEDULE_POST
                     max_confidence = 0.95
                     break
+
+        # Override: لو النية كُشفت كـ LIST_ACCOUNTS/CREATE_POST لكن النص يحتوي
+        # كلمة تصنيف (اجتماعي/سياسي/تقني/...)، حوّلها إلى نية التصنيف المناسبة.
+        _CATEGORY_KEYWORDS = (
+            r"(?:الاجتماعي(?:ة|ه)?|السياسي(?:ة|ه)?|الرياضي(?:ة|ه)?|"
+            r"التقني(?:ة|ه)?|الديني(?:ة|ه)?|الترفيهي(?:ة|ه)?|"
+            r"الاخباري(?:ة|ه)?|الإخباري(?:ة|ه)?|الأدبي(?:ة|ه)?|الادبي(?:ة|ه)?|"
+            r"التجاري(?:ة|ه)?|"
+            r"اجتماعي(?:ة|ه)?|سياسي(?:ة|ه)?|رياضي(?:ة|ه)?|"
+            r"تقني(?:ة|ه)?|ديني(?:ة|ه)?|ترفيهي(?:ة|ه)?|"
+            r"اخباري(?:ة|ه)?|إخباري(?:ة|ه)?|أدبي(?:ة|ه)?|ادبي(?:ة|ه)?|"
+            r"تجاري(?:ة|ه)?|"
+            r"\bsocial\b|\bpolitical\b|\bsports\b|\btech\b|\breligious\b|"
+            r"\bentertainment\b|\bnews\b|\bliterary\b|\bbusiness\b)"
+        )
+        if detected_intent == IntentType.LIST_ACCOUNTS:
+            if re.search(_CATEGORY_KEYWORDS, text_lower, re.IGNORECASE):
+                detected_intent = IntentType.LIST_ACCOUNTS_BY_CATEGORY
+                max_confidence = 0.95
+
+        if detected_intent == IntentType.CREATE_POST:
+            # لو الرسالة فيها "الحسابات [تصنيف]" (نشر جماعي على تصنيف)
+            if re.search(
+                r"(?:الحسابات|حساباتي)\s+" + _CATEGORY_KEYWORDS,
+                text_lower, re.IGNORECASE
+            ):
+                detected_intent = IntentType.POST_TO_CATEGORY
+                max_confidence = 0.95
+
+        # Override نهائي: لو النص فيه فعل نشر + كلمة تصنيف، هذا نشر جماعي بغض
+        # النظر عن أي تطابق سابق (يتغلّب على list_accounts_by_category أيضاً).
+        _POST_VERBS = r"(?:انشر|غرّ?د|ابعث|ارسل|اكتب|post|tweet|send)"
+        _CATEGORY_HELPER = r"(?:في|على|ب|to|on|in)?\s*(?:كل\s+|جميع\s+|all\s+)?(?:ال)?حسابات(?:ي)?"
+        if re.search(
+            _POST_VERBS + r"\s+" + _CATEGORY_HELPER + r"\s+(?:ال)?" + _CATEGORY_KEYWORDS,
+            text_lower, re.IGNORECASE
+        ):
+            detected_intent = IntentType.POST_TO_CATEGORY
+            max_confidence = 0.98
 
         # Override: لو النية كُشفت كـ GET_TRENDS لكن النص يحتوي على كلمات تدل على
         # الترندات النشطة/الحارة، حوّلها إلى GET_HOT_TRENDS.
@@ -786,6 +902,102 @@ class IntentService:
             tweet_id_match = re.search(r'(\d{15,})', text)
             if tweet_id_match:
                 entities["tweet_id"] = tweet_id_match.group(1)
+
+        # ─── استخراج اسم الحساب من أوامر التصنيف ───
+        # صياغات مثل: "غيّر تصنيف USERNAME إلى تقني"، "صنّف USERNAME"
+        if intent == IntentType.SET_ACCOUNT_CATEGORY and not entities.get("account_name"):
+            # نحاول نلاقي اسم الحساب اللي بعد كلمة تصنيف/فئة/صنف مباشرة
+            set_cat_patterns = [
+                r"(?:غيّ?ر|بدّ?ل|عدّ?ل)\s+(?:تصنيف|فئة|صنف)\s+(?:الحساب\s+|حساب\s+|حسابي\s+)?([A-Za-z_][\w.\-]{2,})",
+                r"(?:اجعل|خلّ?ي)\s+(?:الحساب\s+|حساب\s+)?([A-Za-z_][\w.\-]{2,})\s+(?:من\s+)?(?:نوع|تصنيف|فئة|صنف)",
+                r"صنّ?ف\s+(?:الحساب\s+|حساب\s+)?([A-Za-z_][\w.\-]{2,})",
+                r"(?:تصنيف|فئة|صنف)\s+(?:الحساب\s+|حساب\s+)?([A-Za-z_][\w.\-]{2,})\s+(?:هو|هي|إلى|الى|=)",
+                r"set\s+(?:account\s+)?([A-Za-z_][\w.\-]{2,})\s+category",
+                r"categorize\s+(?:account\s+)?([A-Za-z_][\w.\-]{2,})",
+            ]
+            for pattern in set_cat_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    candidate = match.group(1).strip()
+                    if candidate.lower() not in _account_blacklist:
+                        entities["account_name"] = candidate
+                        break
+
+        # ─── استخراج تصنيف الحساب ───
+        # نتعرف على التصنيف من كلمات مثل: "الاجتماعي", "السياسي", ...
+        # ونحوّلها إلى الكود المعتمد: social/political/sports/tech/...
+        if intent in [
+            IntentType.SET_ACCOUNT_CATEGORY,
+            IntentType.LIST_ACCOUNTS_BY_CATEGORY,
+            IntentType.POST_TO_CATEGORY,
+            IntentType.GENERATE_IDENTITY,
+        ]:
+            category_map = {
+                # اجتماعي
+                "اجتماعي": "social", "الاجتماعي": "social",
+                "اجتماعية": "social", "الاجتماعية": "social",
+                "social": "social",
+                # سياسي
+                "سياسي": "political", "السياسي": "political",
+                "سياسية": "political", "السياسية": "political",
+                "political": "political", "politics": "political",
+                # رياضي
+                "رياضي": "sports", "الرياضي": "sports",
+                "رياضية": "sports", "الرياضية": "sports",
+                "sports": "sports", "sport": "sports",
+                # تقني
+                "تقني": "tech", "التقني": "tech",
+                "تقنية": "tech", "التقنية": "tech",
+                "tech": "tech", "technical": "tech", "technology": "tech",
+                # ديني
+                "ديني": "religious", "الديني": "religious",
+                "دينية": "religious", "الدينية": "religious",
+                "religious": "religious",
+                # ترفيهي
+                "ترفيهي": "entertainment", "الترفيهي": "entertainment",
+                "ترفيهية": "entertainment", "الترفيهية": "entertainment",
+                "entertainment": "entertainment",
+                # إخباري
+                "اخباري": "news", "الاخباري": "news",
+                "إخباري": "news", "الإخباري": "news",
+                "اخبارية": "news", "الاخبارية": "news",
+                "إخبارية": "news", "الإخبارية": "news",
+                "news": "news",
+                # أدبي
+                "أدبي": "literary", "الأدبي": "literary",
+                "ادبي": "literary", "الادبي": "literary",
+                "أدبية": "literary", "ادبية": "literary",
+                "literary": "literary",
+                # تجاري
+                "تجاري": "business", "التجاري": "business",
+                "تجارية": "business", "التجارية": "business",
+                "أعمال": "business", "الأعمال": "business",
+                "business": "business",
+                # عام
+                "عام": "general", "العام": "general",
+                "عامة": "general", "العامة": "general",
+                "general": "general",
+            }
+            text_lower = text.lower()
+            for keyword, code in category_map.items():
+                if keyword in text_lower:
+                    entities["category"] = code
+                    break
+
+        # استخراج العدد للتايم لاين (كم تغريدة يسحب/يعرض)
+        if intent in [IntentType.FETCH_TIMELINE, IntentType.VIEW_TIMELINE]:
+            # رقم عادي ليس معرّف تغريدة
+            count_match = re.search(r'(\d{1,4})\s*(?:تغريد|تويت|tweet|post|منشور)?', text)
+            if count_match:
+                num = int(count_match.group(1))
+                # نتجاهل معرّفات التغريدات الطويلة
+                if num < 10_000:
+                    entities["count"] = num
+                    entities["limit"] = num
+            # تصفح: "تصفح 20" أو "offset 20" أو "بعد 20"
+            offset_match = re.search(r'(?:تصفح|صفحة|offset|بعد|بدء\s*من)\s+(\d+)', text, re.IGNORECASE)
+            if offset_match:
+                entities["offset"] = int(offset_match.group(1))
         
         # استخراج محتوى المنشور
         if intent in [IntentType.CREATE_POST, IntentType.SCHEDULE_POST]:

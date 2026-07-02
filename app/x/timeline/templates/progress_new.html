@@ -1,0 +1,136 @@
+{% extends "base_new.html" %}
+{% block title %}جاري السحب - سحب التغريدات{% endblock %}
+{% block page_title %}تقدم عملية السحب{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <h3><i class="fas fa-spinner fa-spin" style="color:var(--primary);margin-left:8px;" id="spinIcon"></i> <span id="headerText">جاري سحب التغريدات...</span></h3>
+            </div>
+            <div class="card-body-custom text-center">
+                <!-- Progress Bar -->
+                <div style="margin:20px 0 30px;">
+                    <div style="background:#e5e7eb;border-radius:12px;height:18px;overflow:hidden;position:relative;">
+                        <div id="progressBar" style="background:linear-gradient(90deg,#1a73e8,#4285f4);height:100%;border-radius:12px;width:0%;transition:width 0.5s;display:flex;align-items:center;justify-content:center;">
+                            <span id="progressText" style="color:#fff;font-size:11px;font-weight:700;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الاحصائيات -->
+                <div class="row g-3 mb-4">
+                    <div class="col-4">
+                        <div style="background:#f0fdf4;border-radius:12px;padding:20px 10px;">
+                            <div style="font-size:28px;font-weight:800;color:#16a34a;" id="savedCount">0</div>
+                            <div style="font-size:13px;color:#6b7280;">محفوظ</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div style="background:#fef3c7;border-radius:12px;padding:20px 10px;">
+                            <div style="font-size:28px;font-weight:800;color:#d97706;" id="skippedRT">0</div>
+                            <div style="font-size:13px;color:#6b7280;">تخطي RT</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div style="background:#dbeafe;border-radius:12px;padding:20px 10px;">
+                            <div style="font-size:28px;font-weight:800;color:#2563eb;" id="skippedReply">0</div>
+                            <div style="font-size:13px;color:#6b7280;">تخطي ردود</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- رسالة الحالة -->
+                <div id="statusMsg" style="background:#f8fafc;border-radius:10px;padding:14px 18px;font-size:14px;color:var(--text-muted);min-height:48px;display:flex;align-items:center;justify-content:center;gap:8px;">
+                    <i class="fas fa-circle-notch fa-spin"></i> جاري البدء...
+                </div>
+
+                <!-- ازرار بعد الانتهاء -->
+                <div id="doneButtons" style="display:none;margin-top:24px;">
+                    <a href="{{ url_for('tweets_list', job_id=job_id) }}" class="btn-primary-custom" style="display:inline-block;margin:4px;">
+                        <i class="fas fa-eye"></i> عرض التغريدات
+                    </a>
+                    <a href="{{ url_for('export_csv', job_id=job_id) }}" class="btn-outline-custom" style="display:inline-block;margin:4px;">
+                        <i class="fas fa-file-csv"></i> تصدير CSV
+                    </a>
+                    <a href="{{ url_for('scrape') }}" class="btn-outline-custom" style="display:inline-block;margin:4px;">
+                        <i class="fas fa-plus"></i> سحب جديد
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const jobId = "{{ job_id }}";
+let polling = null;
+let requestedCount = 0;
+
+function updateProgress() {
+    fetch(`/api/status/${jobId}`)
+        .then(r => r.json())
+        .then(data => {
+            const saved = data.saved || 0;
+            const skRT = data.skipped_rt || 0;
+            const skReply = data.skipped_reply || 0;
+            const status = data.status || 'running';
+            const msg = data.message || '';
+
+            document.getElementById('savedCount').textContent = saved;
+            document.getElementById('skippedRT').textContent = skRT;
+            document.getElementById('skippedReply').textContent = skReply;
+
+            // تقدير النسبة من الرسالة
+            let pct = 0;
+            const match = msg.match(/\[(\d+)\/(\d+)\]/);
+            if (match) {
+                requestedCount = parseInt(match[2]);
+                pct = Math.round((parseInt(match[1]) / requestedCount) * 100);
+            } else if (saved > 0 && requestedCount > 0) {
+                pct = Math.round((saved / requestedCount) * 100);
+            }
+
+            const bar = document.getElementById('progressBar');
+            bar.style.width = Math.min(pct, 100) + '%';
+            document.getElementById('progressText').textContent = pct > 5 ? pct + '%' : '';
+
+            // تنظيف الرسالة من الاقواس
+            let cleanMsg = msg.replace(/\[\d+\/\d+\]\s*/, '');
+            if (cleanMsg.length > 80) cleanMsg = cleanMsg.substring(0, 80) + '...';
+
+            if (status === 'running') {
+                document.getElementById('statusMsg').innerHTML =
+                    '<i class="fas fa-circle-notch fa-spin"></i> ' + (cleanMsg || 'جاري السحب...');
+            } else if (status === 'done') {
+                bar.style.width = '100%';
+                document.getElementById('progressText').textContent = '100%';
+                document.getElementById('spinIcon').className = 'fas fa-check-circle';
+                document.getElementById('spinIcon').style.color = '#16a34a';
+                document.getElementById('headerText').textContent = 'تم الانتهاء بنجاح!';
+                document.getElementById('statusMsg').innerHTML =
+                    '<i class="fas fa-check-circle" style="color:#16a34a;"></i> ' + cleanMsg;
+                document.getElementById('statusMsg').style.background = '#f0fdf4';
+                document.getElementById('doneButtons').style.display = 'block';
+                clearInterval(polling);
+            } else if (status === 'error') {
+                document.getElementById('spinIcon').className = 'fas fa-exclamation-circle';
+                document.getElementById('spinIcon').style.color = '#dc2626';
+                document.getElementById('headerText').textContent = 'حدث خطا';
+                document.getElementById('statusMsg').innerHTML =
+                    '<i class="fas fa-exclamation-circle" style="color:#dc2626;"></i> ' + cleanMsg;
+                document.getElementById('statusMsg').style.background = '#fef2f2';
+                document.getElementById('doneButtons').style.display = 'block';
+                clearInterval(polling);
+            }
+        })
+        .catch(() => {});
+}
+
+polling = setInterval(updateProgress, 1500);
+updateProgress();
+</script>
+{% endblock %}

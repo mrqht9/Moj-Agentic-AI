@@ -1,0 +1,75 @@
+# ════════════════════════════════════════════════════════════════
+#                  نظام موج الذكي - تشغيل بالدوكر
+# ════════════════════════════════════════════════════════════════
+# للتشغيل: docker compose up -d --build
+# للإيقاف: docker compose down
+# للسجلات: docker compose logs -f
+# ════════════════════════════════════════════════════════════════
+
+services:
+
+  # ─── الخادم الخلفي ───
+  # يشغّل: FastAPI الرئيسي + خادم X + خادم LoginX + خادم Identity
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: moj_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # المنافذ الداخلية للخوادم الفرعية
+      XSUITE_PORT: 5789
+      LOGINX_PORT: 5000
+      IDENTITY_PORT: 5990
+      # مفتاح Gemini يجب أن يكون موجوداً في .env
+      API_KEY: ${GEMINI_API_KEY}
+    ports:
+      - "8000:8000"      # الخادم الرئيسي
+      # المنافذ التالية اختيارية للوصول المباشر للخوادم الفرعية
+      - "5789:5789"      # خادم X
+      - "5000:5000"      # خادم LoginX
+      - "5990:5990"      # خادم Identity
+    volumes:
+      # حفظ قاعدة البيانات والكوكيز خارج الحاوية لمنع الفقدان عند إعادة البناء
+      - moj_data:/app/data
+      - moj_cookies:/app/app/x/cookies
+      - moj_identity_imgs:/app/app/identity/static/generated
+      - moj_uploads:/app/static/uploads
+    networks:
+      - moj_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ─── الواجهة ───
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: moj_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"          # المنفذ العادي للوصول من المتصفح
+    depends_on:
+      - backend
+    networks:
+      - moj_network
+
+
+# ─── الشبكة الداخلية ───
+networks:
+  moj_network:
+    driver: bridge
+
+
+# ─── أحجام التخزين الدائم ───
+volumes:
+  moj_data:              # قاعدة البيانات SQLite + ملفات الجدولة
+  moj_cookies:           # كوكيز حسابات X (حساسة)
+  moj_identity_imgs:     # الصور المولّدة من Gemini
+  moj_uploads:           # ملفات المستخدمين المرفوعة

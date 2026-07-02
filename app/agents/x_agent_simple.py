@@ -8,7 +8,8 @@ from typing import Dict, Any, Optional
 import re
 from .tools import (x_upload_cookies, x_post, x_update_profile, x_delete_account, x_delete_tweet,
                     x_like, x_repost, x_follow, x_unfollow, x_reply, x_bookmark, x_login_account,
-                    x_login_status)
+                    x_login_status, x_fetch_timeline, x_view_timeline,
+                    x_set_account_category, x_list_accounts_by_category, x_post_to_category)
 from app.utils.validators import sanitize_text, sanitize_username, sanitize_account_name
 
 
@@ -184,10 +185,14 @@ class XAgent:
                 if username and password:
                     # تحديد وضع المحاكي (مخفي/ظاهر) — افتراضياً ظاهر
                     headless = entities.get("headless", False)
-                    
-                    # تسجيل دخول عبر loginx API
+
+                    # تسجيل دخول عبر loginx API (نمرّر user_id من السياق
+                    # عشان الحساب يتسجّل في DB ويظهر بـ "حساباتي" بعد نجاح الدخول)
                     mode_text = "مخفي" if headless else "ظاهر"
-                    result = x_login_account(username, password, email, headless=headless)
+                    result = x_login_account(
+                        username, password, email,
+                        headless=headless, user_id=user_id,
+                    )
                     return result.get("message", "حدث خطأ")
                 else:
                     return (
@@ -288,11 +293,11 @@ class XAgent:
             # استخراج اسم الحساب
             account = self._extract_account_name(message, entities, context)
             user_id = context.get("user_id") if context else None
-            
+
             # تنظيف اسم الحساب
             if account:
                 account = sanitize_account_name(account)
-            
+
             if account and account != "default_account":
                 print(f"[DEBUG] X_Agent: Deleting account '{account}' for user_id={user_id}")
                 result = x_delete_account(account, user_id=user_id)
@@ -301,6 +306,114 @@ class XAgent:
                 return response_message
             else:
                 return "⚠️ يرجى تحديد اسم الحساب المراد حذفه\n\nمثال: احذف حساب test_user"
+
+        elif intent == "fetch_timeline":
+            # سحب Home Timeline لحساب معين وحفظه في DB
+            account = self._extract_account_name(message, entities, context)
+            user_id = context.get("user_id") if context else None
+            count = entities.get("count") or 50
+
+            if account:
+                account = sanitize_account_name(account)
+
+            if not account or account == "default_account":
+                return (
+                    "⚠️ حدّد الحساب الذي تبي تسحب تايم لاينه\n\n"
+                    "**أمثلة:**\n"
+                    "• `اسحب التايم لاين حساب myuser`\n"
+                    "• `جيب لي 100 تغريدة من حساب myuser`\n"
+                    "• `حمل تغريدات من حساب myuser`"
+                )
+
+            result = x_fetch_timeline(account, count=count, user_id=user_id)
+            return result.get("message", "حدث خطأ")
+
+        elif intent == "view_timeline":
+            # عرض التغريدات المحفوظة من التايم لاين
+            account = self._extract_account_name(message, entities, context)
+            user_id = context.get("user_id") if context else None
+            limit = entities.get("limit") or 10
+            offset = entities.get("offset") or 0
+
+            if account:
+                account = sanitize_account_name(account)
+
+            if not account or account == "default_account":
+                return (
+                    "⚠️ حدّد الحساب الذي تبي تعرض تغريداته\n\n"
+                    "**أمثلة:**\n"
+                    "• `اعرض تغريدات حساب myuser`\n"
+                    "• `اعرض 20 تغريدة من حساب myuser`\n"
+                    "• `شوفلي تايم لاين حساب myuser`"
+                )
+
+            result = x_view_timeline(account, limit=limit, offset=offset, user_id=user_id)
+            return result.get("message", "حدث خطأ")
+
+        elif intent == "set_account_category":
+            # غيّر تصنيف حساب معيّن
+            user_id = context.get("user_id") if context else None
+            account = self._extract_account_name(message, entities, context)
+            category = entities.get("category")
+
+            if account:
+                account = sanitize_account_name(account)
+
+            if not account or account == "default_account":
+                return (
+                    "⚠️ حدّد الحساب المطلوب تغيير تصنيفه\n\n"
+                    "**مثال:** `غيّر تصنيف myuser إلى اجتماعي`"
+                )
+
+            if not category:
+                return (
+                    "⚠️ حدّد التصنيف الجديد\n\n"
+                    "**التصنيفات:** اجتماعي / سياسي / رياضي / تقني / ديني / ترفيهي / إخباري / أدبي / تجاري / عام\n\n"
+                    f"**مثال:** `غيّر تصنيف {account} إلى اجتماعي`"
+                )
+
+            result = x_set_account_category(account, category, user_id=user_id)
+            return result.get("message", "حدث خطأ")
+
+        elif intent == "list_accounts_by_category":
+            # عرض الحسابات حسب التصنيف
+            user_id = context.get("user_id") if context else None
+            category = entities.get("category")
+
+            if not category:
+                return (
+                    "⚠️ حدّد التصنيف الذي تريد عرضه\n\n"
+                    "**أمثلة:**\n"
+                    "• `اعرض حساباتي الاجتماعية`\n"
+                    "• `اعرض الحسابات السياسية`\n"
+                    "• `شوف حساباتي التقنية`"
+                )
+
+            result = x_list_accounts_by_category(category, user_id=user_id)
+            return result.get("message", "حدث خطأ")
+
+        elif intent == "post_to_category":
+            # نشر جماعي على كل حسابات تصنيف معيّن
+            user_id = context.get("user_id") if context else None
+            category = entities.get("category")
+            content = entities.get("content", "").strip()
+
+            if not category:
+                return (
+                    "⚠️ حدّد التصنيف الذي تريد النشر عليه\n\n"
+                    "**أمثلة:**\n"
+                    "• `انشر في الحسابات الاجتماعية 'محتوى...'`\n"
+                    "• `غرّد في حساباتي التقنية 'خبر تقني'`"
+                )
+
+            if not content:
+                return (
+                    f"⚠️ حدّد المحتوى المطلوب نشره\n\n"
+                    f"**مثال:** `انشر في الحسابات {category} 'صباح الخير للجميع'`"
+                )
+
+            result = x_post_to_category(category, content, user_id=user_id, rewrite=True)
+            return result.get("message", "حدث خطأ")
         
         elif intent == "update_profile":
             name = entities.get("name")

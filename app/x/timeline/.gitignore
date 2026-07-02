@@ -1,0 +1,6 @@
+secret.key
+scraper.db
+coo.txt
+*.csv
+__pycache__/
+*.pyc
